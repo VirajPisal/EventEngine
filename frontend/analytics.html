@@ -1,0 +1,426 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>EventEngine - Analytics & Insights</title>
+    <link rel="stylesheet" href="/frontend/css/styles.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+</head>
+<body>
+    <!-- Header -->
+    <header class="header">
+        <div class="container">
+            <div class="header-content">
+                <div class="logo">⚡ EventEngine</div>
+                <nav class="nav">
+                    <ul>
+                        <li><a href="/frontend/index.html">Dashboard</a></li>
+                        <li><a href="/frontend/events.html">Events</a></li>
+                        <li><a href="/frontend/registrations.html">Registrations</a></li>
+                        <li><a href="/frontend/attendance.html">Attendance</a></li>
+                        <li><a href="/frontend/analytics.html" class="active">Analytics</a></li>
+                    </ul>
+                </nav>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Content -->
+    <main class="main-content">
+        <div class="container">
+            <!-- Page Header -->
+            <div class="page-header">
+                <h1 class="page-title">Analytics & Insights</h1>
+                <p class="page-subtitle">AI-powered event performance analysis</p>
+            </div>
+
+            <!-- Event Selection -->
+            <div class="card">
+                <div class="card-header">
+                    <h2 class="card-title">Select Event for Analysis</h2>
+                </div>
+                <div class="card-body">
+                    <div class="form-group">
+                        <label class="form-label">Choose Event</label>
+                        <select class="form-select" id="eventSelect" onchange="loadEventAnalytics()">
+                            <option value="">Loading events...</option>
+                        </select>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Analytics Actions -->
+            <div class="card" id="analyticsActions" style="display: none;">
+                <div class="card-body">
+                    <div class="btn-group">
+                        <button class="btn btn-primary" onclick="calculateAnalytics()">📊 Calculate Analytics</button>
+                        <button class="btn btn-success" onclick="generateInsights()">🤖 Generate AI Insights</button>
+                        <button class="btn btn-secondary" onclick="downloadReport()">📄 Download Report</button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Analytics Metrics -->
+            <div id="analyticsMetrics" style="display: none;">
+                <div class="stats-grid">
+                    <div class="stat-card">
+                        <div class="stat-label">Total Registered</div>
+                        <div class="stat-value" id="metricRegistered">-</div>
+                    </div>
+                    <div class="stat-card success">
+                        <div class="stat-label">Total Attended</div>
+                        <div class="stat-value" id="metricAttended">-</div>
+                    </div>
+                    <div class="stat-card warning">
+                        <div class="stat-label">Attendance Rate</div>
+                        <div class="stat-value" id="metricRate">-</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-label">Engagement Score</div>
+                        <div class="stat-value" id="metricEngagement">-</div>
+                    </div>
+                </div>
+
+                <!-- Analytics Chart -->
+                <div class="card">
+                    <div class="card-header">
+                        <h2 class="card-title">Performance Overview</h2>
+                    </div>
+                    <div class="card-body">
+                        <div class="chart-container">
+                            <canvas id="analyticsChart"></canvas>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Detailed Metrics -->
+                <div class="card">
+                    <div class="card-header">
+                        <h2 class="card-title">Detailed Metrics</h2>
+                    </div>
+                    <div class="card-body">
+                        <div id="detailedMetrics">
+                            <!-- Metrics will be loaded here -->
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- AI Insights -->
+            <div class="card" id="insightsCard" style="display: none;">
+                <div class="card-header">
+                    <h2 class="card-title">🤖 AI-Powered Insights</h2>
+                </div>
+                <div class="card-body" id="insightsContent">
+                    <!-- Insights will be loaded here -->
+                </div>
+            </div>
+
+            <!-- Summary Report -->
+            <div class="card" id="reportCard" style="display: none;">
+                <div class="card-header">
+                    <h2 class="card-title">Summary Report</h2>
+                </div>
+                <div class="card-body">
+                    <div id="reportContent" style="white-space: pre-wrap; font-family: monospace; background: var(--bg-color); padding: 1rem; border-radius: 6px;">
+                        <!-- Report will be loaded here -->
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <!-- Scripts -->
+    <script src="/frontend/js/api.js"></script>
+    <script>
+        let selectedEventId = null;
+        let currentAnalytics = null;
+        let analyticsChart = null;
+
+        // Load events on page load
+        document.addEventListener('DOMContentLoaded', async () => {
+            await loadEvents();
+        });
+
+        // Load events for dropdown
+        async function loadEvents() {
+            try {
+                const response = await EventsAPI.getAll();
+                const events = response.events;
+
+                const eventSelect = document.getElementById('eventSelect');
+                eventSelect.innerHTML = '<option value="">Select an event...</option>';
+
+                // Only show completed events for analytics
+                const completedEvents = events.filter(e => 
+                    ['COMPLETED', 'ANALYZING', 'REPORT_GENERATED'].includes(e.state)
+                );
+
+                completedEvents.forEach(event => {
+                    eventSelect.innerHTML += `<option value="${event.id}">${event.name} (${event.state})</option>`;
+                });
+
+                if (completedEvents.length === 0) {
+                    eventSelect.innerHTML += '<option value="" disabled>No completed events available for analysis</option>';
+                }
+            } catch (error) {
+                console.error('Failed to load events:', error);
+                Utils.showToast('Failed to load events', 'error');
+            }
+        }
+
+        // Load event analytics
+        async function loadEventAnalytics() {
+            const eventId = document.getElementById('eventSelect').value;
+            
+            if (!eventId) {
+                document.getElementById('analyticsActions').style.display = 'none';
+                document.getElementById('analyticsMetrics').style.display = 'none';
+                document.getElementById('insightsCard').style.display = 'none';
+                document.getElementById('reportCard').style.display = 'none';
+                return;
+            }
+
+            selectedEventId = parseInt(eventId);
+            document.getElementById('analyticsActions').style.display = 'block';
+
+            // Try to load existing analytics
+            try {
+                const response = await AnalyticsAPI.getAnalytics(selectedEventId);
+                currentAnalytics = response.analytics;
+                displayAnalytics(currentAnalytics);
+            } catch (error) {
+                console.log('No existing analytics found, need to calculate');
+                document.getElementById('analyticsMetrics').style.display = 'none';
+            }
+
+            // Try to load existing insights
+            try {
+                const response = await AnalyticsAPI.getInsights(selectedEventId);
+                displayInsights(response.insights);
+            } catch (error) {
+                console.log('No existing insights found');
+                document.getElementById('insightsCard').style.display = 'none';
+            }
+
+            // Try to load report
+            try {
+                const response = await AnalyticsAPI.getReport(selectedEventId);
+                displayReport(response.report);
+            } catch (error) {
+                console.log('No report found');
+                document.getElementById('reportCard').style.display = 'none';
+            }
+        }
+
+        // Calculate analytics
+        async function calculateAnalytics() {
+            if (!selectedEventId) return;
+
+            try {
+                Utils.showToast('Calculating analytics...', 'info');
+                const response = await AnalyticsAPI.calculate(selectedEventId);
+                currentAnalytics = response.analytics;
+                displayAnalytics(currentAnalytics);
+                Utils.showToast('Analytics calculated successfully!', 'success');
+            } catch (error) {
+                console.error('Failed to calculate analytics:', error);
+                Utils.showToast('Failed to calculate analytics: ' + error.message, 'error');
+            }
+        }
+
+        // Display analytics
+        function displayAnalytics(analytics) {
+            document.getElementById('analyticsMetrics').style.display = 'block';
+
+            // Update metrics
+            document.getElementById('metricRegistered').textContent = analytics.total_registered;
+            document.getElementById('metricAttended').textContent = analytics.total_attended;
+            document.getElementById('metricRate').textContent = `${analytics.attendance_rate}%`;
+            document.getElementById('metricEngagement').textContent = analytics.engagement_score;
+
+            // Display detailed metrics
+            const detailedHtml = `
+                <div class="stats-grid">
+                    <div>
+                        <strong>Confirmation Rate:</strong>
+                        <p>${analytics.confirmation_rate}%</p>
+                    </div>
+                    <div>
+                        <strong>No-Show Rate:</strong>
+                        <p>${analytics.no_show_rate}%</p>
+                    </div>
+                    <div>
+                        <strong>Performance:</strong>
+                        <p><span class="badge badge-${getPerformanceBadge(analytics.performance_category)}">${analytics.performance_category}</span></p>
+                    </div>
+                    <div>
+                        <strong>Duration:</strong>
+                        <p>${analytics.duration_hours} hours</p>
+                    </div>
+                </div>
+            `;
+            document.getElementById('detailedMetrics').innerHTML = detailedHtml;
+
+            // Create chart
+            createAnalyticsChart(analytics);
+        }
+
+        // Get performance badge class
+        function getPerformanceBadge(category) {
+            const map = {
+                'EXCELLENT': 'success',
+                'GOOD': 'primary',
+                'FAIR': 'warning',
+                'POOR': 'danger'
+            };
+            return map[category] || 'info';
+        }
+
+        // Create analytics chart
+        function createAnalyticsChart(analytics) {
+            const ctx = document.getElementById('analyticsChart');
+            
+            if (analyticsChart) {
+                analyticsChart.destroy();
+            }
+
+            analyticsChart = new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: ['Registered', 'Confirmed', 'Attended', 'No-Shows'],
+                    datasets: [{
+                        label: 'Participants',
+                        data: [
+                            analytics.total_registered,
+                            analytics.total_confirmed,
+                            analytics.total_attended,
+                            analytics.total_no_shows
+                        ],
+                        backgroundColor: [
+                            'rgba(79, 70, 229, 0.5)',
+                            'rgba(16, 185, 129, 0.5)',
+                            'rgba(59, 130, 246, 0.5)',
+                            'rgba(239, 68, 68, 0.5)'
+                        ],
+                        borderColor: [
+                            'rgba(79, 70, 229, 1)',
+                            'rgba(16, 185, 129, 1)',
+                            'rgba(59, 130, 246, 1)',
+                            'rgba(239, 68, 68, 1)'
+                        ],
+                        borderWidth: 2
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            display: false
+                        },
+                        title: {
+                            display: true,
+                            text: 'Event Performance Metrics'
+                        }
+                    },
+                    scales: {
+                        y: {
+                            beginAtZero: true
+                        }
+                    }
+                }
+            });
+        }
+
+        // Generate insights
+        async function generateInsights() {
+            if (!selectedEventId) return;
+
+            try {
+                Utils.showToast('Generating AI insights... This may take a moment.', 'info');
+                const response = await AnalyticsAPI.generateInsights(selectedEventId);
+                displayInsights(response.insights);
+                Utils.showToast('Insights generated successfully!', 'success');
+            } catch (error) {
+                console.error('Failed to generate insights:', error);
+                Utils.showToast('Failed to generate insights: ' + error.message, 'error');
+            }
+        }
+
+        // Display insights
+        function displayInsights(insights) {
+            document.getElementById('insightsCard').style.display = 'block';
+
+            let html = '';
+
+            if (typeof insights === 'string') {
+                html = `<p>${insights}</p>`;
+            } else if (insights && typeof insights === 'object') {
+                if (insights.summary) {
+                    html += `<div class="alert alert-info"><strong>Summary:</strong> ${insights.summary}</div>`;
+                }
+
+                if (insights.strengths && insights.strengths.length > 0) {
+                    html += '<h3 style="margin-top: 1rem;">✅ Strengths</h3><ul>';
+                    insights.strengths.forEach(strength => {
+                        html += `<li>${strength}</li>`;
+                    });
+                    html += '</ul>';
+                }
+
+                if (insights.weaknesses && insights.weaknesses.length > 0) {
+                    html += '<h3 style="margin-top: 1rem;">⚠️ Areas for Improvement</h3><ul>';
+                    insights.weaknesses.forEach(weakness => {
+                        html += `<li>${weakness}</li>`;
+                    });
+                    html += '</ul>';
+                }
+
+                if (insights.recommendations && insights.recommendations.length > 0) {
+                    html += '<h3 style="margin-top: 1rem;">💡 Recommendations</h3><ul>';
+                    insights.recommendations.forEach(rec => {
+                        html += `<li>${rec}</li>`;
+                    });
+                    html += '</ul>';
+                }
+            }
+
+            document.getElementById('insightsContent').innerHTML = html;
+        }
+
+        // Download report
+        async function downloadReport() {
+            if (!selectedEventId) return;
+
+            try {
+                const response = await AnalyticsAPI.getReport(selectedEventId);
+                displayReport(response.report);
+                
+                // Also trigger download
+                const blob = new Blob([response.report], { type: 'text/plain' });
+                const url = window.URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = `event_${selectedEventId}_report.txt`;
+                document.body.appendChild(a);
+                a.click();
+                document.body.removeChild(a);
+                window.URL.revokeObjectURL(url);
+                
+                Utils.showToast('Report downloaded successfully!', 'success');
+            } catch (error) {
+                console.error('Failed to download report:', error);
+                Utils.showToast('Failed to download report: ' + error.message, 'error');
+            }
+        }
+
+        // Display report
+        function displayReport(report) {
+            document.getElementById('reportCard').style.display = 'block';
+            document.getElementById('reportContent').textContent = report;
+        }
+    </script>
+</body>
+</html>

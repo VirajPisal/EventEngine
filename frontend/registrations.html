@@ -1,0 +1,389 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>EventEngine - Registrations</title>
+    <link rel="stylesheet" href="/frontend/css/styles.css">
+</head>
+<body>
+    <!-- Header -->
+    <header class="header">
+        <div class="container">
+            <div class="header-content">
+                <div class="logo">⚡ EventEngine</div>
+                <nav class="nav">
+                    <ul>
+                        <li><a href="/frontend/index.html">Dashboard</a></li>
+                        <li><a href="/frontend/events.html">Events</a></li>
+                        <li><a href="/frontend/registrations.html" class="active">Registrations</a></li>
+                        <li><a href="/frontend/attendance.html">Attendance</a></li>
+                        <li><a href="/frontend/analytics.html">Analytics</a></li>
+                    </ul>
+                </nav>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Content -->
+    <main class="main-content">
+        <div class="container">
+            <!-- Page Header -->
+            <div class="page-header">
+                <h1 class="page-title">Participant Registrations</h1>
+                <p class="page-subtitle">Register and manage event participants</p>
+            </div>
+
+            <!-- Registration Form -->
+            <div class="card">
+                <div class="card-header">
+                    <h2 class="card-title">Register New Participant</h2>
+                </div>
+                <div class="card-body">
+                    <form id="registrationForm" onsubmit="handleRegistration(event)">
+                        <div class="form-group">
+                            <label class="form-label">Select Event *</label>
+                            <select class="form-select" name="event_id" id="eventSelect" required>
+                                <option value="">Loading events...</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">Participant Name *</label>
+                            <input type="text" class="form-input" name="name" required>
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">Email Address *</label>
+                            <input type="email" class="form-input" name="email" required>
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">Phone Number</label>
+                            <input type="tel" class="form-input" name="phone">
+                        </div>
+                        <button type="submit" class="btn btn-primary">Register Participant</button>
+                    </form>
+                </div>
+            </div>
+
+            <!-- Search and Filter -->
+            <div class="card">
+                <div class="card-header">
+                    <h2 class="card-title">Search Participants</h2>
+                </div>
+                <div class="card-body">
+                    <div class="form-group">
+                        <label class="form-label">Filter by Event</label>
+                        <select class="form-select" id="filterEventSelect" onchange="loadParticipants()">
+                            <option value="">All Events</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <input type="text" class="form-input" id="searchInput" placeholder="Search by name or email..." onkeyup="filterParticipants()">
+                    </div>
+                </div>
+            </div>
+
+            <!-- Participants List -->
+            <div class="card">
+                <div class="card-header">
+                    <h2 class="card-title">Registered Participants</h2>
+                </div>
+                <div class="card-body">
+                    <div id="participantsContainer">
+                        <div class="loading">
+                            <div class="spinner"></div>
+                            <p>Loading participants...</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <!-- Participant Details Modal -->
+    <div class="modal-overlay" id="participantModal">
+        <div class="modal">
+            <div class="modal-header">
+                <h2 class="modal-title">Participant Details</h2>
+                <button class="modal-close" onclick="Utils.closeModal('participantModal')">&times;</button>
+            </div>
+            <div class="modal-body" id="participantDetailsContent">
+                <!-- Details will be loaded here -->
+            </div>
+            <div class="modal-footer" id="participantModalFooter">
+                <button class="btn btn-secondary" onclick="Utils.closeModal('participantModal')">Close</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Scripts -->
+    <script src="/frontend/js/api.js"></script>
+    <script>
+        let allEvents = [];
+        let allParticipants = [];
+        let currentParticipants = [];
+
+        // Load data on page load
+        document.addEventListener('DOMContentLoaded', async () => {
+            await loadEvents();
+            await loadAllParticipants();
+        });
+
+        // Load events for dropdown
+        async function loadEvents() {
+            try {
+                const response = await EventsAPI.getAll();
+                allEvents = response.events;
+
+                // Populate registration form event select
+                const eventSelect = document.getElementById('eventSelect');
+                eventSelect.innerHTML = '<option value="">Select an event...</option>';
+                
+                // Populate filter event select
+                const filterSelect = document.getElementById('filterEventSelect');
+                filterSelect.innerHTML = '<option value="">All Events</option>';
+
+                // Only show events that are in states where registration is possible
+                const registrationStates = ['CREATED', 'REGISTRATION_OPEN', 'SCHEDULED'];
+                const openEvents = allEvents.filter(e => registrationStates.includes(e.state));
+
+                openEvents.forEach(event => {
+                    const option = `<option value="${event.id}">${event.name} (${event.state})</option>`;
+                    eventSelect.innerHTML += option;
+                });
+
+                // All events for filter
+                allEvents.forEach(event => {
+                    const option = `<option value="${event.id}">${event.name}</option>`;
+                    filterSelect.innerHTML += option;
+                });
+
+                if (openEvents.length === 0) {
+                    eventSelect.innerHTML += '<option value="" disabled>No events available for registration</option>';
+                }
+            } catch (error) {
+                console.error('Failed to load events:', error);
+                Utils.showToast('Failed to load events', 'error');
+            }
+        }
+
+        // Load all participants from all events
+        async function loadAllParticipants() {
+            try {
+                allParticipants = [];
+                
+                // Load participants for each event
+                for (const event of allEvents) {
+                    try {
+                        const response = await EventsAPI.getParticipants(event.id);
+                        const participants = response.participants.map(p => ({
+                            ...p,
+                            event_name: event.name,
+                            event_id: event.id
+                        }));
+                        allParticipants.push(...participants);
+                    } catch (error) {
+                        console.error(`Failed to load participants for event ${event.id}:`, error);
+                    }
+                }
+
+                currentParticipants = allParticipants;
+                renderParticipants(currentParticipants);
+            } catch (error) {
+                console.error('Failed to load participants:', error);
+                Utils.showError('participantsContainer', 'Failed to load participants');
+            }
+        }
+
+        // Load participants (with optional event filter)
+        async function loadParticipants() {
+            const filterEventId = document.getElementById('filterEventSelect').value;
+            
+            if (filterEventId) {
+                currentParticipants = allParticipants.filter(p => p.event_id == filterEventId);
+            } else {
+                currentParticipants = allParticipants;
+            }
+            
+            renderParticipants(currentParticipants);
+        }
+
+        // Filter participants by search term
+        function filterParticipants() {
+            const searchTerm = document.getElementById('searchInput').value.toLowerCase();
+            const filterEventId = document.getElementById('filterEventSelect').value;
+            
+            let filtered = allParticipants;
+            
+            if (filterEventId) {
+                filtered = filtered.filter(p => p.event_id == filterEventId);
+            }
+            
+            if (searchTerm) {
+                filtered = filtered.filter(p => 
+                    p.name.toLowerCase().includes(searchTerm) ||
+                    p.email.toLowerCase().includes(searchTerm)
+                );
+            }
+            
+            currentParticipants = filtered;
+            renderParticipants(currentParticipants);
+        }
+
+        // Render participants table
+        function renderParticipants(participants) {
+            const container = document.getElementById('participantsContainer');
+
+            if (participants.length === 0) {
+                container.innerHTML = '<p class="text-center">No participants found.</p>';
+                return;
+            }
+
+            let html = '<div class="table-container"><table class="table"><thead><tr>';
+            html += '<th>Name</th>';
+            html += '<th>Email</th>';
+            html += '<th>Event</th>';
+            html += '<th>Status</th>';
+            html += '<th>Confirmed</th>';
+            html += '<th>Attended</th>';
+            html += '<th>Actions</th>';
+            html += '</tr></thead><tbody>';
+
+            participants.forEach(participant => {
+                const statusBadge = participant.status === 'REGISTERED' ? 'badge-success' : 
+                                   participant.status === 'CANCELLED' ? 'badge-danger' : 'badge-info';
+                
+                html += `<tr>`;
+                html += `<td><strong>${participant.name}</strong></td>`;
+                html += `<td>${participant.email}</td>`;
+                html += `<td>${participant.event_name}</td>`;
+                html += `<td><span class="badge ${statusBadge}">${participant.status}</span></td>`;
+                html += `<td>${participant.is_confirmed ? '✅ Yes' : '❌ No'}</td>`;
+                html += `<td>${participant.attended_at ? '✅ Yes' : '❌ No'}</td>`;
+                html += `<td>
+                    <button class="btn btn-secondary" style="padding: 0.5rem 1rem;" onclick="showParticipantDetails(${participant.id})">View</button>
+                `;
+                
+                if (!participant.is_confirmed && participant.status === 'REGISTERED') {
+                    html += ` <button class="btn btn-success" style="padding: 0.5rem 1rem;" onclick="confirmParticipant(${participant.id})">Confirm</button>`;
+                }
+                
+                html += `</td></tr>`;
+            });
+
+            html += '</tbody></table></div>';
+            container.innerHTML = html;
+        }
+
+        // Handle registration form submission
+        async function handleRegistration(e) {
+            e.preventDefault();
+            
+            const formData = new FormData(e.target);
+            const registrationData = {
+                event_id: parseInt(formData.get('event_id')),
+                name: formData.get('name'),
+                email: formData.get('email'),
+                phone: formData.get('phone') || null,
+            };
+
+            try {
+                const response = await RegistrationsAPI.register(registrationData);
+                Utils.showToast('Participant registered successfully!', 'success');
+                e.target.reset();
+                await loadAllParticipants();
+            } catch (error) {
+                console.error('Failed to register participant:', error);
+                Utils.showToast('Failed to register: ' + error.message, 'error');
+            }
+        }
+
+        // Show participant details
+        async function showParticipantDetails(participantId) {
+            try {
+                const response = await RegistrationsAPI.getParticipant(participantId);
+                const participant = response.participant;
+                
+                let html = `
+                    <div class="form-group">
+                        <strong>Name:</strong>
+                        <p>${participant.name}</p>
+                    </div>
+                    <div class="form-group">
+                        <strong>Email:</strong>
+                        <p>${participant.email}</p>
+                    </div>
+                    <div class="form-group">
+                        <strong>Phone:</strong>
+                        <p>${participant.phone || 'Not provided'}</p>
+                    </div>
+                    <div class="form-group">
+                        <strong>Status:</strong>
+                        <p><span class="badge ${participant.status === 'REGISTERED' ? 'badge-success' : 'badge-danger'}">${participant.status}</span></p>
+                    </div>
+                    <div class="form-group">
+                        <strong>Confirmed:</strong>
+                        <p>${participant.is_confirmed ? '✅ Yes' : '❌ No'}</p>
+                    </div>
+                    <div class="form-group">
+                        <strong>Registered At:</strong>
+                        <p>${Utils.formatDateTime(participant.registered_at)}</p>
+                    </div>
+                `;
+
+                if (participant.confirmed_at) {
+                    html += `
+                        <div class="form-group">
+                            <strong>Confirmed At:</strong>
+                            <p>${Utils.formatDateTime(participant.confirmed_at)}</p>
+                        </div>
+                    `;
+                }
+
+                if (participant.attended_at) {
+                    html += `
+                        <div class="form-group">
+                            <strong>Attended At:</strong>
+                            <p>${Utils.formatDateTime(participant.attended_at)}</p>
+                        </div>
+                        <div class="form-group">
+                            <strong>Check-in Method:</strong>
+                            <p>${participant.check_in_method || 'N/A'}</p>
+                        </div>
+                    `;
+                }
+
+                document.getElementById('participantDetailsContent').innerHTML = html;
+                
+                // Add action buttons to footer if needed
+                let footerHtml = '<button class="btn btn-secondary" onclick="Utils.closeModal(\'participantModal\')">Close</button>';
+                
+                if (!participant.is_confirmed && participant.status === 'REGISTERED') {
+                    footerHtml = `
+                        <button class="btn btn-secondary" onclick="Utils.closeModal('participantModal')">Close</button>
+                        <button class="btn btn-success" onclick="confirmParticipant(${participant.id}); Utils.closeModal('participantModal')">Confirm Participant</button>
+                    `;
+                }
+                
+                document.getElementById('participantModalFooter').innerHTML = footerHtml;
+                
+                Utils.openModal('participantModal');
+            } catch (error) {
+                console.error('Failed to load participant details:', error);
+                Utils.showToast('Failed to load participant details', 'error');
+            }
+        }
+
+        // Confirm participant
+        async function confirmParticipant(participantId) {
+            try {
+                await RegistrationsAPI.confirm(participantId);
+                Utils.showToast('Participant confirmed successfully!', 'success');
+                await loadAllParticipants();
+            } catch (error) {
+                console.error('Failed to confirm participant:', error);
+                Utils.showToast('Failed to confirm participant: ' + error.message, 'error');
+            }
+        }
+    </script>
+</body>
+</html>

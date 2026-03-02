@@ -1,0 +1,446 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>EventEngine - Attendance Tracking</title>
+    <link rel="stylesheet" href="/frontend/css/styles.css">
+</head>
+<body>
+    <!-- Header -->
+    <header class="header">
+        <div class="container">
+            <div class="header-content">
+                <div class="logo">⚡ EventEngine</div>
+                <nav class="nav">
+                    <ul>
+                        <li><a href="/frontend/index.html">Dashboard</a></li>
+                        <li><a href="/frontend/events.html">Events</a></li>
+                        <li><a href="/frontend/registrations.html">Registrations</a></li>
+                        <li><a href="/frontend/attendance.html" class="active">Attendance</a></li>
+                        <li><a href="/frontend/analytics.html">Analytics</a></li>
+                    </ul>
+                </nav>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Content -->
+    <main class="main-content">
+        <div class="container">
+            <!-- Page Header -->
+            <div class="page-header">
+                <h1 class="page-title">Attendance Tracking</h1>
+                <p class="page-subtitle">Track event attendance with QR codes and OTP</p>
+            </div>
+
+            <!-- Event Selection -->
+            <div class="card">
+                <div class="card-header">
+                    <h2 class="card-title">Select Event</h2>
+                </div>
+                <div class="card-body">
+                    <div class="form-group">
+                        <label class="form-label">Choose Event</label>
+                        <select class="form-select" id="eventSelect" onchange="loadEventAttendance()">
+                            <option value="">Loading events...</option>
+                        </select>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Attendance Methods -->
+            <div class="stats-grid" id="attendanceMethods" style="display: none;">
+                <div class="card">
+                    <div class="card-header">
+                        <h3 class="card-title">🔲 QR Code Check-in</h3>
+                    </div>
+                    <div class="card-body">
+                        <p>Generate QR code for participants</p>
+                        <button class="btn btn-primary mt-2" onclick="showQRModal()">Generate QR Code</button>
+                    </div>
+                </div>
+
+                <div class="card">
+                    <div class="card-header">
+                        <h3 class="card-title">🔢 OTP Check-in</h3>
+                    </div>
+                    <div class="card-body">
+                        <p>Validate OTP for online check-in</p>
+                        <button class="btn btn-primary mt-2" onclick="showOTPModal()">Validate OTP</button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Attendance Statistics -->
+            <div class="card" id="attendanceStats" style="display: none;">
+                <div class="card-header">
+                    <h2 class="card-title">Attendance Statistics</h2>
+                </div>
+                <div class="card-body">
+                    <div class="stats-grid">
+                        <div class="stat-card">
+                            <div class="stat-label">Total Registered</div>
+                            <div class="stat-value" id="statRegistered">-</div>
+                        </div>
+                        <div class="stat-card success">
+                            <div class="stat-label">Total Confirmed</div>
+                            <div class="stat-value" id="statConfirmed">-</div>
+                        </div>
+                        <div class="stat-card warning">
+                            <div class="stat-label">Total Attended</div>
+                            <div class="stat-value" id="statAttended">-</div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="stat-label">Attendance Rate</div>
+                            <div class="stat-value" id="statRate">-</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Attendance Records -->
+            <div class="card" id="attendanceRecords" style="display: none;">
+                <div class="card-header">
+                    <h2 class="card-title">Attendance Records</h2>
+                </div>
+                <div class="card-body">
+                    <div id="attendanceContainer">
+                        <p class="text-center">Select an event to view attendance records</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <!-- QR Code Generate Modal -->
+    <div class="modal-overlay" id="qrModal">
+        <div class="modal">
+            <div class="modal-header">
+                <h2 class="modal-title">Generate QR Code</h2>
+                <button class="modal-close" onclick="Utils.closeModal('qrModal')">&times;</button>
+            </div>
+            <div class="modal-body">
+                <div class="form-group">
+                    <label class="form-label">Select Participant</label>
+                    <select class="form-select" id="qrParticipantSelect">
+                        <option value="">Loading participants...</option>
+                    </select>
+                </div>
+                <div id="qrCodeDisplay" class="qr-code-container" style="display: none;">
+                    <!-- QR code will be displayed here -->
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-secondary" onclick="Utils.closeModal('qrModal')">Close</button>
+                <button class="btn btn-primary" onclick="generateQRCode()">Generate QR</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- OTP Validate Modal -->
+    <div class="modal-overlay" id="otpModal">
+        <div class="modal">
+            <div class="modal-header">
+                <h2 class="modal-title">Validate OTP</h2>
+                <button class="modal-close" onclick="Utils.closeModal('otpModal')">&times;</button>
+            </div>
+            <div class="modal-body">
+                <div class="form-group">
+                    <label class="form-label">Select Participant</label>
+                    <select class="form-select" id="otpParticipantSelect">
+                        <option value="">Loading participants...</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <button class="btn btn-secondary" onclick="generateOTP()">Generate OTP</button>
+                </div>
+                <div id="otpDisplay" style="display: none;">
+                    <div class="alert alert-info">
+                        <strong>OTP Generated:</strong> <span id="otpCode" style="font-size: 1.5rem; font-weight: bold;"></span>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Enter OTP to Validate</label>
+                    <input type="text" class="form-input" id="otpInput" placeholder="Enter 6-digit OTP">
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-secondary" onclick="Utils.closeModal('otpModal')">Close</button>
+                <button class="btn btn-success" onclick="validateOTP()">Validate & Check-in</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Scripts -->
+    <script src="/frontend/js/api.js"></script>
+    <script>
+        let selectedEventId = null;
+        let eventParticipants = [];
+
+        // Load events on page load
+        document.addEventListener('DOMContentLoaded', async () => {
+            await loadEvents();
+        });
+
+        // Load events for dropdown
+        async function loadEvents() {
+            try {
+                const response = await EventsAPI.getAll();
+                const events = response.events;
+
+                const eventSelect = document.getElementById('eventSelect');
+                eventSelect.innerHTML = '<option value="">Select an event...</option>';
+
+                // Only show events in attendance-related states
+                const attendanceStates = ['SCHEDULED', 'ATTENDANCE_OPEN', 'RUNNING', 'COMPLETED'];
+                const attendanceEvents = events.filter(e => attendanceStates.includes(e.state));
+
+                attendanceEvents.forEach(event => {
+                    eventSelect.innerHTML += `<option value="${event.id}">${event.name} (${event.state})</option>`;
+                });
+
+                if (attendanceEvents.length === 0) {
+                    eventSelect.innerHTML += '<option value="" disabled>No events available for attendance tracking</option>';
+                }
+            } catch (error) {
+                console.error('Failed to load events:', error);
+                Utils.showToast('Failed to load events', 'error');
+            }
+        }
+
+        // Load event attendance data
+        async function loadEventAttendance() {
+            const eventId = document.getElementById('eventSelect').value;
+            
+            if (!eventId) {
+                document.getElementById('attendanceMethods').style.display = 'none';
+                document.getElementById('attendanceStats').style.display = 'none';
+                document.getElementById('attendanceRecords').style.display = 'none';
+                return;
+            }
+
+            selectedEventId = parseInt(eventId);
+
+            // Show sections
+            document.getElementById('attendanceMethods').style.display = 'grid';
+            document.getElementById('attendanceStats').style.display = 'block';
+            document.getElementById('attendanceRecords').style.display = 'block';
+
+            // Load stats and records
+            await loadAttendanceStats();
+            await loadAttendanceRecords();
+            await loadEventParticipants();
+        }
+
+        // Load attendance statistics
+        async function loadAttendanceStats() {
+            try {
+                const response = await AttendanceAPI.getStats(selectedEventId);
+                const stats = response.stats;
+
+                document.getElementById('statRegistered').textContent = stats.total_registered;
+                document.getElementById('statConfirmed').textContent = stats.total_confirmed;
+                document.getElementById('statAttended').textContent = stats.total_attended;
+                document.getElementById('statRate').textContent = `${stats.attendance_rate}%`;
+            } catch (error) {
+                console.error('Failed to load attendance stats:', error);
+                Utils.showToast('Failed to load attendance statistics', 'error');
+            }
+        }
+
+        // Load attendance records
+        async function loadAttendanceRecords() {
+            try {
+                const response = await AttendanceAPI.getEventAttendance(selectedEventId);
+                const attendance = response.attendance;
+
+                const container = document.getElementById('attendanceContainer');
+
+                if (attendance.length === 0) {
+                    container.innerHTML = '<p class="text-center">No attendance records yet.</p>';
+                    return;
+                }
+
+                let html = '<div class="table-container"><table class="table"><thead><tr>';
+                html += '<th>Participant</th>';
+                html += '<th>Email</th>';
+                html += '<th>Check-in Method</th>';
+                html += '<th>Check-in Time</th>';
+                html += '<th>Device</th>';
+                html += '</tr></thead><tbody>';
+
+                attendance.forEach(record => {
+                    const methodBadge = record.check_in_method === 'QR' ? 'badge-primary' : 'badge-success';
+                    html += `<tr>`;
+                    html += `<td><strong>${record.participant_name}</strong></td>`;
+                    html += `<td>${record.participant_email}</td>`;
+                    html += `<td><span class="badge ${methodBadge}">${record.check_in_method}</span></td>`;
+                    html += `<td>${Utils.formatDateTime(record.check_in_time)}</td>`;
+                    html += `<td>${record.check_in_device || 'N/A'}</td>`;
+                    html += `</tr>`;
+                });
+
+                html += '</tbody></table></div>';
+                container.innerHTML = html;
+            } catch (error) {
+                console.error('Failed to load attendance records:', error);
+                Utils.showError('attendanceContainer', 'Failed to load attendance records');
+            }
+        }
+
+        // Load event participants for QR/OTP
+        async function loadEventParticipants() {
+            try {
+                const response = await EventsAPI.getParticipants(selectedEventId);
+                eventParticipants = response.participants;
+
+                // Populate QR participant select
+                const qrSelect = document.getElementById('qrParticipantSelect');
+                qrSelect.innerHTML = '<option value="">Select participant...</option>';
+
+                // Populate OTP participant select
+                const otpSelect = document.getElementById('otpParticipantSelect');
+                otpSelect.innerHTML = '<option value="">Select participant...</option>';
+
+                // Only show confirmed participants who haven't attended
+                const eligibleParticipants = eventParticipants.filter(p => 
+                    p.is_confirmed && !p.attended_at
+                );
+
+                eligibleParticipants.forEach(participant => {
+                    const option = `<option value="${participant.id}">${participant.name} (${participant.email})</option>`;
+                    qrSelect.innerHTML += option;
+                    otpSelect.innerHTML += option;
+                });
+
+                if (eligibleParticipants.length === 0) {
+                    qrSelect.innerHTML += '<option value="" disabled>No eligible participants</option>';
+                    otpSelect.innerHTML += '<option value="" disabled>No eligible participants</option>';
+                }
+            } catch (error) {
+                console.error('Failed to load participants:', error);
+                Utils.showToast('Failed to load participants', 'error');
+            }
+        }
+
+        // Show QR modal
+        function showQRModal() {
+            if (!selectedEventId) {
+                Utils.showToast('Please select an event first', 'warning');
+                return;
+            }
+            document.getElementById('qrCodeDisplay').style.display = 'none';
+            Utils.openModal('qrModal');
+        }
+
+        // Generate QR code
+        async function generateQRCode() {
+            const participantId = document.getElementById('qrParticipantSelect').value;
+            
+            if (!participantId) {
+                Utils.showToast('Please select a participant', 'warning');
+                return;
+            }
+
+            try {
+                const response = await AttendanceAPI.generateQR(parseInt(participantId));
+                const qrCode = response.qr_code;
+
+                const qrDisplay = document.getElementById('qrCodeDisplay');
+                qrDisplay.innerHTML = `
+                    <h3>QR Code Generated</h3>
+                    <img src="data:image/png;base64,${qrCode.qr_code_base64}" alt="QR Code">
+                    <p><strong>Expires:</strong> ${Utils.formatDateTime(qrCode.expires_at)}</p>
+                    <p class="text-center mt-2">
+                        <button class="btn btn-success" onclick="scanQRCode('${qrCode.token}')">Simulate Scan</button>
+                    </p>
+                `;
+                qrDisplay.style.display = 'block';
+
+                Utils.showToast('QR Code generated successfully!', 'success');
+            } catch (error) {
+                console.error('Failed to generate QR code:', error);
+                Utils.showToast('Failed to generate QR code: ' + error.message, 'error');
+            }
+        }
+
+        // Simulate QR code scan
+        async function scanQRCode(token) {
+            try {
+                const response = await AttendanceAPI.validateQR(token);
+                Utils.showToast(`Check-in successful for ${response.participant.name}!`, 'success');
+                Utils.closeModal('qrModal');
+                await loadAttendanceStats();
+                await loadAttendanceRecords();
+                await loadEventParticipants();
+            } catch (error) {
+                console.error('Failed to validate QR code:', error);
+                Utils.showToast('Failed to check-in: ' + error.message, 'error');
+            }
+        }
+
+        // Show OTP modal
+        function showOTPModal() {
+            if (!selectedEventId) {
+                Utils.showToast('Please select an event first', 'warning');
+                return;
+            }
+            document.getElementById('otpDisplay').style.display = 'none';
+            document.getElementById('otpInput').value = '';
+            Utils.openModal('otpModal');
+        }
+
+        // Generate OTP
+        async function generateOTP() {
+            const participantId = document.getElementById('otpParticipantSelect').value;
+            
+            if (!participantId) {
+                Utils.showToast('Please select a participant', 'warning');
+                return;
+            }
+
+            try {
+                const response = await AttendanceAPI.generateOTP(parseInt(participantId));
+                
+                document.getElementById('otpCode').textContent = response.otp;
+                document.getElementById('otpDisplay').style.display = 'block';
+                document.getElementById('otpInput').value = response.otp;
+
+                Utils.showToast('OTP generated successfully!', 'success');
+            } catch (error) {
+                console.error('Failed to generate OTP:', error);
+                Utils.showToast('Failed to generate OTP: ' + error.message, 'error');
+            }
+        }
+
+        // Validate OTP
+        async function validateOTP() {
+            const participantId = document.getElementById('otpParticipantSelect').value;
+            const otp = document.getElementById('otpInput').value;
+            
+            if (!participantId) {
+                Utils.showToast('Please select a participant', 'warning');
+                return;
+            }
+
+            if (!otp || otp.length !== 6) {
+                Utils.showToast('Please enter a valid 6-digit OTP', 'warning');
+                return;
+            }
+
+            try {
+                const response = await AttendanceAPI.validateOTP(parseInt(participantId), otp);
+                Utils.showToast(`Check-in successful for ${response.participant.name}!`, 'success');
+                Utils.closeModal('otpModal');
+                await loadAttendanceStats();
+                await loadAttendanceRecords();
+                await loadEventParticipants();
+            } catch (error) {
+                console.error('Failed to validate OTP:', error);
+                Utils.showToast('Failed to check-in: ' + error.message, 'error');
+            }
+        }
+    </script>
+</body>
+</html>

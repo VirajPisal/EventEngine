@@ -1,0 +1,334 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>EventEngine - Events Management</title>
+    <link rel="stylesheet" href="/frontend/css/styles.css">
+</head>
+<body>
+    <!-- Header -->
+    <header class="header">
+        <div class="container">
+            <div class="header-content">
+                <div class="logo">⚡ EventEngine</div>
+                <nav class="nav">
+                    <ul>
+                        <li><a href="/frontend/index.html">Dashboard</a></li>
+                        <li><a href="/frontend/events.html" class="active">Events</a></li>
+                        <li><a href="/frontend/registrations.html">Registrations</a></li>
+                        <li><a href="/frontend/attendance.html">Attendance</a></li>
+                        <li><a href="/frontend/analytics.html">Analytics</a></li>
+                    </ul>
+                </nav>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Content -->
+    <main class="main-content">
+        <div class="container">
+            <!-- Page Header -->
+            <div class="page-header">
+                <h1 class="page-title">Events Management</h1>
+                <p class="page-subtitle">Create and manage event lifecycle</p>
+            </div>
+
+            <!-- Action Bar -->
+            <div class="card">
+                <div class="card-body">
+                    <button class="btn btn-primary" onclick="showCreateEventModal()">+ Create New Event</button>
+                </div>
+            </div>
+
+            <!-- Events Grid -->
+            <div id="eventsContainer">
+                <div class="loading">
+                    <div class="spinner"></div>
+                    <p>Loading events...</p>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <!-- Create Event Modal -->
+    <div class="modal-overlay" id="createEventModal">
+        <div class="modal">
+            <div class="modal-header">
+                <h2 class="modal-title">Create New Event</h2>
+                <button class="modal-close" onclick="Utils.closeModal('createEventModal')">&times;</button>
+            </div>
+            <div class="modal-body">
+                <form id="createEventForm" onsubmit="handleCreateEvent(event)">
+                    <div class="form-group">
+                        <label class="form-label">Event Name *</label>
+                        <input type="text" class="form-input" name="name" required>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Description *</label>
+                        <textarea class="form-textarea" name="description" required></textarea>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Event Type *</label>
+                        <select class="form-select" name="event_type" required>
+                            <option value="ONLINE">Online</option>
+                            <option value="OFFLINE">Offline</option>
+                            <option value="HYBRID">Hybrid</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Start Time *</label>
+                        <input type="datetime-local" class="form-input" name="start_time" required>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">End Time *</label>
+                        <input type="datetime-local" class="form-input" name="end_time" required>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Venue</label>
+                        <input type="text" class="form-input" name="venue">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Max Participants *</label>
+                        <input type="number" class="form-input" name="max_participants" value="100" required>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-secondary" onclick="Utils.closeModal('createEventModal')">Cancel</button>
+                <button class="btn btn-primary" onclick="document.getElementById('createEventForm').requestSubmit()">Create Event</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Event Details Modal -->
+    <div class="modal-overlay" id="eventDetailsModal">
+        <div class="modal">
+            <div class="modal-header">
+                <h2 class="modal-title">Event Details</h2>
+                <button class="modal-close" onclick="Utils.closeModal('eventDetailsModal')">&times;</button>
+            </div>
+            <div class="modal-body" id="eventDetailsContent">
+                <!-- Event details will be loaded here -->
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-secondary" onclick="Utils.closeModal('eventDetailsModal')">Close</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Scripts -->
+    <script src="/frontend/js/api.js"></script>
+    <script>
+        let currentEvents = [];
+
+        // Load events on page load
+        document.addEventListener('DOMContentLoaded', async () => {
+            await loadEvents();
+        });
+
+        // Load all events
+        async function loadEvents() {
+            try {
+                Utils.showLoading('eventsContainer');
+                const response = await EventsAPI.getAll();
+                currentEvents = response.events;
+                renderEvents(currentEvents);
+            } catch (error) {
+                console.error('Failed to load events:', error);
+                Utils.showError('eventsContainer', 'Failed to load events');
+            }
+        }
+
+        // Render events grid
+        function renderEvents(events) {
+            const container = document.getElementById('eventsContainer');
+
+            if (events.length === 0) {
+                container.innerHTML = `
+                    <div class="card">
+                        <div class="card-body text-center">
+                            <p>No events found. Create your first event!</p>
+                        </div>
+                    </div>
+                `;
+                return;
+            }
+
+            let html = '<div class="events-grid">';
+
+            events.forEach(event => {
+                html += `
+                    <div class="event-card" onclick="showEventDetails(${event.id})">
+                        <div class="event-header">
+                            <div>
+                                <h3 class="event-title">${event.name}</h3>
+                                <span class="badge ${Utils.getStateBadgeClass(event.state)}">${event.state}</span>
+                            </div>
+                        </div>
+                        <div class="event-meta">
+                            <div class="event-meta-item">
+                                <span>📅</span>
+                                <span>${Utils.formatDateTime(event.start_time)}</span>
+                            </div>
+                            <div class="event-meta-item">
+                                <span>📍</span>
+                                <span>${event.venue || 'Not specified'}</span>
+                            </div>
+                            <div class="event-meta-item">
+                                <span>${event.event_type === 'ONLINE' ? '🌐' : '📍'}</span>
+                                <span>${event.event_type}</span>
+                            </div>
+                        </div>
+                        <div class="event-stats">
+                            <div class="event-stat">
+                                <div class="event-stat-value">${event.stats.total_registered}</div>
+                                <div class="event-stat-label">Registered</div>
+                            </div>
+                            <div class="event-stat">
+                                <div class="event-stat-value">${event.stats.total_confirmed}</div>
+                                <div class="event-stat-label">Confirmed</div>
+                            </div>
+                            <div class="event-stat">
+                                <div class="event-stat-value">${event.stats.total_attended}</div>
+                                <div class="event-stat-label">Attended</div>
+                            </div>
+                        </div>
+                    </div>
+                `;
+            });
+
+            html += '</div>';
+            container.innerHTML = html;
+        }
+
+        // Show create event modal
+        function showCreateEventModal() {
+            // Set default start time to 1 day from now
+            const tomorrow = new Date();
+            tomorrow.setDate(tomorrow.getDate() + 1);
+            const startTime = tomorrow.toISOString().slice(0, 16);
+            
+            // Set default end time to 2 hours after start
+            const endDate = new Date(tomorrow);
+            endDate.setHours(endDate.getHours() + 2);
+            const endTime = endDate.toISOString().slice(0, 16);
+            
+            document.querySelector('input[name="start_time"]').value = startTime;
+            document.querySelector('input[name="end_time"]').value = endTime;
+            
+            Utils.openModal('createEventModal');
+        }
+
+        // Handle create event form submission
+        async function handleCreateEvent(e) {
+            e.preventDefault();
+            
+            const formData = new FormData(e.target);
+            const eventData = {
+                name: formData.get('name'),
+                description: formData.get('description'),
+                event_type: formData.get('event_type'),
+                start_time: new Date(formData.get('start_time')).toISOString(),
+                end_time: new Date(formData.get('end_time')).toISOString(),
+                venue: formData.get('venue') || null,
+                max_participants: parseInt(formData.get('max_participants')),
+            };
+
+            try {
+                const response = await EventsAPI.create(eventData);
+                Utils.showToast('Event created successfully!', 'success');
+                Utils.closeModal('createEventModal');
+                e.target.reset();
+                await loadEvents();
+            } catch (error) {
+                console.error('Failed to create event:', error);
+                Utils.showToast('Failed to create event: ' + error.message, 'error');
+            }
+        }
+
+        // Show event details
+        async function showEventDetails(eventId) {
+            try {
+                const response = await EventsAPI.getById(eventId);
+                const event = response.event;
+                
+                let html = `
+                    <div class="form-group">
+                        <strong>Event Name:</strong>
+                        <p>${event.name}</p>
+                    </div>
+                    <div class="form-group">
+                        <strong>Description:</strong>
+                        <p>${event.description}</p>
+                    </div>
+                    <div class="form-group">
+                        <strong>Current State:</strong>
+                        <p><span class="badge ${Utils.getStateBadgeClass(event.state)}">${event.state}</span></p>
+                    </div>
+                    <div class="form-group">
+                        <strong>Type:</strong>
+                        <p>${Utils.getEventTypeBadge(event.event_type)}</p>
+                    </div>
+                    <div class="form-group">
+                        <strong>Schedule:</strong>
+                        <p>Start: ${Utils.formatDateTime(event.start_time)}<br>
+                        End: ${Utils.formatDateTime(event.end_time)}</p>
+                    </div>
+                    <div class="form-group">
+                        <strong>Venue:</strong>
+                        <p>${event.venue || 'Not specified'}</p>
+                    </div>
+                    <div class="form-group">
+                        <strong>Capacity:</strong>
+                        <p>${event.stats.total_registered} / ${event.max_participants}</p>
+                    </div>
+                    <div class="form-group">
+                        <strong>Statistics:</strong>
+                        <p>Registered: ${event.stats.total_registered}<br>
+                        Confirmed: ${event.stats.total_confirmed}<br>
+                        Attended: ${event.stats.total_attended}</p>
+                    </div>
+                `;
+
+                // Add state transition buttons if available
+                if (event.allowed_transitions && event.allowed_transitions.length > 0) {
+                    html += `
+                        <div class="form-group">
+                            <strong>Available Transitions:</strong>
+                            <div class="btn-group mt-2">
+                    `;
+                    event.allowed_transitions.forEach(transition => {
+                        html += `<button class="btn btn-primary" onclick="transitionEvent(${event.id}, '${transition}')">${transition}</button>`;
+                    });
+                    html += `</div></div>`;
+                }
+
+                document.getElementById('eventDetailsContent').innerHTML = html;
+                Utils.openModal('eventDetailsModal');
+            } catch (error) {
+                console.error('Failed to load event details:', error);
+                Utils.showToast('Failed to load event details', 'error');
+            }
+        }
+
+        // Transition event state
+        async function transitionEvent(eventId, newState) {
+            try {
+                await EventsAPI.transition(eventId, {
+                    new_state: newState,
+                    reason: `Manual transition via dashboard`,
+                    triggered_by: 'dashboard_user'
+                });
+                
+                Utils.showToast(`Event transitioned to ${newState}`, 'success');
+                Utils.closeModal('eventDetailsModal');
+                await loadEvents();
+            } catch (error) {
+                console.error('Failed to transition event:', error);
+                Utils.showToast('Failed to transition event: ' + error.message, 'error');
+            }
+        }
+    </script>
+</body>
+</html>

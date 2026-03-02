@@ -1,0 +1,217 @@
+"""
+Registration Routes
+Endpoints for participant registration and confirmation
+"""
+from fastapi import APIRouter, HTTPException
+from pydantic import BaseModel, Field, EmailStr
+from typing import Optional
+
+from db.base import get_db_context
+from services.registration_service import RegistrationService
+from models.participant import Participant
+from utils.logger import logger
+
+
+router = APIRouter()
+
+
+# Request/Response Models
+class RegisterParticipantRequest(BaseModel):
+    event_id: int = Field(..., ge=1)
+    name: str = Field(..., min_length=2, max_length=100)
+    email: EmailStr
+    phone: Optional[str] = Field(None, max_length=20)
+
+
+class ConfirmParticipantRequest(BaseModel):
+    participant_id: int = Field(..., ge=1)
+
+
+# Endpoints
+@router.post("/register", status_code=201)
+async def register_participant(request: RegisterParticipantRequest):
+    """
+    Register a participant for an event
+    
+    - **event_id**: Event ID to register for
+    - **name**: Participant name (2-100 chars)
+    - **email**: Valid email address
+    - **phone**: Optional phone number
+    
+    Returns participant details with QR code for attendance
+    """
+    try:
+        with get_db_context() as db:
+            result = RegistrationService.register_participant(
+                db=db,
+                event_id=request.event_id,
+                name=request.name,
+                email=request.email,
+                phone=request.phone
+            )
+            
+            if not result["success"]:
+                raise HTTPException(status_code=400, detail=result["message"])
+            
+            logger.info(f"[API] Registered participant: {request.name} for event {request.event_id}")
+            
+            return {
+                "success": True,
+                "message": result["message"],
+                "participant": {
+                    "id": result["participant"]["id"],
+                    "name": result["participant"]["name"],
+                    "email": result["participant"]["email"],
+                    "phone": result["participant"].get("phone"),
+                    "status": result["participant"]["status"],
+                    "qr_token": result["participant"].get("qr_token"),
+                    "registered_at": result["participant"]["registered_at"]
+                },
+                "email_sent": result.get("email_sent", False)
+            }
+    
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"[API] Failed to register participant: {e}")
+        raise HTTPException(status_code=500, detail=f"Failed to register participant: {str(e)}")
+
+
+@router.post("/confirm")
+async def confirm_participant(request: ConfirmParticipantRequest):
+    """
+    Confirm a participant's registration
+    
+    - **participant_id**: Participant ID to confirm
+    
+    Usually triggered when participant clicks confirmation link in email
+    """
+    try:
+        with get_db_context() as db:
+            result = RegistrationService.confirm_participant(
+                db=db,
+                participant_id=request.participant_id
+            )
+            
+            if not result["success"]:
+                raise HTTPException(status_code=400, detail=result["message"])
+            
+            logger.info(f"[API] Confirmed participant: {request.participant_id}")
+            
+            return {
+                "success": True,
+                "message": result["message"],
+                "participant": {
+                    "id": result["participant"]["id"],
+                    "name": result["participant"]["name"],
+                    "status": result["participant"]["status"],
+                    "confirmed_at": result["participant"]["confirmed_at"]
+                }
+            }
+    
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"[API] Failed to confirm participant: {e}")
+        raise HTTPException(status_code=500, detail=f"Failed to confirm participant: {str(e)}")
+
+
+@router.get("/{participant_id}")
+async def get_participant(participant_id: int):
+    """
+    Get participant details
+    
+    - **participant_id**: Participant ID
+    """
+    try:
+        with get_db_context() as db:
+            participant = db.query(Participant).filter(Participant.id == participant_id).first()
+            
+            if not participant:
+                raise HTTPException(status_code=404, detail="Participant not found")
+            
+            return {
+                "success": True,
+                "participant": {
+                    "id": participant.id,
+                    "event_id": participant.event_id,
+                    "name": participant.name,
+                    "email": participant.email,
+                    "phone": participant.phone,
+                    "status": participant.status.value,
+                    "is_confirmed": participant.is_confirmed,
+                    "confirmed_at": participant.confirmed_at.isoformat() if participant.confirmed_at else None,
+                    "registered_at": participant.registered_at.isoformat(),
+                    "qr_token": participant.qr_token
+                }
+            }
+    
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"[API] Failed to get participant {participant_id}: {e}")
+        raise HTTPException(status_code=500, detail=f"Failed to get participant: {str(e)}")
+        logger.error(f"[API] Failed to get participant {participant_id}: {e}")
+        raise HTTPException(status_code=500, detail=f"Failed to get participant: {str(e)}")
+
+
+@router.delete("/{participant_id}")
+async def cancel_registration(participant_id: int):
+    """
+    Cancel a participant's registration
+    
+    - **participant_id**: Participant ID
+    """
+    try:
+        with get_db_context() as db:
+            result = RegistrationService.cancel_registration(
+                db=db,
+                participant_id=participant_id
+            )
+            
+            if not result["success"]:
+                raise HTTPException(status_code=400, detail=result["message"])
+            
+            logger.info(f"[API] Cancelled registration: {participant_id}")
+            
+            return {
+                "success": True,
+                "message": result["message"],
+                "participant_id": participant_id
+            }
+    
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"[API] Failed to cancel registration {participant_id}: {e}")
+        raise HTTPException(status_code=500, detail=f"Failed to cancel registration: {str(e)}")
+
+
+@router.post("/{participant_id}/resend-confirmation")
+async def resend_confirmation(participant_id: int):
+    """
+    Resend confirmation email to participant
+    
+    - **participant_id**: Participant ID
+    """
+    try:
+        with get_db_context() as db:
+            result = RegistrationService.resend_confirmation_email(
+                db=db,
+                participant_id=participant_id
+            )
+            
+            if not result["success"]:
+                raise HTTPException(status_code=400, detail=result["message"])
+            
+            return {
+                "success": True,
+                "message": "Confirmation email resent successfully",
+                "email_sent": result.get("email_sent", False)
+            }
+    
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"[API] Failed to resend confirmation for participant {participant_id}: {e}")
+        raise HTTPException(status_code=500, detail=f"Failed to resend confirmation: {str(e)}")
