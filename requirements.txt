@@ -28,6 +28,9 @@ twilio==8.11.1
 # QR Code Generation
 qrcode[pil]==7.4.2
 
+# Email Validation
+email-validator>=2.0.0
+
 # Utilities
 python-multipart==0.0.6
 

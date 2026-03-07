@@ -38,12 +38,29 @@ class Settings:
     JWT_ALGORITHM: str = os.getenv("JWT_ALGORITHM", "HS256")
     JWT_EXPIRY_HOURS: int = int(os.getenv("JWT_EXPIRY_HOURS", "24"))
     
-    # Email Configuration
-    SMTP_HOST: str = os.getenv("SMTP_HOST", "smtp.gmail.com")
-    SMTP_PORT: int = int(os.getenv("SMTP_PORT", "587"))
-    SMTP_USER: str = os.getenv("SMTP_USER", "")
-    SMTP_PASSWORD: str = os.getenv("SMTP_PASSWORD", "")
-    EMAIL_FROM: str = os.getenv("EMAIL_FROM", "noreply@eventengine.com")
+    # Email Configuration — defined as properties so .env changes take effect
+    @property
+    def SMTP_HOST(self) -> str:
+        load_dotenv(override=True)
+        return os.getenv("SMTP_HOST", "smtp.gmail.com")
+
+    @property
+    def SMTP_PORT(self) -> int:
+        return int(os.getenv("SMTP_PORT", "587"))
+
+    @property
+    def SMTP_USER(self) -> str:
+        load_dotenv(override=True)
+        return os.getenv("SMTP_USER", "")
+
+    @property
+    def SMTP_PASSWORD(self) -> str:
+        load_dotenv(override=True)
+        return os.getenv("SMTP_PASSWORD", "")
+
+    @property
+    def EMAIL_FROM(self) -> str:
+        return os.getenv("EMAIL_FROM", "noreply@eventengine.com")
     
     # SMS Configuration (Twilio)
     TWILIO_ACCOUNT_SID: str = os.getenv("TWILIO_ACCOUNT_SID", "")

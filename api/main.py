@@ -2,6 +2,13 @@
 FastAPI Application - Event Lifecycle Management System
 Main entry point for REST API
 """
+import sys
+from pathlib import Path
+
+# Add project root to Python path
+project_root = Path(__file__).parent.parent
+sys.path.insert(0, str(project_root))
+
 from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
@@ -24,9 +31,13 @@ async def lifespan(app: FastAPI):
     - Shutdown: Cleanup resources
     """
     # Startup
-    logger.info("[API] Starting EventEngine API server...")
-    init_db()
-    logger.info("[API] Database initialized successfully")
+    try:
+        logger.info("[API] Starting EventEngine API server...")
+        init_db()
+        logger.info("[API] Database initialized successfully")
+    except Exception as e:
+        logger.error(f"[API] Database initialization failed: {e}")
+        logger.info("[API] Continuing without database initialization...")
     
     yield
     

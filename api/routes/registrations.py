@@ -3,6 +3,7 @@ Registration Routes
 Endpoints for participant registration and confirmation
 """
 from fastapi import APIRouter, HTTPException
+from fastapi.responses import HTMLResponse
 from pydantic import BaseModel, Field, EmailStr
 from typing import Optional
 
@@ -116,6 +117,83 @@ async def confirm_participant(request: ConfirmParticipantRequest):
         raise HTTPException(status_code=500, detail=f"Failed to confirm participant: {str(e)}")
 
 
+@router.get("/confirm/{participant_id}", response_class=HTMLResponse)
+async def confirm_participant_via_link(participant_id: int):
+    """
+    Self-confirmation link sent in registration email.
+    Student clicks this link to confirm their attendance.
+    Returns a simple HTML success/error page.
+    """
+    try:
+        with get_db_context() as db:
+            result = RegistrationService.confirm_participant(db=db, participant_id=participant_id)
+
+        if result["success"]:
+            name = result["participant"]["name"]
+            return HTMLResponse(content=f"""
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <title>Attendance Confirmed!</title>
+  <style>
+    body {{ font-family: Arial, sans-serif; display: flex; justify-content: center;
+           align-items: center; height: 100vh; margin: 0; background: #f5f5f5; }}
+    .box {{ background: white; padding: 2.5rem 3rem; border-radius: 12px;
+            box-shadow: 0 4px 20px rgba(0,0,0,.1); text-align: center; max-width: 420px; }}
+    .icon {{ font-size: 3rem; }}
+    h1 {{ color: #22c55e; margin: 0.5rem 0; }}
+    p {{ color: #555; }}
+    a {{ display: inline-block; margin-top: 1.5rem; padding: 0.6rem 1.5rem;
+         background: #4f46e5; color: white; border-radius: 6px; text-decoration: none; }}
+  </style>
+</head>
+<body>
+  <div class="box">
+    <div class="icon">✅</div>
+    <h1>You're Confirmed!</h1>
+    <p>Hi <strong>{name}</strong>, your attendance has been confirmed successfully.</p>
+    <p>We look forward to seeing you at the event!</p>
+    <a href="/frontend/index.html">Go to EventEngine</a>
+  </div>
+</body>
+</html>""", status_code=200)
+        else:
+            # Already confirmed or not found
+            msg = result["message"]
+            return HTMLResponse(content=f"""
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <title>Confirmation Status</title>
+  <style>
+    body {{ font-family: Arial, sans-serif; display: flex; justify-content: center;
+           align-items: center; height: 100vh; margin: 0; background: #f5f5f5; }}
+    .box {{ background: white; padding: 2.5rem 3rem; border-radius: 12px;
+            box-shadow: 0 4px 20px rgba(0,0,0,.1); text-align: center; max-width: 420px; }}
+    .icon {{ font-size: 3rem; }}
+    h1 {{ color: #f59e0b; margin: 0.5rem 0; }}
+    p {{ color: #555; }}
+    a {{ display: inline-block; margin-top: 1.5rem; padding: 0.6rem 1.5rem;
+         background: #4f46e5; color: white; border-radius: 6px; text-decoration: none; }}
+  </style>
+</head>
+<body>
+  <div class="box">
+    <div class="icon">ℹ️</div>
+    <h1>Already Confirmed</h1>
+    <p>{msg}</p>
+    <a href="/frontend/index.html">Go to EventEngine</a>
+  </div>
+</body>
+</html>""", status_code=200)
+
+    except Exception as e:
+        logger.error(f"[API] Confirm link error for participant {participant_id}: {e}")
+        raise HTTPException(status_code=500, detail="Confirmation failed")
+
+
 @router.get("/{participant_id}")
 async def get_participant(participant_id: int):
     """
@@ -149,8 +227,6 @@ async def get_participant(participant_id: int):
     except HTTPException:
         raise
     except Exception as e:
-        logger.error(f"[API] Failed to get participant {participant_id}: {e}")
-        raise HTTPException(status_code=500, detail=f"Failed to get participant: {str(e)}")
         logger.error(f"[API] Failed to get participant {participant_id}: {e}")
         raise HTTPException(status_code=500, detail=f"Failed to get participant: {str(e)}")
 

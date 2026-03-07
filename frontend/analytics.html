@@ -152,17 +152,13 @@
                 const eventSelect = document.getElementById('eventSelect');
                 eventSelect.innerHTML = '<option value="">Select an event...</option>';
 
-                // Only show completed events for analytics
-                const completedEvents = events.filter(e => 
-                    ['COMPLETED', 'ANALYZING', 'REPORT_GENERATED'].includes(e.state)
-                );
-
-                completedEvents.forEach(event => {
+                // Show all events in dropdown
+                events.forEach(event => {
                     eventSelect.innerHTML += `<option value="${event.id}">${event.name} (${event.state})</option>`;
                 });
 
-                if (completedEvents.length === 0) {
-                    eventSelect.innerHTML += '<option value="" disabled>No completed events available for analysis</option>';
+                if (events.length === 0) {
+                    eventSelect.innerHTML += '<option value="" disabled>No events found — create one first</option>';
                 }
             } catch (error) {
                 console.error('Failed to load events:', error);

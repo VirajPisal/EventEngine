@@ -1,36 +1,36 @@
 """
-Email Notifications - SendGrid Integration
+Email Notifications - SMTP Integration (works with Gmail, Outlook, etc.)
 Sends confirmation emails, reminders, and event notifications
 """
 from typing import Dict, Optional, List
 from datetime import datetime
-import os
+import smtplib
+import ssl
+from email.mime.multipart import MIMEMultipart
+from email.mime.text import MIMEText
+from email.mime.base import MIMEBase
+from email import encoders
+import base64
 
 from config.settings import settings
 from utils.logger import logger
 
 
 class EmailService:
-    """Email service using SendGrid API"""
-    
+    """Email service using SMTP (Gmail / Outlook / any provider)"""
+
     def __init__(self):
-        """Initialize email service with SendGrid credentials"""
-        self.smtp_host = settings.SMTP_HOST
-        self.smtp_port = settings.SMTP_PORT
-        self.smtp_user = settings.SMTP_USER
-        self.smtp_password = settings.SMTP_PASSWORD
-        self.from_email = settings.EMAIL_FROM
-        self._check_configuration()
-    
+        pass  # credentials are read fresh on every send
+
     def _check_configuration(self):
-        """Check if email service is configured"""
-        if not self.smtp_user or not self.smtp_password:
-            logger.warning("[EMAIL] SendGrid credentials not configured - emails will be simulated")
-            self.configured = False
-        else:
-            self.configured = True
-            logger.info("[EMAIL] SendGrid configured successfully")
-    
+        """Read credentials fresh from settings (which re-reads .env each call)"""
+        user = settings.SMTP_USER
+        pwd = settings.SMTP_PASSWORD
+        if not user or not pwd:
+            logger.warning("[EMAIL] SMTP credentials not configured — emails will be simulated")
+            return False
+        return True
+
     def send_email(
         self,
         to_email: str,
@@ -40,82 +40,66 @@ class EmailService:
         attachments: Optional[List[Dict]] = None
     ) -> Dict:
         """
-        Send an email via SendGrid
-        
+        Send an email via SMTP.
+
         Args:
             to_email: Recipient email address
             subject: Email subject
             body_text: Plain text body
             body_html: HTML body (optional)
-            attachments: List of attachments (optional)
-        
+            attachments: List of dicts with keys: content (base64 str), filename, type
+
         Returns:
             Dict with success status and message
         """
-        if not self.configured:
-            # Simulate email sending when not configured
+        # Read credentials fresh every time (no stale singleton)
+        smtp_user = settings.SMTP_USER
+        smtp_password = settings.SMTP_PASSWORD
+        smtp_host = settings.SMTP_HOST
+        smtp_port = settings.SMTP_PORT
+        from_email = settings.EMAIL_FROM or smtp_user
+
+        if not smtp_user or not smtp_password:
             logger.info(f"[EMAIL] [SIMULATED] To: {to_email} | Subject: {subject}")
-            logger.debug(f"[EMAIL] [SIMULATED] Body: {body_text[:100]}...")
             return {
                 "success": True,
                 "simulated": True,
-                "message": "Email simulated (SendGrid not configured)"
+                "sent": False,
+                "message": "Email simulated — configure SMTP_USER and SMTP_PASSWORD in .env to send real emails"
             }
-        
+
         try:
-            # Import SendGrid library
-            from sendgrid import SendGridAPIClient
-            from sendgrid.helpers.mail import Mail, Attachment, FileContent, FileName, FileType, Disposition
-            
-            # Create message
-            message = Mail(
-                from_email=self.from_email,
-                to_emails=to_email,
-                subject=subject,
-                plain_text_content=body_text,
-                html_content=body_html or body_text
-            )
-            
-            # Add attachments if provided
+            msg = MIMEMultipart("alternative")
+            msg["Subject"] = subject
+            msg["From"] = from_email
+            msg["To"] = to_email
+
+            msg.attach(MIMEText(body_text, "plain"))
+            if body_html:
+                msg.attach(MIMEText(body_html, "html"))
+
+            # Add attachments
             if attachments:
-                for attachment in attachments:
-                    attached_file = Attachment(
-                        FileContent(attachment['content']),
-                        FileName(attachment['filename']),
-                        FileType(attachment.get('type', 'application/octet-stream')),
-                        Disposition('attachment')
-                    )
-                    message.attachment = attached_file
-            
-            # Send email
-            sg = SendGridAPIClient(self.smtp_user)
-            response = sg.send(message)
-            
-            logger.info(f"[EMAIL] Sent to {to_email} | Subject: {subject} | Status: {response.status_code}")
-            
-            return {
-                "success": True,
-                "simulated": False,
-                "message": f"Email sent successfully (Status: {response.status_code})"
-            }
-        
-        except ImportError:
-            # SendGrid library not installed - simulate
-            logger.warning("[EMAIL] SendGrid library not installed - simulating email")
-            logger.info(f"[EMAIL] [SIMULATED] To: {to_email} | Subject: {subject}")
-            return {
-                "success": True,
-                "simulated": True,
-                "message": "Email simulated (SendGrid library not installed)"
-            }
-        
+                for att in attachments:
+                    part = MIMEBase("application", "octet-stream")
+                    part.set_payload(base64.b64decode(att["content"]))
+                    encoders.encode_base64(part)
+                    part.add_header("Content-Disposition", f'attachment; filename="{att["filename"]}"')
+                    msg.attach(part)
+
+            context = ssl.create_default_context()
+            with smtplib.SMTP(smtp_host, smtp_port) as server:
+                server.ehlo()
+                server.starttls(context=context)
+                server.login(smtp_user, smtp_password)
+                server.sendmail(from_email, to_email, msg.as_string())
+
+            logger.info(f"[EMAIL] Sent to {to_email} | Subject: {subject}")
+            return {"success": True, "simulated": False, "sent": True, "message": "Email sent successfully"}
+
         except Exception as e:
             logger.error(f"[EMAIL] Failed to send to {to_email}: {str(e)}")
-            return {
-                "success": False,
-                "simulated": False,
-                "message": f"Email failed: {str(e)}"
-            }
+            return {"success": False, "simulated": False, "sent": False, "message": f"Email failed: {str(e)}"}
     
     def send_registration_confirmation(
         self,
@@ -124,70 +108,84 @@ class EmailService:
         event_name: str,
         event_start_time: datetime,
         event_details: Dict,
-        qr_code_data: Optional[str] = None
+        qr_code_data: Optional[str] = None,
+        participant_id: Optional[int] = None
     ) -> Dict:
         """
-        Send registration confirmation email with QR code
-        
-        Args:
-            to_email: Participant email
-            participant_name: Participant name
-            event_name: Event name
-            event_start_time: Event start time
-            event_details: Event details dict
-            qr_code_data: QR code image data (base64)
-        
-        Returns:
-            Dict with success status
+        Send registration confirmation email with QR code and confirmation link.
         """
-        subject = f"Registration Confirmed: {event_name}"
-        
+        subject = f"You're Registered: {event_name} — Please Confirm Attendance"
+
+        confirm_url = f"http://localhost:8000/api/registrations/confirm/{participant_id}" if participant_id else None
+        confirm_text = f"\nPlease confirm you will attend by clicking this link:\n{confirm_url}\n" if confirm_url else ""
+
         body_text = f"""
 Dear {participant_name},
 
-Thank you for registering for {event_name}!
-
+You have successfully registered for {event_name}!
+{confirm_text}
 Event Details:
 - Date & Time: {event_start_time.strftime('%B %d, %Y at %I:%M %p UTC')}
 - Type: {event_details.get('event_type', 'N/A')}
-- Meeting Link: {event_details.get('meeting_link', 'Will be provided closer to event')}
+- Venue: {event_details.get('venue') or 'N/A'}
+- Meeting Link: {event_details.get('meeting_link') or 'Will be provided closer to event'}
 
-Your registration is confirmed. Please check your email for attendance instructions closer to the event date.
+Your QR code for attendance check-in is attached to this email.
 
 Best regards,
 EventEngine Team
         """
-        
+
+        confirm_btn = f"""
+            <div style="text-align:center; margin: 24px 0;">
+              <a href="{confirm_url}"
+                 style="background:#22c55e; color:white; padding:14px 32px;
+                        border-radius:8px; text-decoration:none; font-size:16px;
+                        font-weight:bold; display:inline-block;">
+                ✅ Confirm My Attendance
+              </a>
+            </div>
+            <p style="color:#888; font-size:12px; text-align:center;">
+              Or paste this link in your browser:<br>
+              <a href="{confirm_url}">{confirm_url}</a>
+            </p>
+        """ if confirm_url else ""
+
         body_html = f"""
         <html>
-        <body style="font-family: Arial, sans-serif; color: #333;">
-            <h2 style="color: #4CAF50;">Registration Confirmed!</h2>
+        <body style="font-family: Arial, sans-serif; color: #333; max-width:600px; margin:auto;">
+            <h2 style="color: #4f46e5;">You're Registered! 🎉</h2>
             <p>Dear <strong>{participant_name}</strong>,</p>
-            <p>Thank you for registering for <strong>{event_name}</strong>!</p>
-            
+            <p>You have successfully registered for <strong>{event_name}</strong>.</p>
+
+            <h3>Action Required</h3>
+            <p>Please confirm that you will attend by clicking the button below:</p>
+            {confirm_btn}
+
             <h3>Event Details:</h3>
             <ul>
                 <li><strong>Date & Time:</strong> {event_start_time.strftime('%B %d, %Y at %I:%M %p UTC')}</li>
                 <li><strong>Type:</strong> {event_details.get('event_type', 'N/A')}</li>
-                <li><strong>Meeting Link:</strong> <a href="{event_details.get('meeting_link', '#')}">{event_details.get('meeting_link', 'Will be provided')}</a></li>
+                <li><strong>Venue:</strong> {event_details.get('venue') or 'N/A'}</li>
+                <li><strong>Meeting Link:</strong> <a href="{event_details.get('meeting_link', '#')}">{event_details.get('meeting_link') or 'Will be provided'}</a></li>
             </ul>
-            
-            <p>Your registration is confirmed. Please check your email for attendance instructions closer to the event date.</p>
-            
+
+            <p>Your <strong>QR code</strong> for attendance check-in is attached. Keep it handy on event day.</p>
+
             <hr style="border: 1px solid #eee;">
-            <p style="color: #666; font-size: 12px;">EventEngine - Autonomous Event Management</p>
+            <p style="color: #666; font-size: 12px;">EventEngine — Autonomous Event Management</p>
         </body>
         </html>
         """
-        
+
         attachments = []
         if qr_code_data:
             attachments.append({
                 'content': qr_code_data,
-                'filename': 'qr_code.png',
+                'filename': 'attendance_qr.png',
                 'type': 'image/png'
             })
-        
+
         return self.send_email(to_email, subject, body_text, body_html, attachments)
     
     def send_reminder(

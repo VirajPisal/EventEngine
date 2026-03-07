@@ -230,11 +230,11 @@ class ReminderService:
         try:
             email_result = email_service.send_reminder(
                 to_email=participant.email,
-                to_name=participant.name,
+                participant_name=participant.name,
                 event_name=content.get('event_name', 'Your Event'),
                 event_start_time=content.get('event_start_time'),
-                message_content=content['message'],
-                tone=content['tone']
+                reminder_type=reminder_type.value.upper(),
+                message_content=content
             )
             email_sent = email_result.get('sent', False)
         except Exception as e:
@@ -243,10 +243,20 @@ class ReminderService:
         # Send SMS for AGGRESSIVE reminders (urgent situations)
         if reminder_type == ReminderType.AGGRESSIVE and participant.phone:
             try:
+                event_start_time = content.get('event_start_time')
+                hours_until = 0
+                if event_start_time:
+                    from datetime import timezone as tz
+                    now = datetime.now(tz.utc)
+                    if hasattr(event_start_time, 'tzinfo') and event_start_time.tzinfo is None:
+                        event_start_time = event_start_time.replace(tzinfo=tz.utc)
+                    hours_until = max(0, int((event_start_time - now).total_seconds() / 3600))
                 sms_result = sms_service.send_reminder(
                     to_phone=participant.phone,
+                    participant_name=participant.name,
                     event_name=content.get('event_name', 'Your Event'),
-                    event_start_time=content.get('event_start_time')
+                    event_start_time=content.get('event_start_time'),
+                    hours_until=hours_until
                 )
                 sms_sent = sms_result.get('sent', False)
             except Exception as e:

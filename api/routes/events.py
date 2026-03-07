@@ -11,7 +11,7 @@ from db.base import get_db_context
 from services.event_service import EventService
 from services.registration_service import RegistrationService
 from models.participant import Participant
-from config.constants import EventType, EventState
+from config.constants import EventType, EventState, ParticipantStatus
 from utils.logger import logger
 
 
@@ -145,7 +145,21 @@ async def list_events(
                         "end_time": event.end_time.isoformat(),
                         "venue": event.venue,
                         "meeting_link": event.meeting_link,
-                        "participant_count": db.query(Participant).filter(Participant.event_id == event.id).count()
+                        "max_participants": event.max_participants,
+                        "stats": {
+                            "total_registered": db.query(Participant).filter(
+                                Participant.event_id == event.id,
+                                Participant.status != ParticipantStatus.CANCELLED
+                            ).count(),
+                            "total_confirmed": db.query(Participant).filter(
+                                Participant.event_id == event.id,
+                                Participant.is_confirmed == True
+                            ).count(),
+                            "total_attended": db.query(Participant).filter(
+                                Participant.event_id == event.id,
+                                Participant.status == ParticipantStatus.ATTENDED
+                            ).count(),
+                        }
                     }
                     for event in events
                 ]

@@ -21,7 +21,7 @@ class GenerateAnalyticsRequest(BaseModel):
 
 
 class CompareEventsRequest(BaseModel):
-    event_ids: List[int] = Field(..., min_items=2, max_items=10)
+    event_ids: List[int] = Field(..., min_length=2, max_length=10)
 
 
 # Endpoints

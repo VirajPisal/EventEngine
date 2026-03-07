@@ -140,7 +140,7 @@
                     html += `<td><span class="badge badge-info">${Utils.getEventTypeBadge(event.event_type)}</span></td>`;
                     html += `<td><span class="badge ${Utils.getStateBadgeClass(event.state)}">${event.state}</span></td>`;
                     html += `<td>${Utils.formatDateTime(event.start_time)}</td>`;
-                    html += `<td>${event.stats.total_registered} / ${event.max_participants}</td>`;
+                    html += `<td>${event.participant_count} / ${event.max_participants ?? '∞'}</td>`;
                     html += `<td><a href="/frontend/events.html?id=${event.id}" class="btn btn-secondary" style="padding: 0.5rem 1rem;">View</a></td>`;
                     html += `</tr>`;
                 });

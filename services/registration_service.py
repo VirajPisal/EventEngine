@@ -122,7 +122,8 @@ class RegistrationService:
                     'venue': event.venue,
                     'meeting_link': event.meeting_link
                 },
-                qr_code_data=qr_data.get('image_base64')
+                qr_code_data=qr_data.get('image_base64'),
+                participant_id=participant.id
             )
             email_sent = email_result.get('success', False)
         except Exception as e:
@@ -252,6 +253,64 @@ class RegistrationService:
         return {
             "success": True,
             "message": "Registration cancelled"
+        }
+    
+    @staticmethod
+    def resend_confirmation_email(
+        db: Session,
+        participant_id: int
+    ) -> Dict[str, Any]:
+        """
+        Resend confirmation email to a participant
+        
+        Args:
+            db: Database session
+            participant_id: Participant ID
+        
+        Returns:
+            Dictionary with success status and email_sent flag
+        """
+        participant = db.query(Participant).filter(Participant.id == participant_id).first()
+        
+        if not participant:
+            return {
+                "success": False,
+                "message": f"Participant {participant_id} not found"
+            }
+        
+        event = db.query(Event).filter(Event.id == participant.event_id).first()
+        if not event:
+            return {
+                "success": False,
+                "message": f"Event not found for participant {participant_id}"
+            }
+        
+        # Try to send confirmation email
+        email_sent = False
+        try:
+            email_service = get_email_service()
+            email_service.send_registration_confirmation(
+                to_email=participant.email,
+                participant_name=participant.name,
+                event_name=event.name,
+                event_start_time=event.start_time,
+                event_details={
+                    'event_type': event.event_type.value if event.event_type else 'N/A',
+                    'venue': event.venue,
+                    'meeting_link': event.meeting_link
+                },
+                qr_code_data=None
+            )
+            email_sent = True
+        except Exception as e:
+            logger.warning(f"Failed to send confirmation email to {participant.email}: {e}")
+        
+        logger.info(f"Resent confirmation email to participant {participant_id} ({participant.name}), sent={email_sent}")
+        
+        return {
+            "success": True,
+            "message": "Confirmation email resent" if email_sent else "Confirmation processed (email service unavailable)",
+            "email_sent": email_sent
         }
     
     @staticmethod

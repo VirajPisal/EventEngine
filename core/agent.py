@@ -199,7 +199,7 @@ class EventAgent:
             insights_service.save_insights_to_analytics(db, event.id, insights)
             
             # Step 5: Transition event to REPORT_GENERATED
-            EventService.transition_event_state(db, event.id, "REPORT_GENERATED")
+            EventService.transition_event_state(db, event.id, EventState.REPORT_GENERATED)
             
             logger.info(
                 f"[AGENT] Analytics complete for Event #{event.id}: "
@@ -249,7 +249,7 @@ class EventAgent:
                         if decision['target_state'] == EventState.COMPLETED:
                             logger.info(f"[AGENT] Event #{event.id} completed - triggering analytics")
                             # Transition to ANALYZING state first
-                            EventService.transition_event_state(db, event.id, "ANALYZING")
+                            EventService.transition_event_state(db, event.id, EventState.ANALYZING)
                 
                 # Check for events in ANALYZING state and generate their analytics
                 analyzing_events = db.query(Event).filter(
