@@ -8,6 +8,7 @@ from sqlalchemy.orm import Session
 
 from db.base import get_db_context
 from models.event import Event
+from models.agent_action import AgentAction
 from config.constants import EventState
 from services.event_service import EventService
 from services.reminder_service import ReminderService
@@ -15,6 +16,7 @@ from services.analytics_service import AnalyticsService
 from services.insights_service import get_insights_service
 from rules.transition_rules import check_auto_transition_conditions
 from utils.logger import logger
+import json
 
 
 class EventAgent:
@@ -113,46 +115,49 @@ class EventAgent:
     
     def evaluate_reminders(self, db: Session, event: Event) -> Dict:
         """
-        Evaluate if reminders should be sent for an event
-        
-        Args:
-            db: Database session
-            event: Event to evaluate
-        
-        Returns:
-            Reminder evaluation result
+        Evaluate if reminders should be sent for an event.
+        Instead of sending immediately, creates a PENDING AgentAction
+        for organizer approval.
         """
-        # Only evaluate reminders for events in registration/scheduled states
         if event.state not in [EventState.REGISTRATION_OPEN, EventState.SCHEDULED]:
             return {"evaluated": False, "reason": "Event not in reminder-eligible state"}
-        
+
         try:
-            # Get recommendations
             recommendations = ReminderService.get_reminder_recommendations(db, event.id)
-            
-            # Check if we should send now
+
             if recommendations.get('should_send_now'):
-                # Send reminders
-                result = ReminderService.evaluate_and_send_reminders(
-                    db,
-                    event.id,
-                    force=False  # Respect timing rules
+                # Check if there's already a pending reminder action for this event
+                existing = db.query(AgentAction).filter(
+                    AgentAction.event_id == event.id,
+                    AgentAction.action_type == "SEND_REMINDER",
+                    AgentAction.status == "PENDING",
+                ).first()
+                if existing:
+                    return {"evaluated": True, "sent": False, "reason": "Pending action already exists"}
+
+                # Create pending action instead of sending directly
+                action = AgentAction(
+                    event_id=event.id,
+                    action_type="SEND_REMINDER",
+                    description=(
+                        f"Send {recommendations.get('reminder_type', 'reminder')} reminders "
+                        f"for '{event.name}' — {recommendations.get('send_reason', '')}"
+                    ),
+                    payload_json=json.dumps({"event_id": event.id}),
+                    status="PENDING",
                 )
-                
-                if result.get('sent'):
-                    logger.info(
-                        f"[AGENT] Sent {result['reminder_type']} reminders for Event #{event.id} "
-                        f"'{event.name}' - {result['recipient_count']} recipients"
-                    )
-                
-                return result
+                db.add(action)
+
+                logger.info(
+                    f"[AGENT] Created pending reminder action for Event #{event.id} '{event.name}'"
+                )
+                return {"evaluated": True, "sent": False, "reason": "Pending approval"}
             else:
                 return {
                     "evaluated": True,
                     "sent": False,
-                    "reason": recommendations.get('send_reason', 'Not time to send yet')
+                    "reason": recommendations.get('send_reason', 'Not time to send yet'),
                 }
-        
         except Exception as e:
             logger.error(f"[AGENT] Error evaluating reminders: {str(e)}")
             return {"evaluated": False, "error": str(e)}

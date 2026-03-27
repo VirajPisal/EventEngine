@@ -70,7 +70,7 @@
                     </div>
                     <div class="form-group">
                         <label class="form-label">Event Type *</label>
-                        <select class="form-select" name="event_type" required>
+                        <select class="form-select" name="event_type" id="eventTypeSelect" required onchange="toggleEventTypeFields()">
                             <option value="ONLINE">Online</option>
                             <option value="OFFLINE">Offline</option>
                             <option value="HYBRID">Hybrid</option>
@@ -84,9 +84,13 @@
                         <label class="form-label">End Time *</label>
                         <input type="datetime-local" class="form-input" name="end_time" required>
                     </div>
-                    <div class="form-group">
+                    <div class="form-group" id="venueField">
                         <label class="form-label">Venue</label>
-                        <input type="text" class="form-input" name="venue">
+                        <input type="text" class="form-input" name="venue" placeholder="Physical location">
+                    </div>
+                    <div class="form-group" id="meetingLinkField">
+                        <label class="form-label">Meeting Link (Google Meet / Zoom)</label>
+                        <input type="url" class="form-input" name="meeting_link" placeholder="https://meet.google.com/...">
                     </div>
                     <div class="form-group">
                         <label class="form-label">Max Participants *</label>
@@ -111,7 +115,7 @@
             <div class="modal-body" id="eventDetailsContent">
                 <!-- Event details will be loaded here -->
             </div>
-            <div class="modal-footer">
+            <div class="modal-footer" id="eventDetailsFooter">
                 <button class="btn btn-secondary" onclick="Utils.closeModal('eventDetailsModal')">Close</button>
             </div>
         </div>
@@ -202,6 +206,23 @@
             container.innerHTML = html;
         }
 
+        // Toggle venue/meeting link fields based on event type
+        function toggleEventTypeFields() {
+            const type = document.getElementById('eventTypeSelect').value;
+            const venueField = document.getElementById('venueField');
+            const meetingField = document.getElementById('meetingLinkField');
+            if (type === 'ONLINE') {
+                venueField.style.display = 'none';
+                meetingField.style.display = 'block';
+            } else if (type === 'OFFLINE') {
+                venueField.style.display = 'block';
+                meetingField.style.display = 'none';
+            } else {
+                venueField.style.display = 'block';
+                meetingField.style.display = 'block';
+            }
+        }
+
         // Show create event modal
         function showCreateEventModal() {
             // Set default start time to 1 day from now
@@ -216,7 +237,7 @@
             
             document.querySelector('input[name="start_time"]').value = startTime;
             document.querySelector('input[name="end_time"]').value = endTime;
-            
+            toggleEventTypeFields();
             Utils.openModal('createEventModal');
         }
 
@@ -232,6 +253,7 @@
                 start_time: new Date(formData.get('start_time')).toISOString(),
                 end_time: new Date(formData.get('end_time')).toISOString(),
                 venue: formData.get('venue') || null,
+                meeting_link: formData.get('meeting_link') || null,
                 max_participants: parseInt(formData.get('max_participants')),
             };
 
@@ -279,6 +301,11 @@
                         <strong>Venue:</strong>
                         <p>${event.venue || 'Not specified'}</p>
                     </div>
+                    ${event.meeting_link ? `
+                    <div class="form-group">
+                        <strong>Meeting Link:</strong>
+                        <p><a href="${event.meeting_link}" target="_blank" rel="noopener noreferrer" class="btn btn-secondary" style="display:inline-block;padding:0.4rem 1rem;">🎥 Join Meeting</a></p>
+                    </div>` : ''}
                     <div class="form-group">
                         <strong>Capacity:</strong>
                         <p>${event.stats.total_registered} / ${event.max_participants}</p>
@@ -288,6 +315,21 @@
                         <p>Registered: ${event.stats.total_registered}<br>
                         Confirmed: ${event.stats.total_confirmed}<br>
                         Attended: ${event.stats.total_attended}</p>
+                    </div>
+                `;
+
+                // Google Calendar button
+                const gcalStart = new Date(event.start_time).toISOString().replace(/[-:]/g, '').split('.')[0] + 'Z';
+                const gcalEnd = new Date(event.end_time).toISOString().replace(/[-:]/g, '').split('.')[0] + 'Z';
+                const gcalLocation = encodeURIComponent(event.meeting_link || event.venue || '');
+                const gcalText = encodeURIComponent(event.name);
+                const gcalDetails = encodeURIComponent(event.description || '');
+                const gcalUrl = `https://calendar.google.com/calendar/render?action=TEMPLATE&text=${gcalText}&dates=${gcalStart}/${gcalEnd}&details=${gcalDetails}&location=${gcalLocation}`;
+                html += `
+                    <div class="form-group">
+                        <a href="${gcalUrl}" target="_blank" rel="noopener noreferrer" class="btn btn-primary" style="display:inline-block;">
+                            📅 Add to Google Calendar
+                        </a>
                     </div>
                 `;
 

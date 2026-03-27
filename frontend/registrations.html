@@ -166,25 +166,30 @@
             }
         }
 
-        // Load all participants from all events
+        // Load all participants from all events (parallel for speed)
         async function loadAllParticipants() {
             try {
+                const container = document.getElementById('participantsContainer');
+                container.innerHTML = '<div class="loading"><div class="spinner"></div><p>Loading participants...</p></div>';
+
+                const results = await Promise.allSettled(
+                    allEvents.map(event =>
+                        EventsAPI.getParticipants(event.id).then(response => ({
+                            event,
+                            participants: response.participants
+                        }))
+                    )
+                );
+
                 allParticipants = [];
-                
-                // Load participants for each event
-                for (const event of allEvents) {
-                    try {
-                        const response = await EventsAPI.getParticipants(event.id);
-                        const participants = response.participants.map(p => ({
-                            ...p,
-                            event_name: event.name,
-                            event_id: event.id
-                        }));
-                        allParticipants.push(...participants);
-                    } catch (error) {
-                        console.error(`Failed to load participants for event ${event.id}:`, error);
+                results.forEach(result => {
+                    if (result.status === 'fulfilled') {
+                        const { event, participants } = result.value;
+                        participants.forEach(p => {
+                            allParticipants.push({ ...p, event_name: event.name, event_id: event.id });
+                        });
                     }
-                }
+                });
 
                 currentParticipants = allParticipants;
                 renderParticipants(currentParticipants);
@@ -258,7 +263,7 @@
                 html += `<td>${participant.event_name}</td>`;
                 html += `<td><span class="badge ${statusBadge}">${participant.status}</span></td>`;
                 html += `<td>${participant.is_confirmed ? '✅ Yes' : '❌ No'}</td>`;
-                html += `<td>${participant.attended_at ? '✅ Yes' : '❌ No'}</td>`;
+                html += `<td>${participant.has_attended ? '✅ Yes' : '❌ No'}</td>`;
                 html += `<td>
                     <button class="btn btn-secondary" style="padding: 0.5rem 1rem;" onclick="showParticipantDetails(${participant.id})">View</button>
                 `;
@@ -277,6 +282,9 @@
         // Handle registration form submission
         async function handleRegistration(e) {
             e.preventDefault();
+            const submitBtn = e.target.querySelector('button[type="submit"]');
+            submitBtn.disabled = true;
+            submitBtn.textContent = 'Registering...';
             
             const formData = new FormData(e.target);
             const registrationData = {
@@ -294,6 +302,9 @@
             } catch (error) {
                 console.error('Failed to register participant:', error);
                 Utils.showToast('Failed to register: ' + error.message, 'error');
+            } finally {
+                submitBtn.disabled = false;
+                submitBtn.textContent = 'Register Participant';
             }
         }
 

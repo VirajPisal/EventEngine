@@ -38,6 +38,7 @@ class Settings:
     JWT_ALGORITHM: str = os.getenv("JWT_ALGORITHM", "HS256")
     JWT_EXPIRY_HOURS: int = int(os.getenv("JWT_EXPIRY_HOURS", "24"))
     
+
     # Email Configuration — defined as properties so .env changes take effect
     @property
     def SMTP_HOST(self) -> str:

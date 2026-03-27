@@ -267,7 +267,7 @@ async def cancel_registration(participant_id: int):
 async def resend_confirmation(participant_id: int):
     """
     Resend confirmation email to participant
-    
+
     - **participant_id**: Participant ID
     """
     try:
@@ -276,18 +276,70 @@ async def resend_confirmation(participant_id: int):
                 db=db,
                 participant_id=participant_id
             )
-            
+
             if not result["success"]:
                 raise HTTPException(status_code=400, detail=result["message"])
-            
+
             return {
                 "success": True,
                 "message": "Confirmation email resent successfully",
                 "email_sent": result.get("email_sent", False)
             }
-    
+
     except HTTPException:
         raise
     except Exception as e:
         logger.error(f"[API] Failed to resend confirmation for participant {participant_id}: {e}")
         raise HTTPException(status_code=500, detail=f"Failed to resend confirmation: {str(e)}")
+
+
+@router.get("/participant/{email}")
+async def get_participant_registrations(email: str):
+    """
+    Get all registrations for a participant by email
+
+    - **email**: Participant email address
+
+    Returns all events the participant has registered for
+    """
+    try:
+        from models.event import Event
+
+        with get_db_context() as db:
+            # Get all participants with this email
+            participants = db.query(Participant).filter(Participant.email == email).all()
+
+            if not participants:
+                return {
+                    "success": True,
+                    "count": 0,
+                    "registrations": []
+                }
+
+            # Build response with event details
+            registrations = []
+            for p in participants:
+                event = db.query(Event).filter(Event.id == p.event_id).first()
+                registrations.append({
+                    "id": p.id,
+                    "event_id": p.event_id,
+                    "event_name": event.name if event else None,
+                    "name": p.name,
+                    "email": p.email,
+                    "phone": p.phone,
+                    "status": p.status.value,
+                    "is_confirmed": p.is_confirmed,
+                    "confirmed_at": p.confirmed_at.isoformat() if p.confirmed_at else None,
+                    "registered_at": p.registered_at.isoformat(),
+                    "qr_token": p.qr_token
+                })
+
+            return {
+                "success": True,
+                "count": len(registrations),
+                "registrations": registrations
+            }
+
+    except Exception as e:
+        logger.error(f"[API] Failed to get registrations for {email}: {e}")
+        raise HTTPException(status_code=500, detail=f"Failed to get registrations: {str(e)}")

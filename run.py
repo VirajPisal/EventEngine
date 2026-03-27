@@ -15,6 +15,12 @@ if __name__ == "__main__":
     print("  Starting EventEngine API Server")
     print("=" * 70)
     print()
+    print("  Open → http://localhost:8000/frontend/login.html")
+    print()
+    print("  API Docs → http://localhost:8000/docs")
+    print()
+    print("=" * 70)
+    print()
     
     uvicorn.run(
         "api.main:app",

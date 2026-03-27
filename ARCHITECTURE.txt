@@ -1,0 +1,191 @@
+
+╔════════════════════════════════════════════════════════════════════════════╗
+║                                                                            ║
+║              🎯 EVENTENGINE - COMPLETE SYSTEM ARCHITECTURE                ║
+║                                                                            ║
+╚════════════════════════════════════════════════════════════════════════════╝
+
+┌──────────────────────────────────────────────────────────────────────────┐
+│  YOUR CURRENT SITUATION                                                  │
+├──────────────────────────────────────────────────────────────────────────┤
+│                                                                          │
+│  You run: python run.py                                                  │
+│                                                                          │
+│  What starts:                                                            │
+│  ┌─────────────────────────────┐                                        │
+│  │   API SERVER ONLY           │                                        │
+│  │   Port: 8000                │                                        │
+│  │   ✓ Handles web requests    │                                        │
+│  │   ✓ Serves frontend         │                                        │
+│  │   ❌ No auto transitions    │                                        │
+│  └─────────────────────────────┘                                        │
+│                                                                          │
+│  Result:                                                                 │
+│  ✓ Frontend works                                                        │
+│  ✓ Can create events                                                     │
+│  ✓ Can manually transition                                               │
+│  ❌ Events don't transition automatically                                │
+│  ❌ Attendance doesn't open 30 min before                               │
+│                                                                          │
+└──────────────────────────────────────────────────────────────────────────┘
+
+┌──────────────────────────────────────────────────────────────────────────┐
+│  WHAT YOU NEED (COMPLETE SYSTEM)                                         │
+├──────────────────────────────────────────────────────────────────────────┤
+│                                                                          │
+│  Run: start_system.bat                                                   │
+│                                                                          │
+│  What starts:                                                            │
+│                                                                          │
+│  ┌─────────────────────────────┐   ┌─────────────────────────────┐    │
+│  │   API SERVER                │   │   AUTONOMOUS AGENT          │    │
+│  │   (run.py)                  │   │   (scripts/run_agent.py)    │    │
+│  │                             │   │                             │    │
+│  │   ✓ Web requests            │   │   ✓ Runs every 60 seconds  │    │
+│  │   ✓ REST API                │   │   ✓ Checks all events      │    │
+│  │   ✓ Serves frontend         │   │   ✓ Auto transitions       │    │
+│  │   ✓ Manual actions          │   │   ✓ Opens attendance       │    │
+│  │                             │   │   ✓ Starts/ends events     │    │
+│  │   Port: 8000                │   │   ✓ Sends reminders        │    │
+│  │   REACTIVE                  │   │   PROACTIVE                │    │
+│  │   (waits for requests)      │   │   (acts on schedule)       │    │
+│  └─────────────┬───────────────┘   └─────────────┬───────────────┘    │
+│                │                                   │                    │
+│                └──────────┬────────────────────────┘                    │
+│                           ▼                                             │
+│                  ┌────────────────────┐                                 │
+│                  │   SHARED DATABASE  │                                 │
+│                  │   SQLite           │                                 │
+│                  │   event_lifecycle.db│                                │
+│                  └────────────────────┘                                 │
+│                                                                          │
+│  Result:                                                                 │
+│  ✓ Frontend works                                                        │
+│  ✓ Can create events                                                     │
+│  ✓ Can manually transition                                               │
+│  ✓ Events transition automatically based on time                        │
+│  ✓ Attendance opens 30 min before automatically                        │
+│  ✓ Events start/complete automatically                                  │
+│  ✓ Reminders sent automatically                                         │
+│                                                                          │
+└──────────────────────────────────────────────────────────────────────────┘
+
+╔════════════════════════════════════════════════════════════════════════════╗
+║  AUTOMATIC TRANSITION FLOW (When Agent Running)                           ║
+╚════════════════════════════════════════════════════════════════════════════╝
+
+    Event Created: March 28, 2026 @ 2:00 PM - 4:00 PM
+    
+    ORGANIZER ACTION:
+    ┌────────────────┐
+    │    CREATED     │  Organizer creates event
+    └────────┬───────┘
+             │ (Manual: Click "Open Registration")
+             ▼
+    ┌────────────────┐
+    │ REGISTRATION   │  Participants can now register
+    │     OPEN       │
+    └────────┬───────┘
+             │ (Manual: Click "Schedule")
+             ▼
+    ┌────────────────┐
+    │   SCHEDULED    │  Event is locked in
+    └────────┬───────┘
+             │
+             │ ⏰ From here, AGENT takes over!
+             │
+             
+    AGENT AUTOMATION:
+             │
+             ▼  1:30 PM (30 min before)
+    ┌────────────────┐
+    │  ATTENDANCE    │  ⚡ AUTOMATICALLY opened by agent
+    │     OPEN       │  QR scanning available
+    └────────┬───────┘
+             │
+             ▼  2:00 PM (start time)
+    ┌────────────────┐
+    │    RUNNING     │  ⚡ AUTOMATICALLY started by agent
+    │                │  Event in progress
+    └────────┬───────┘
+             │
+             ▼  4:15 PM (end + 15 min grace)
+    ┌────────────────┐
+    │   COMPLETED    │  ⚡ AUTOMATICALLY completed by agent
+    └────────┬───────┘
+             │
+             ▼  Immediate
+    ┌────────────────┐
+    │   ANALYZING    │  ⚡ AUTOMATICALLY analyzing
+    └────────┬───────┘
+             │
+             ▼  Few seconds
+    ┌────────────────┐
+    │ REPORT         │  ⚡ AUTOMATICALLY generated
+    │ GENERATED      │
+    └────────────────┘
+
+╔════════════════════════════════════════════════════════════════════════════╗
+║  REGISTRATION ISSUE SOLUTION                                              ║
+╚════════════════════════════════════════════════════════════════════════════╝
+
+Problem: "Unable to open register in participant login"
+
+Root Cause: Event is NOT in "REGISTRATION_OPEN" state
+
+Flow:
+    Participant Login → Available Events Tab → See event card
+                                                      │
+                                                      ▼
+                              ┌─────────────────────────────────────┐
+                              │  If event.state == REGISTRATION_OPEN│
+                              │  → Show "Register Now" button       │
+                              │                                     │
+                              │  Else (CREATED, SCHEDULED, etc)     │
+                              │  → Show "Registration Closed"       │
+                              └─────────────────────────────────────┘
+
+Solution:
+    1. Login as ORGANIZER
+    2. Find your event
+    3. Click "Transition..." dropdown
+    4. Select "Open Registration"
+    5. Event state → REGISTRATION_OPEN
+    6. Now participants see "Register Now" button!
+
+╔════════════════════════════════════════════════════════════════════════════╗
+║  QUICK START COMMANDS                                                     ║
+╚════════════════════════════════════════════════════════════════════════════╝
+
+    START COMPLETE SYSTEM:
+    ═════════════════════
+    
+        Windows:     start_system.bat
+        Python:      python start_system.py
+    
+    
+    CHECK IF EVERYTHING IS RUNNING:
+    ═══════════════════════════════
+    
+        python check_system.py
+    
+    
+    URLS:
+    ════
+    
+        Frontend:    http://localhost:8000/frontend/login.html
+        API Docs:    http://localhost:8000/docs
+        Health:      http://localhost:8000/health
+
+
+╔════════════════════════════════════════════════════════════════════════════╗
+║  FILES I CREATED FOR YOU                                                  ║
+╚════════════════════════════════════════════════════════════════════════════╝
+
+    1. start_system.bat      → Double-click to start everything
+    2. start_system.py       → Python launcher (cross-platform)
+    3. check_system.py       → Diagnose system status
+    4. QUICK_START.md        → Detailed documentation
+    5. SOLUTION.txt          → Text-based solution
+    6. ARCHITECTURE.txt      → This visual guide
+

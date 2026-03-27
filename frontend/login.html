@@ -1,0 +1,227 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>EventEngine — Login</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: 'Inter', 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: #0f1117;
+            color: #e0e0e0;
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .login-wrapper {
+            width: 100%;
+            max-width: 420px;
+            padding: 20px;
+        }
+        .logo {
+            text-align: center;
+            margin-bottom: 32px;
+        }
+        .logo h1 {
+            font-size: 28px;
+            color: #fff;
+            font-weight: 700;
+            letter-spacing: -0.5px;
+        }
+        .logo h1 span { color: #818CF8; }
+        .logo p {
+            color: #6B7280;
+            font-size: 14px;
+            margin-top: 6px;
+        }
+        .card {
+            background: #1a1d28;
+            border-radius: 12px;
+            padding: 32px;
+            box-shadow: 0 8px 32px rgba(0,0,0,0.3);
+        }
+        /* Tabs */
+        .tabs {
+            display: flex;
+            gap: 4px;
+            background: #0f1117;
+            border-radius: 8px;
+            padding: 4px;
+            margin-bottom: 28px;
+        }
+        .tab-btn {
+            flex: 1;
+            padding: 10px;
+            border: none;
+            border-radius: 6px;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+            background: transparent;
+            color: #6B7280;
+        }
+        .tab-btn.active {
+            background: #4F46E5;
+            color: #fff;
+        }
+        .tab-btn:not(.active):hover { color: #e0e0e0; }
+        /* Form */
+        .form-group {
+            margin-bottom: 18px;
+        }
+        .form-group label {
+            display: block;
+            font-size: 13px;
+            font-weight: 500;
+            margin-bottom: 6px;
+            color: #9CA3AF;
+        }
+        .form-group input {
+            width: 100%;
+            padding: 11px 14px;
+            background: #0f1117;
+            border: 1px solid #2d3041;
+            border-radius: 8px;
+            color: #e0e0e0;
+            font-size: 14px;
+            outline: none;
+            transition: border 0.2s;
+        }
+        .form-group input:focus {
+            border-color: #4F46E5;
+        }
+        .form-group input::placeholder { color: #4B5563; }
+        .login-btn {
+            width: 100%;
+            padding: 12px;
+            border: none;
+            border-radius: 8px;
+            font-size: 15px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+            background: #4F46E5;
+            color: #fff;
+            margin-top: 6px;
+        }
+        .login-btn:hover { background: #4338CA; }
+        .login-btn:disabled { opacity: 0.6; cursor: not-allowed; }
+        .error-msg {
+            color: #EF4444;
+            font-size: 13px;
+            margin-top: 12px;
+            text-align: center;
+            display: none;
+        }
+        .error-msg.show { display: block; }
+        .footer-link {
+            text-align: center;
+            margin-top: 20px;
+            font-size: 13px;
+            color: #6B7280;
+        }
+        .footer-link a {
+            color: #818CF8;
+            text-decoration: none;
+            font-weight: 500;
+        }
+        .footer-link a:hover { text-decoration: underline; }
+    </style>
+</head>
+<body>
+    <div class="login-wrapper">
+        <div class="logo">
+            <h1>Event<span>Engine</span></h1>
+            <p>Autonomous Event Lifecycle Management</p>
+        </div>
+
+        <div class="card">
+            <div class="tabs">
+                <button class="tab-btn active" onclick="switchTab('organizer')">Organizer</button>
+                <button class="tab-btn" onclick="switchTab('participant')">Participant</button>
+            </div>
+
+            <form id="loginForm" onsubmit="handleLogin(event)">
+                <div class="form-group">
+                    <label for="email">Email</label>
+                    <input type="email" id="email" placeholder="you@example.com" required>
+                </div>
+                <div class="form-group">
+                    <label for="password">Password</label>
+                    <input type="password" id="password" placeholder="••••••••" required>
+                </div>
+                <button type="submit" class="login-btn" id="loginBtn">Login as Organizer</button>
+                <div class="error-msg" id="errorMsg"></div>
+            </form>
+
+            <div class="footer-link">
+                Don't have an account? <a href="/frontend/register.html">Register</a>
+            </div>
+        </div>
+    </div>
+
+    <script src="/frontend/js/auth.js"></script>
+    <script>
+        let currentRole = "organizer";
+
+        // If already logged in, redirect
+        (function() {
+            const token = getToken();
+            const role = getRole();
+            if (token && role) {
+                window.location.href = role === "organizer"
+                    ? "/frontend/dashboard.html"
+                    : "/frontend/portal.html";
+            }
+        })();
+
+        function switchTab(role) {
+            currentRole = role;
+            document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
+            event.target.classList.add('active');
+            document.getElementById('loginBtn').textContent = "Login as " + role.charAt(0).toUpperCase() + role.slice(1);
+            document.getElementById('errorMsg').classList.remove('show');
+        }
+
+        async function handleLogin(e) {
+            e.preventDefault();
+            const btn = document.getElementById('loginBtn');
+            const errEl = document.getElementById('errorMsg');
+            errEl.classList.remove('show');
+            btn.disabled = true;
+            btn.textContent = "Logging in...";
+
+            const email = document.getElementById('email').value.trim();
+            const password = document.getElementById('password').value;
+
+            try {
+                const resp = await fetch(`/api/auth/${currentRole}/login`, {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({ email, password })
+                });
+                const data = await resp.json();
+
+                if (!resp.ok) {
+                    throw new Error(data.detail || "Login failed");
+                }
+
+                saveAuth(data.access_token, data.role, data.name, data.email);
+
+                window.location.href = data.role === "organizer"
+                    ? "/frontend/dashboard.html"
+                    : "/frontend/portal.html";
+            } catch (err) {
+                errEl.textContent = err.message;
+                errEl.classList.add('show');
+            } finally {
+                btn.disabled = false;
+                btn.textContent = "Login as " + currentRole.charAt(0).toUpperCase() + currentRole.slice(1);
+            }
+        }
+    </script>
+</body>
+</html>

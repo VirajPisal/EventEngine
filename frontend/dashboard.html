@@ -1,0 +1,504 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>EventEngine - Organizer Dashboard</title>
+    <link rel="stylesheet" href="/frontend/css/styles.css">
+    <style>
+        /* ===== DARK THEME OVERRIDES ===== */
+        :root {
+            --db-bg: #0f1117;
+            --db-surface: #1a1d27;
+            --db-surface2: #232733;
+            --db-border: #2d3141;
+            --db-text: #e4e6ed;
+            --db-text-dim: #8b8fa3;
+            --db-accent: #6366f1;
+            --db-accent-glow: rgba(99,102,241,.25);
+            --db-green: #22c55e;
+            --db-red: #ef4444;
+            --db-amber: #f59e0b;
+            --db-blue: #3b82f6;
+        }
+        body { background: var(--db-bg); color: var(--db-text); font-family: 'Inter','Segoe UI',sans-serif; margin:0; }
+
+        /* ===== TOP BAR ===== */
+        .topbar { background: var(--db-surface); border-bottom:1px solid var(--db-border); padding:12px 24px; display:flex; align-items:center; justify-content:space-between; position:sticky; top:0; z-index:100; }
+        .topbar .logo { font-size:1.25rem; font-weight:700; color:var(--db-accent); }
+        .topbar .logo span { color:var(--db-text); font-weight:400; margin-left:6px; font-size:.85rem; }
+        .topbar-right { display:flex; align-items:center; gap:16px; }
+        .topbar-right .user-name { font-size:.85rem; color:var(--db-text-dim); }
+        .btn-sm { padding:6px 14px; border:none; border-radius:6px; cursor:pointer; font-size:.8rem; font-weight:500; transition:.2s; }
+        .btn-logout { background:var(--db-surface2); color:var(--db-text-dim); }
+        .btn-logout:hover { background:var(--db-red); color:#fff; }
+
+        /* ===== 3-PANEL GRID ===== */
+        .dashboard-grid { display:grid; grid-template-columns:1fr 1fr 1fr; gap:16px; padding:20px 24px; height:calc(100vh - 56px); overflow:hidden; }
+        @media(max-width:1100px){ .dashboard-grid{grid-template-columns:1fr; height:auto; overflow:auto;} .panel{max-height:80vh;} }
+
+        /* ===== PANEL ===== */
+        .panel { background:var(--db-surface); border:1px solid var(--db-border); border-radius:12px; display:flex; flex-direction:column; overflow:hidden; }
+        .panel-header { padding:16px 18px; border-bottom:1px solid var(--db-border); display:flex; align-items:center; justify-content:space-between; flex-shrink:0; }
+        .panel-header h2 { font-size:1rem; font-weight:600; display:flex; align-items:center; gap:8px; }
+        .panel-header h2 .icon { font-size:1.1rem; }
+        .panel-body { flex:1; overflow-y:auto; padding:14px 18px; }
+        .panel-body::-webkit-scrollbar { width:6px; }
+        .panel-body::-webkit-scrollbar-thumb { background:var(--db-border); border-radius:3px; }
+
+        /* ===== BADGE ===== */
+        .badge { font-size:.7rem; padding:2px 8px; border-radius:10px; font-weight:600; }
+        .badge-pending { background:rgba(245,158,11,.15); color:var(--db-amber); }
+        .badge-executed { background:rgba(34,197,94,.15); color:var(--db-green); }
+        .badge-rejected { background:rgba(239,68,68,.15); color:var(--db-red); }
+        .badge-count { background:var(--db-accent); color:#fff; min-width:20px; text-align:center; }
+
+        /* ===== EVENT CARDS (Panel 1) ===== */
+        .event-card { background:var(--db-surface2); border:1px solid var(--db-border); border-radius:10px; padding:14px; margin-bottom:10px; transition:.2s; cursor:pointer; }
+        .event-card:hover { border-color:var(--db-accent); box-shadow:0 0 0 1px var(--db-accent-glow); }
+        .event-card.selected { border-color:var(--db-accent); background:rgba(99,102,241,.07); }
+        .event-card-top { display:flex; justify-content:space-between; align-items:center; margin-bottom:6px; }
+        .event-card-name { font-weight:600; font-size:.92rem; }
+        .event-card-state { font-size:.7rem; padding:2px 8px; border-radius:6px; font-weight:600; text-transform:uppercase; letter-spacing:.3px; }
+        .state-CREATED { background:rgba(59,130,246,.15); color:var(--db-blue); }
+        .state-REGISTRATION_OPEN { background:rgba(34,197,94,.15); color:var(--db-green); }
+        .state-SCHEDULED { background:rgba(245,158,11,.15); color:var(--db-amber); }
+        .state-ATTENDANCE_OPEN,.state-RUNNING { background:rgba(139,92,246,.15); color:#a78bfa; }
+        .state-COMPLETED,.state-REPORT_GENERATED { background:rgba(107,114,128,.15); color:#9ca3af; }
+        .state-CANCELLED { background:rgba(239,68,68,.15); color:var(--db-red); }
+        .state-ANALYZING { background:rgba(59,130,246,.15); color:var(--db-blue); }
+        .event-card-meta { font-size:.78rem; color:var(--db-text-dim); display:flex; gap:12px; flex-wrap:wrap; margin-top:4px; }
+        .event-card-meta span::before { margin-right:4px; }
+        .event-card-stats { display:flex; gap:14px; margin-top:8px; font-size:.76rem; }
+        .event-card-stats .stat { color:var(--db-text-dim); }
+        .event-card-stats .stat strong { color:var(--db-text); }
+        .event-actions { display:flex; gap:6px; margin-top:10px; flex-wrap:wrap; }
+        .btn-action { padding:5px 12px; border:1px solid var(--db-border); background:var(--db-surface); color:var(--db-text-dim); border-radius:6px; font-size:.73rem; cursor:pointer; transition:.2s; }
+        .btn-action:hover { border-color:var(--db-accent); color:var(--db-accent); }
+        .btn-action.danger:hover { border-color:var(--db-red); color:var(--db-red); }
+
+        /* Live feed */
+        .live-feed { margin-top:12px; border-top:1px solid var(--db-border); padding-top:10px; }
+        .live-feed-title { font-size:.78rem; font-weight:600; color:var(--db-text-dim); margin-bottom:6px; display:flex; align-items:center; gap:6px; }
+        .live-dot { width:6px; height:6px; background:var(--db-green); border-radius:50%; animation:pulse 1.5s infinite; }
+        @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:.3} }
+        .feed-item { font-size:.75rem; color:var(--db-text-dim); padding:3px 0; border-bottom:1px solid rgba(45,49,65,.5); }
+        .feed-item .name { color:var(--db-text); font-weight:500; }
+
+        /* ===== AGENT INBOX (Panel 2) ===== */
+        .action-card { background:var(--db-surface2); border:1px solid var(--db-border); border-radius:10px; padding:14px; margin-bottom:10px; }
+        .action-card-header { display:flex; justify-content:space-between; align-items:center; margin-bottom:6px; }
+        .action-type { font-weight:600; font-size:.85rem; }
+        .action-desc { font-size:.8rem; color:var(--db-text-dim); margin-bottom:8px; line-height:1.4; }
+        .action-time { font-size:.72rem; color:var(--db-text-dim); }
+        .action-buttons { display:flex; gap:8px; margin-top:8px; }
+        .btn-approve { background:var(--db-green); color:#fff; border:none; padding:6px 16px; border-radius:6px; font-size:.78rem; font-weight:500; cursor:pointer; transition:.2s; }
+        .btn-approve:hover { filter:brightness(1.15); }
+        .btn-reject { background:transparent; border:1px solid var(--db-red); color:var(--db-red); padding:6px 16px; border-radius:6px; font-size:.78rem; font-weight:500; cursor:pointer; transition:.2s; }
+        .btn-reject:hover { background:var(--db-red); color:#fff; }
+        .action-history-title { font-size:.8rem; color:var(--db-text-dim); font-weight:600; margin:16px 0 8px; }
+
+        /* ===== NLP CREATOR (Panel 3) ===== */
+        .nlp-textarea { width:100%; min-height:120px; background:var(--db-surface2); border:1px solid var(--db-border); border-radius:10px; padding:12px; color:var(--db-text); font-size:.85rem; font-family:inherit; resize:vertical; }
+        .nlp-textarea:focus { outline:none; border-color:var(--db-accent); box-shadow:0 0 0 3px var(--db-accent-glow); }
+        .nlp-textarea::placeholder { color:var(--db-text-dim); }
+        .btn-parse { width:100%; padding:10px; background:var(--db-accent); color:#fff; border:none; border-radius:8px; font-size:.88rem; font-weight:600; cursor:pointer; margin-top:10px; transition:.2s; }
+        .btn-parse:hover { filter:brightness(1.1); }
+        .btn-parse:disabled { opacity:.5; cursor:not-allowed; }
+        .parsed-preview { background:var(--db-surface2); border:1px solid var(--db-border); border-radius:10px; padding:14px; margin-top:14px; display:none; }
+        .parsed-preview h3 { font-size:.88rem; margin-bottom:10px; }
+        .parsed-field { display:flex; justify-content:space-between; padding:5px 0; border-bottom:1px solid rgba(45,49,65,.5); font-size:.8rem; }
+        .parsed-field .label { color:var(--db-text-dim); }
+        .parsed-field .value { color:var(--db-text); font-weight:500; text-align:right; max-width:60%; word-break:break-word; }
+        .parsed-field input, .parsed-field select { background:var(--db-surface); border:1px solid var(--db-border); color:var(--db-text); padding:4px 8px; border-radius:4px; font-size:.78rem; width:60%; text-align:right; }
+        .parsed-field input:focus, .parsed-field select:focus { outline:none; border-color:var(--db-accent); }
+        .btn-create-event { width:100%; padding:10px; background:var(--db-green); color:#fff; border:none; border-radius:8px; font-size:.88rem; font-weight:600; cursor:pointer; margin-top:12px; transition:.2s; }
+        .btn-create-event:hover { filter:brightness(1.1); }
+
+        /* ===== EMPTY STATE ===== */
+        .empty { text-align:center; padding:30px 10px; color:var(--db-text-dim); font-size:.85rem; }
+        .empty .icon { font-size:2rem; margin-bottom:8px; }
+
+        /* ===== TOAST ===== */
+        .toast { position:fixed; bottom:20px; right:20px; background:var(--db-surface); border:1px solid var(--db-border); border-radius:10px; padding:12px 20px; font-size:.85rem; z-index:9999; box-shadow:0 8px 20px rgba(0,0,0,.3); transform:translateY(80px); opacity:0; transition:.3s; }
+        .toast.show { transform:translateY(0); opacity:1; }
+        .toast.success { border-color:var(--db-green); }
+        .toast.error { border-color:var(--db-red); }
+
+        /* ===== TRANSITIONS SELECT ===== */
+        .transition-select { background:var(--db-surface); border:1px solid var(--db-border); color:var(--db-text); padding:4px 8px; border-radius:6px; font-size:.73rem; cursor:pointer; }
+    </style>
+</head>
+<body>
+    <!-- Top Bar -->
+    <div class="topbar">
+        <div class="logo">&#9889; EventEngine <span>Organizer</span></div>
+        <div class="topbar-right">
+            <span class="user-name" id="userName"></span>
+            <button class="btn-sm btn-logout" onclick="doLogout()">Logout</button>
+        </div>
+    </div>
+
+    <!-- 3-Panel Grid -->
+    <div class="dashboard-grid">
+
+        <!-- ===== PANEL 1: Event Control Center ===== -->
+        <div class="panel">
+            <div class="panel-header">
+                <h2><span class="icon">&#128204;</span> Event Control Center</h2>
+                <span class="badge badge-count" id="eventCount">0</span>
+            </div>
+            <div class="panel-body" id="eventList">
+                <div class="empty"><div class="icon">&#128196;</div>Loading events...</div>
+            </div>
+        </div>
+
+        <!-- ===== PANEL 2: Agent Inbox ===== -->
+        <div class="panel">
+            <div class="panel-header">
+                <h2><span class="icon">&#129302;</span> Agent Inbox</h2>
+                <span class="badge badge-count" id="pendingCount">0</span>
+            </div>
+            <div class="panel-body" id="agentInbox">
+                <div class="empty"><div class="icon">&#9989;</div>No pending actions</div>
+            </div>
+        </div>
+
+        <!-- ===== PANEL 3: NLP Event Creator ===== -->
+        <div class="panel">
+            <div class="panel-header">
+                <h2><span class="icon">&#10024;</span> Quick Create</h2>
+            </div>
+            <div class="panel-body">
+                <textarea class="nlp-textarea" id="nlpInput" placeholder="Describe your event in natural language...&#10;&#10;Example: Plan an online tech meetup called 'AI Workshop' on January 15th 2025 from 3 PM to 5 PM with max 100 participants, meeting link https://meet.google.com/abc-defg-hij"></textarea>
+                <button class="btn-parse" id="btnParse" onclick="parseNLP()">&#10024; Parse &amp; Preview</button>
+
+                <div class="parsed-preview" id="parsedPreview">
+                    <h3>&#128270; Parsed Event Details</h3>
+                    <div id="parsedFields"></div>
+                    <button class="btn-create-event" onclick="createEventFromParsed()">&#10003; Create Event</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Toast -->
+    <div class="toast" id="toast"></div>
+
+    <script src="/frontend/js/auth.js"></script>
+    <script>
+    /* ===== AUTH CHECK ===== */
+    (function(){
+        if(!getToken()||getRole()!=='organizer'){
+            window.location.href='/frontend/login.html';
+            return;
+        }
+        document.getElementById('userName').textContent=getName()||getEmail()||'Organizer';
+    })();
+    function doLogout(){ logout(); window.location.href='/frontend/login.html'; }
+
+    const API = '';
+    const hdrs = ()=>({...authHeaders(),'Content-Type':'application/json'});
+
+    /* ===== TOAST ===== */
+    function showToast(msg,type='success'){
+        const t=document.getElementById('toast');
+        t.textContent=msg; t.className='toast '+type+' show';
+        setTimeout(()=>t.classList.remove('show'),3000);
+    }
+
+    /* ============================================================
+       PANEL 1 — EVENT CONTROL CENTER
+       ============================================================ */
+    let allEvents = [];
+    let selectedEventId = null;
+
+    async function loadEvents(){
+        try{
+            const r=await fetch(API+'/api/events/?limit=100');
+            const d=await r.json();
+            if(d.success){
+                allEvents=d.events;
+                document.getElementById('eventCount').textContent=d.count;
+                renderEvents();
+            }
+        }catch(e){ console.error('loadEvents',e); }
+    }
+
+    function renderEvents(){
+        const el=document.getElementById('eventList');
+        if(!allEvents.length){ el.innerHTML='<div class="empty"><div class="icon">&#128196;</div>No events yet. Create one!</div>'; return; }
+        el.innerHTML=allEvents.map(ev=>{
+            const sel=ev.id===selectedEventId?'selected':'';
+            const s=ev.stats||{};
+            return `
+            <div class="event-card ${sel}" onclick="selectEvent(${ev.id})">
+                <div class="event-card-top">
+                    <span class="event-card-name">${esc(ev.name)}</span>
+                    <span class="event-card-state state-${ev.state}">${ev.state.replace(/_/g,' ')}</span>
+                </div>
+                <div class="event-card-meta">
+                    <span>&#128197; ${fmtDate(ev.start_time)}</span>
+                    <span>&#127759; ${ev.event_type}</span>
+                    ${ev.venue?'<span>&#128205; '+esc(ev.venue)+'</span>':''}
+                </div>
+                <div class="event-card-stats">
+                    <span class="stat">Registered: <strong>${s.total_registered||0}</strong></span>
+                    <span class="stat">Confirmed: <strong>${s.total_confirmed||0}</strong></span>
+                    <span class="stat">Attended: <strong>${s.total_attended||0}</strong></span>
+                </div>
+                <div class="event-actions">
+                    ${getTransitionButtons(ev)}
+                    <button class="btn-action danger" onclick="event.stopPropagation();cancelEvent(${ev.id})">Cancel</button>
+                </div>
+                <div class="live-feed" id="feed-${ev.id}" style="display:none"></div>
+            </div>`;
+        }).join('');
+    }
+
+    const TRANSITIONS={
+        'CREATED':['REGISTRATION_OPEN','CANCELLED'],
+        'REGISTRATION_OPEN':['SCHEDULED','CANCELLED'],
+        'SCHEDULED':['ATTENDANCE_OPEN','CANCELLED'],
+        'ATTENDANCE_OPEN':['RUNNING'],
+        'RUNNING':['COMPLETED'],
+        'COMPLETED':['ANALYZING'],
+        'ANALYZING':[],
+        'REPORT_GENERATED':[],
+        'CANCELLED':[]
+    };
+    function getTransitionButtons(ev){
+        const ts=TRANSITIONS[ev.state]||[];
+        if(!ts.length) return '';
+        return `<select class="transition-select" onchange="transitionEvent(${ev.id},this.value);this.selectedIndex=0" onclick="event.stopPropagation()">
+            <option value="">Transition...</option>
+            ${ts.map(s=>`<option value="${s}">${s.replace(/_/g,' ')}</option>`).join('')}
+        </select>`;
+    }
+
+    async function transitionEvent(id,state){
+        if(!state) return;
+        try{
+            const r=await fetch(API+`/api/events/${id}/transition`,{
+                method:'POST', headers:hdrs(),
+                body:JSON.stringify({new_state:state,triggered_by:'organizer'})
+            });
+            const d=await r.json();
+            if(d.success){ showToast('Transitioned to '+state.replace(/_/g,' ')); loadEvents(); }
+            else showToast(d.detail||'Failed','error');
+        }catch(e){ showToast('Error: '+e.message,'error'); }
+    }
+
+    async function cancelEvent(id){
+        if(!confirm('Cancel this event?')) return;
+        try{
+            const r=await fetch(API+`/api/events/${id}`,{method:'DELETE',headers:hdrs()});
+            const d=await r.json();
+            if(d.success){ showToast('Event cancelled'); loadEvents(); }
+            else showToast(d.detail||'Failed','error');
+        }catch(e){ showToast('Error: '+e.message,'error'); }
+    }
+
+    function selectEvent(id){
+        selectedEventId=selectedEventId===id?null:id;
+        renderEvents();
+        if(selectedEventId) loadLiveFeed(selectedEventId);
+    }
+
+    async function loadLiveFeed(eventId){
+        try{
+            const r=await fetch(API+`/api/attendance/event/${eventId}/recent`);
+            const d=await r.json();
+            const el=document.getElementById('feed-'+eventId);
+            if(!el) return;
+            el.style.display='block';
+            if(!d.success||!d.count){
+                el.innerHTML='<div class="live-feed-title"><span class="live-dot"></span> Live Attendance</div><div style="font-size:.75rem;color:var(--db-text-dim)">No check-ins yet</div>';
+                return;
+            }
+            el.innerHTML=`<div class="live-feed-title"><span class="live-dot"></span> Live Attendance (${d.count})</div>`+
+                d.attendance.map(a=>`<div class="feed-item"><span class="name">${esc(a.participant_name)}</span> via ${a.check_in_method} &mdash; ${fmtTime(a.checked_in_at)}</div>`).join('');
+        }catch(e){ console.error('liveFeed',e); }
+    }
+
+    /* ============================================================
+       PANEL 2 — AGENT INBOX
+       ============================================================ */
+    async function loadPendingActions(){
+        try{
+            const r=await fetch(API+'/api/agent/pending-actions',{headers:hdrs()});
+            const d=await r.json();
+            if(!d.success) return;
+            document.getElementById('pendingCount').textContent=d.count;
+            const el=document.getElementById('agentInbox');
+            if(!d.count){
+                el.innerHTML='<div class="empty"><div class="icon">&#9989;</div>No pending actions &mdash; all clear!</div>';
+                // Load history below
+                await loadRecentActions(el);
+                return;
+            }
+            el.innerHTML=d.actions.map(a=>`
+                <div class="action-card">
+                    <div class="action-card-header">
+                        <span class="action-type">${a.action_type.replace(/_/g,' ')}</span>
+                        <span class="badge badge-pending">PENDING</span>
+                    </div>
+                    <div class="action-desc">${esc(a.description)}</div>
+                    <div class="action-time">Event #${a.event_id} &bull; ${fmtTime(a.created_at)}</div>
+                    <div class="action-buttons">
+                        <button class="btn-approve" onclick="approveAction(${a.id})">&#10003; Approve</button>
+                        <button class="btn-reject" onclick="rejectAction(${a.id})">&#10007; Reject</button>
+                    </div>
+                </div>
+            `).join('');
+            await loadRecentActions(el);
+        }catch(e){ console.error('loadPending',e); }
+    }
+
+    async function loadRecentActions(container){
+        try{
+            const r=await fetch(API+'/api/agent/recent-actions',{headers:hdrs()});
+            const d=await r.json();
+            if(!d.success||!d.count) return;
+            container.innerHTML+=`<div class="action-history-title">Recent History</div>`+
+                d.actions.map(a=>`
+                    <div class="action-card" style="opacity:.7">
+                        <div class="action-card-header">
+                            <span class="action-type">${a.action_type.replace(/_/g,' ')}</span>
+                            <span class="badge badge-${a.status.toLowerCase()}">${a.status}</span>
+                        </div>
+                        <div class="action-desc">${esc(a.description)}</div>
+                        <div class="action-time">${a.executed_at?fmtTime(a.executed_at):''}</div>
+                    </div>
+                `).join('');
+        }catch(e){ console.error('recentActions',e); }
+    }
+
+    async function approveAction(id){
+        try{
+            const r=await fetch(API+`/api/agent/actions/${id}/approve`,{method:'POST',headers:hdrs()});
+            const d=await r.json();
+            if(d.success) showToast('Action approved & executed');
+            else showToast(d.detail||'Failed','error');
+            loadPendingActions();
+        }catch(e){ showToast('Error: '+e.message,'error'); }
+    }
+
+    async function rejectAction(id){
+        try{
+            const r=await fetch(API+`/api/agent/actions/${id}/reject`,{method:'POST',headers:hdrs()});
+            const d=await r.json();
+            if(d.success) showToast('Action rejected');
+            else showToast(d.detail||'Failed','error');
+            loadPendingActions();
+        }catch(e){ showToast('Error: '+e.message,'error'); }
+    }
+
+    /* ============================================================
+       PANEL 3 — NLP EVENT CREATOR
+       ============================================================ */
+    let parsedData = null;
+
+    async function parseNLP(){
+        const text=document.getElementById('nlpInput').value.trim();
+        if(!text){ showToast('Enter event description','error'); return; }
+        const btn=document.getElementById('btnParse');
+        btn.disabled=true; btn.textContent='Parsing...';
+        try{
+            const r=await fetch(API+'/api/events/parse-natural-language',{
+                method:'POST', headers:hdrs(),
+                body:JSON.stringify({text})
+            });
+            const d=await r.json();
+            if(d.success){
+                parsedData=d.parsed;
+                showParsedPreview(d.parsed,d.source);
+                showToast('Parsed via '+d.source);
+            } else { showToast(d.detail||'Parse failed','error'); }
+        }catch(e){ showToast('Error: '+e.message,'error'); }
+        btn.disabled=false; btn.textContent='\u2728 Parse & Preview';
+    }
+
+    function showParsedPreview(p,source){
+        const preview=document.getElementById('parsedPreview');
+        const fields=document.getElementById('parsedFields');
+        preview.style.display='block';
+        fields.innerHTML=`
+            <div class="parsed-field"><span class="label">Source</span><span class="value">${source}</span></div>
+            <div class="parsed-field"><span class="label">Name</span><input id="pf-name" value="${esc(p.name||'')}"></div>
+            <div class="parsed-field"><span class="label">Description</span><input id="pf-desc" value="${esc(p.description||'')}"></div>
+            <div class="parsed-field"><span class="label">Type</span>
+                <select id="pf-type">
+                    <option value="ONLINE" ${p.event_type==='ONLINE'?'selected':''}>ONLINE</option>
+                    <option value="OFFLINE" ${p.event_type==='OFFLINE'?'selected':''}>OFFLINE</option>
+                    <option value="HYBRID" ${p.event_type==='HYBRID'?'selected':''}>HYBRID</option>
+                </select>
+            </div>
+            <div class="parsed-field"><span class="label">Start Time</span><input type="datetime-local" id="pf-start" value="${toLocalInput(p.start_time)}"></div>
+            <div class="parsed-field"><span class="label">End Time</span><input type="datetime-local" id="pf-end" value="${toLocalInput(p.end_time)}"></div>
+            <div class="parsed-field"><span class="label">Venue</span><input id="pf-venue" value="${esc(p.venue||'')}"></div>
+            <div class="parsed-field"><span class="label">Meeting Link</span><input id="pf-link" value="${esc(p.meeting_link||'')}"></div>
+            <div class="parsed-field"><span class="label">Max Participants</span><input type="number" id="pf-max" value="${p.max_participants||''}"></div>
+        `;
+    }
+
+    async function createEventFromParsed(){
+        // Validate dates before touching toISOString (avoids silent throw)
+        const startVal = document.getElementById('pf-start').value;
+        const endVal   = document.getElementById('pf-end').value;
+        const startDate = startVal ? new Date(startVal) : null;
+        const endDate   = endVal   ? new Date(endVal)   : null;
+
+        if(!startDate || isNaN(startDate.getTime())){
+            showToast('Start time is required','error'); return;
+        }
+        if(!endDate || isNaN(endDate.getTime())){
+            showToast('End time is required — please fill it in','error'); return;
+        }
+        if(endDate <= startDate){
+            showToast('End time must be after start time','error'); return;
+        }
+
+        const body={
+            name: document.getElementById('pf-name').value.trim(),
+            description: (document.getElementById('pf-desc').value||'Created via NLP').trim(),
+            event_type: document.getElementById('pf-type').value,
+            start_time: startDate.toISOString(),
+            end_time:   endDate.toISOString(),
+            venue: document.getElementById('pf-venue').value||null,
+            meeting_link: document.getElementById('pf-link').value||null,
+            max_participants: parseInt(document.getElementById('pf-max').value)||null
+        };
+        if(!body.name){
+            showToast('Event name is required','error'); return;
+        }
+        if(body.description.length < 10) body.description = body.name + ' — created via NLP assistant.';
+        try{
+            const r=await fetch(API+'/api/events/',{
+                method:'POST', headers:hdrs(),
+                body:JSON.stringify(body)
+            });
+            const d=await r.json();
+            if(d.success){
+                showToast('Event created: '+d.event.name);
+                document.getElementById('nlpInput').value='';
+                document.getElementById('parsedPreview').style.display='none';
+                parsedData=null;
+                await loadEvents();
+            } else { showToast(d.detail||d.message||'Failed','error'); }
+        }catch(e){ showToast('Error: '+e.message,'error'); }
+    }
+
+    /* ===== HELPERS ===== */
+    function esc(s){ if(!s) return ''; const d=document.createElement('div'); d.textContent=s; return d.innerHTML; }
+    function fmtDate(iso){ if(!iso) return '-'; const d=new Date(iso); return d.toLocaleDateString('en-IN',{day:'numeric',month:'short',year:'numeric'}); }
+    function fmtTime(iso){ if(!iso) return ''; const d=new Date(iso); return d.toLocaleTimeString('en-IN',{hour:'2-digit',minute:'2-digit'})+' '+d.toLocaleDateString('en-IN',{day:'numeric',month:'short'}); }
+    function toLocalInput(iso){ if(!iso) return ''; try{ const d=new Date(iso); return d.toISOString().slice(0,16); }catch(e){ return ''; } }
+
+    /* ===== INIT & POLL ===== */
+    loadEvents();
+    loadPendingActions();
+    setInterval(()=>{ loadEvents(); loadPendingActions(); },15000);
+    </script>
+</body>
+</html>

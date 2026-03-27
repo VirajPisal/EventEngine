@@ -3,155 +3,21 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>EventEngine - Dashboard</title>
-    <link rel="stylesheet" href="/frontend/css/styles.css">
-</head>
-<body>
-    <!-- Header -->
-    <header class="header">
-        <div class="container">
-            <div class="header-content">
-                <div class="logo">⚡ EventEngine</div>
-                <nav class="nav">
-                    <ul>
-                        <li><a href="/frontend/index.html" class="active">Dashboard</a></li>
-                        <li><a href="/frontend/events.html">Events</a></li>
-                        <li><a href="/frontend/registrations.html">Registrations</a></li>
-                        <li><a href="/frontend/attendance.html">Attendance</a></li>
-                        <li><a href="/frontend/analytics.html">Analytics</a></li>
-                    </ul>
-                </nav>
-            </div>
-        </div>
-    </header>
-
-    <!-- Main Content -->
-    <main class="main-content">
-        <div class="container">
-            <!-- Page Header -->
-            <div class="page-header">
-                <h1 class="page-title">Dashboard</h1>
-                <p class="page-subtitle">Overview of event management system</p>
-            </div>
-
-            <!-- Stats Grid -->
-            <div class="stats-grid" id="statsGrid">
-                <div class="stat-card">
-                    <div class="stat-label">Total Events</div>
-                    <div class="stat-value" id="totalEvents">-</div>
-                </div>
-                <div class="stat-card success">
-                    <div class="stat-label">Total Participants</div>
-                    <div class="stat-value" id="totalParticipants">-</div>
-                </div>
-                <div class="stat-card warning">
-                    <div class="stat-label">Attendance Rate</div>
-                    <div class="stat-value" id="attendanceRate">-</div>
-                </div>
-                <div class="stat-card">
-                    <div class="stat-label">Avg Engagement</div>
-                    <div class="stat-value" id="avgEngagement">-</div>
-                </div>
-            </div>
-
-            <!-- Recent Events -->
-            <div class="card">
-                <div class="card-header">
-                    <h2 class="card-title">Recent Events</h2>
-                    <a href="/frontend/events.html" class="btn btn-primary">View All Events</a>
-                </div>
-                <div class="card-body">
-                    <div id="recentEvents">
-                        <div class="loading">
-                            <div class="spinner"></div>
-                            <p>Loading events...</p>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Quick Actions -->
-            <div class="card">
-                <div class="card-header">
-                    <h2 class="card-title">Quick Actions</h2>
-                </div>
-                <div class="card-body">
-                    <div class="btn-group">
-                        <a href="/frontend/events.html#create" class="btn btn-primary">Create Event</a>
-                        <a href="/frontend/registrations.html" class="btn btn-success">Register Participant</a>
-                        <a href="/frontend/attendance.html" class="btn btn-secondary">Track Attendance</a>
-                        <a href="/frontend/analytics.html" class="btn btn-secondary">View Analytics</a>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </main>
-
-    <!-- Scripts -->
-    <script src="/frontend/js/api.js"></script>
+    <title>EventEngine</title>
     <script>
-        // Load dashboard data on page load
-        document.addEventListener('DOMContentLoaded', async () => {
-            await loadDashboardStats();
-            await loadRecentEvents();
-        });
-
-        // Load dashboard statistics
-        async function loadDashboardStats() {
-            try {
-                const response = await AnalyticsAPI.getDashboard(10);
-                const dashboard = response.dashboard;
-
-                document.getElementById('totalEvents').textContent = dashboard.total_events;
-                document.getElementById('totalParticipants').textContent = dashboard.total_participants;
-                document.getElementById('attendanceRate').textContent = `${dashboard.overall_attendance_rate}%`;
-                document.getElementById('avgEngagement').textContent = dashboard.average_engagement.toFixed(1);
-            } catch (error) {
-                console.error('Failed to load dashboard stats:', error);
-                Utils.showError('statsGrid', 'Failed to load statistics');
+        // Redirect to the appropriate dashboard based on auth state
+        (function() {
+            var token = localStorage.getItem('ee_token');
+            var role = localStorage.getItem('ee_role');
+            if (token && role === 'organizer') {
+                window.location.replace('/frontend/dashboard.html');
+            } else if (token && role === 'participant') {
+                window.location.replace('/frontend/participant.html');
+            } else {
+                window.location.replace('/frontend/login.html');
             }
-        }
-
-        // Load recent events
-        async function loadRecentEvents() {
-            try {
-                const response = await EventsAPI.getAll(0, 5);
-                const events = response.events;
-
-                const container = document.getElementById('recentEvents');
-
-                if (events.length === 0) {
-                    container.innerHTML = '<p class="text-center">No events found. Create your first event!</p>';
-                    return;
-                }
-
-                let html = '<div class="table-container"><table class="table"><thead><tr>';
-                html += '<th>Event Name</th>';
-                html += '<th>Type</th>';
-                html += '<th>State</th>';
-                html += '<th>Start Time</th>';
-                html += '<th>Registered</th>';
-                html += '<th>Actions</th>';
-                html += '</tr></thead><tbody>';
-
-                events.forEach(event => {
-                    html += `<tr>`;
-                    html += `<td><strong>${event.name}</strong></td>`;
-                    html += `<td><span class="badge badge-info">${Utils.getEventTypeBadge(event.event_type)}</span></td>`;
-                    html += `<td><span class="badge ${Utils.getStateBadgeClass(event.state)}">${event.state}</span></td>`;
-                    html += `<td>${Utils.formatDateTime(event.start_time)}</td>`;
-                    html += `<td>${event.participant_count} / ${event.max_participants ?? '∞'}</td>`;
-                    html += `<td><a href="/frontend/events.html?id=${event.id}" class="btn btn-secondary" style="padding: 0.5rem 1rem;">View</a></td>`;
-                    html += `</tr>`;
-                });
-
-                html += '</tbody></table></div>';
-                container.innerHTML = html;
-            } catch (error) {
-                console.error('Failed to load recent events:', error);
-                Utils.showError('recentEvents', 'Failed to load events');
-            }
-        }
+        })();
     </script>
+</head>
 </body>
 </html>

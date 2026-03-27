@@ -76,6 +76,8 @@ def init_db():
     from models.participant import Participant
     from models.attendance import Attendance
     from models.analytics import Analytics
+    from models.user import Organizer, ParticipantAccount  # noqa
+    from models.agent_action import AgentAction  # noqa
     
     Base.metadata.create_all(bind=engine)
 

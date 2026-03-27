@@ -303,9 +303,9 @@
                 const otpSelect = document.getElementById('otpParticipantSelect');
                 otpSelect.innerHTML = '<option value="">Select participant...</option>';
 
-                // Only show confirmed participants who haven't attended
+                // Show all registered participants who haven't attended yet
                 const eligibleParticipants = eventParticipants.filter(p => 
-                    p.is_confirmed && !p.attended_at
+                    p.status !== 'CANCELLED' && !p.has_attended
                 );
 
                 eligibleParticipants.forEach(participant => {
@@ -334,6 +334,9 @@
             Utils.openModal('qrModal');
         }
 
+        // Store current QR token for scan
+        let currentQRToken = null;
+
         // Generate QR code
         async function generateQRCode() {
             const participantId = document.getElementById('qrParticipantSelect').value;
@@ -346,14 +349,25 @@
             try {
                 const response = await AttendanceAPI.generateQR(parseInt(participantId));
                 const qrCode = response.qr_code;
+                currentQRToken = qrCode.token;
+
+                const expiresText = qrCode.expires_in_hours
+                    ? `Expires in ${qrCode.expires_in_hours} hour(s)`
+                    : 'Valid for 24 hours';
 
                 const qrDisplay = document.getElementById('qrCodeDisplay');
+                let imgHtml = '';
+                if (qrCode.image_base64) {
+                    imgHtml = `<img src="data:image/png;base64,${qrCode.image_base64}" alt="QR Code" style="display:block;margin:1rem auto;max-width:250px;">`;
+                } else {
+                    imgHtml = `<p class="text-center" style="padding:1rem;background:#f0f0f0;">QR Code Token: <code style="word-break:break-all;font-size:0.75rem;">${qrCode.token.substring(0, 40)}...</code></p>`;
+                }
                 qrDisplay.innerHTML = `
                     <h3>QR Code Generated</h3>
-                    <img src="data:image/png;base64,${qrCode.qr_code_base64}" alt="QR Code">
-                    <p><strong>Expires:</strong> ${Utils.formatDateTime(qrCode.expires_at)}</p>
+                    ${imgHtml}
+                    <p><strong>${expiresText}</strong></p>
                     <p class="text-center mt-2">
-                        <button class="btn btn-success" onclick="scanQRCode('${qrCode.token}')">Simulate Scan</button>
+                        <button class="btn btn-success" onclick="scanQRCode()">&#x2714; Simulate Scan / Check-in</button>
                     </p>
                 `;
                 qrDisplay.style.display = 'block';
@@ -366,17 +380,22 @@
         }
 
         // Simulate QR code scan
-        async function scanQRCode(token) {
+        async function scanQRCode() {
+            if (!currentQRToken) {
+                Utils.showToast('No QR token available. Generate a QR code first.', 'warning');
+                return;
+            }
             try {
-                const response = await AttendanceAPI.validateQR(token);
+                const response = await AttendanceAPI.validateQR(currentQRToken);
                 Utils.showToast(`Check-in successful for ${response.participant.name}!`, 'success');
+                currentQRToken = null;
                 Utils.closeModal('qrModal');
                 await loadAttendanceStats();
                 await loadAttendanceRecords();
                 await loadEventParticipants();
             } catch (error) {
                 console.error('Failed to validate QR code:', error);
-                Utils.showToast('Failed to check-in: ' + error.message, 'error');
+                Utils.showToast('Check-in failed: ' + error.message, 'error');
             }
         }
 

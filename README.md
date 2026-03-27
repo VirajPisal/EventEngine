@@ -396,6 +396,59 @@ EventEngine/
 | SMS reminders via Twilio | Twilio is already in requirements and `.env`, just needs credentials |
 | Role-based access | Admin / Organizer / Viewer roles with JWT auth |
 
+### 🚀 New Features (In Progress)
+
+#### 1. LinkedIn One-Click Event Post
+After an event is created, the organizer sees a **"Post to LinkedIn"** button. The agent auto-drafts the post using the event name, date, description, and registration link. The organizer previews it and hits **Allow** — the post goes live instantly via the LinkedIn Share API.
+
+**Flow:**
+```
+Organizer creates event
+        ↓
+EventEngine shows: [Preview Post] [Post to LinkedIn] [Skip]
+        ↓  (one click)
+Agent posts to LinkedIn:
+─────────────────────────────────────────
+🎯 Exciting Event Alert!
+
+We're hosting [EventName] on [Date] at [Venue/Online]
+
+[Description]
+
+🔗 Register here: http://yourapp/register/[event_id]
+#EventName #EventEngine
+─────────────────────────────────────────
+```
+
+**What's needed:**
+- LinkedIn Developer App (`client_id` + `client_secret`) — free
+- Manager completes OAuth once → token stored
+- All future posts: one click, no tab switching
+
+#### 2. Low Registration Alert to Organizer (Agent Intelligence)
+The agent now monitors registration pace and alerts the organizer proactively — not just participants.
+
+| Trigger | Agent Action |
+|---------|-------------|
+| 3 days before event and < 20% capacity filled | Emails organizer: *"Only 5/50 spots filled. Consider promoting."* |
+| 1 day before event and < 40% capacity filled | Emails organizer with urgent alert and a ready-to-use LinkedIn/WhatsApp share link |
+| 5+ cancellations within 1 hour | Emails organizer: *"Cancellation spike detected — 5 participants cancelled in the last hour"* |
+| Event hits 100% capacity 5+ days early | Notifies organizer to consider increasing capacity or opening a waitlist |
+
+This turns the agent from a **mailer** into a genuine **event intelligence system** that watches the event health and flags issues before they become problems.
+
+#### 3. Attendance Certificate Emailer
+After the event reaches `REPORT_GENERATED`, the agent automatically emails a **personalized PDF certificate of participation** to every participant who checked in.
+
+**Certificate includes:**
+- Participant's full name
+- Event name, date, and venue
+- Organizer name / organization
+- Unique certificate ID (verifiable)
+- Auto-signed with event details
+
+**No action required from the organizer** — the agent handles generation and delivery entirely. Uses the `reportlab` Python library for PDF generation.
+
 ---
 
 ## How to Run

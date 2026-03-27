@@ -1,0 +1,197 @@
+"""
+COMPLETE SOLUTION - EventEngine System Setup
+=============================================
+
+PROBLEM SUMMARY:
+1. ❓ Do transitions happen automatically? 
+   → YES, but only when AGENT is running
+   
+2. ❓ Can't register in participant portal?
+   → Event must be in "REGISTRATION_OPEN" state
+
+SOLUTION:
+=========
+
+1. START THE COMPLETE SYSTEM
+   ---------------------------
+   Double-click: start_system.bat
+   
+   This starts:
+   ✓ API Server (port 8000)
+   ✓ Autonomous Agent (background scheduler)
+   
+   Two windows will open - keep both running!
+
+2. CHECK SYSTEM STATUS
+   --------------------
+   Run: python check_system.py
+   
+   This tells you:
+   ✓ Is API running?
+   ✓ Is Agent running?
+   ✓ Are there events ready?
+
+3. FIX REGISTRATION ISSUE
+   -----------------------
+   The issue is EVENT STATE, not authentication!
+   
+   Steps:
+   a) Login as ORGANIZER
+      → http://localhost:8000/frontend/login.html
+      → Use organizer credentials
+   
+   b) Go to event you want to open
+   
+   c) Click "Transition..." button
+   
+   d) Select "Open Registration"
+   
+   e) Now participants can register!
+
+4. TEST REGISTRATION
+   -------------------
+   a) Logout (or use incognito window)
+   
+   b) Login as PARTICIPANT
+      OR create new participant account
+   
+   c) Go to "Available Events" tab
+   
+   d) You'll see "Register Now" button
+      (only shows for REGISTRATION_OPEN events)
+   
+   e) Fill form and submit
+   
+   f) Check "My Registrations" tab
+
+AUTOMATIC TRANSITIONS EXPLAINED:
+=================================
+
+When AGENT is running, events automatically transition based on time:
+
+Timeline Example:
+-----------------
+Event scheduled for: March 28, 2026 at 2:00 PM - 4:00 PM
+
+12:00 PM → Event in "SCHEDULED" state
+           (manually set by organizer)
+
+1:30 PM  → Agent checks... too early
+1:45 PM  → Agent checks... still too early
+
+✓ 1:30 PM (30 min before start)
+   → Agent AUTOMATICALLY opens attendance
+   → State: ATTENDANCE_OPEN
+   → Participants can scan QR codes
+
+✓ 2:00 PM (start time)
+   → Agent AUTOMATICALLY starts event
+   → State: RUNNING
+   → Event is now active
+
+✓ 4:15 PM (15 min after end)
+   → Agent AUTOMATICALLY completes event
+   → State: COMPLETED
+   → Immediately moves to ANALYZING
+
+✓ 4:15 PM
+   → Agent AUTOMATICALLY generates analytics
+   → State: ANALYZING
+   → Then REPORT_GENERATED
+
+WITHOUT AGENT:
+--------------
+❌ No automatic transitions
+🖱️ Must click "Transition..." button manually for each step
+⏰ Time-based rules don't apply
+
+MANUAL vs AUTOMATIC MODES:
+===========================
+
+Mode 1: MANUAL (Only API Server)
+   python run.py
+   
+   ✓ Create events via UI
+   ✓ Manual registration
+   ✓ Click "Transition..." button yourself
+   ❌ No automatic attendance opening
+   ❌ No automatic event start/end
+   ❌ No automatic reminders
+
+Mode 2: AUTOMATIC (API Server + Agent)
+   start_system.bat
+   
+   ✓ Everything from Mode 1
+   ✓ Opens attendance 30 min before
+   ✓ Starts events at scheduled time
+   ✓ Completes events after end time
+   ✓ Sends reminder emails
+   ✓ Generates analytics automatically
+
+RECOMMENDATION:
+===============
+Use start_system.bat for full experience!
+
+The agent checks events every 60 seconds (configurable).
+You can create events, set times, and watch them transition automatically!
+
+TROUBLESHOOTING CHECKLIST:
+==========================
+
+□ API Server running? 
+  → Check: http://localhost:8000/health
+
+□ Agent running?
+  → Run: python check_system.py
+
+□ Event in correct state for registration?
+  → Must be REGISTRATION_OPEN
+
+□ Logged in with correct role?
+  → Organizers: manage events
+  → Participants: register for events
+
+□ Browser console errors?
+  → Press F12, check Console tab
+
+□ Both windows open?
+  → start_system.bat opens 2 windows
+  → Keep BOTH running
+
+FILES CREATED FOR YOU:
+======================
+1. start_system.bat      → Double-click to start everything
+2. start_system.py       → Python version (cross-platform)
+3. check_system.py       → Diagnostic tool
+4. QUICK_START.md        → Detailed guide
+5. THIS FILE             → Complete solution summary
+
+QUICK COMMANDS:
+===============
+
+# Start everything
+start_system.bat
+
+# Check status
+python check_system.py
+
+# Stop everything
+Close both terminal windows
+
+# Manual mode (no automation)
+python run.py
+
+# Add agent to running system
+python scripts\run_agent.py
+
+SUPPORT:
+========
+If still having issues:
+1. Run: python check_system.py
+2. Check both terminal windows for errors
+3. Verify event state in organizer dashboard
+4. Check browser console (F12)
+"""
+
+if __name__ == "__main__":
+    print(open(__file__).read())

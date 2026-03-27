@@ -241,6 +241,40 @@ async def get_event_attendance(event_id: int):
         raise HTTPException(status_code=500, detail=f"Failed to get attendance: {str(e)}")
 
 
+@router.get("/event/{event_id}/recent")
+async def get_recent_attendance(event_id: int):
+    """
+    Get the 20 most recent attendance check-ins for an event (live feed).
+    """
+    try:
+        with get_db_context() as db:
+            records = (
+                db.query(Attendance)
+                .filter(Attendance.event_id == event_id)
+                .join(Participant)
+                .order_by(Attendance.checked_in_at.desc())
+                .limit(20)
+                .all()
+            )
+            return {
+                "success": True,
+                "event_id": event_id,
+                "count": len(records),
+                "attendance": [
+                    {
+                        "id": r.id,
+                        "participant_name": r.participant.name,
+                        "check_in_method": r.check_in_method if isinstance(r.check_in_method, str) else r.check_in_method.value,
+                        "checked_in_at": r.checked_in_at.isoformat(),
+                    }
+                    for r in records
+                ],
+            }
+    except Exception as e:
+        logger.error(f"[API] Failed to get recent attendance for event {event_id}: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+
 @router.get("/event/{event_id}/stats")
 async def get_attendance_stats(event_id: int):
     """

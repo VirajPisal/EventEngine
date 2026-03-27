@@ -153,10 +153,10 @@ class AttendanceService:
             }
         
         # Check if event allows attendance
-        if event.state not in [EventState.ATTENDANCE_OPEN, EventState.RUNNING]:
+        if event.state not in [EventState.ATTENDANCE_OPEN, EventState.RUNNING, EventState.SCHEDULED]:
             return {
                 "success": False,
-                "message": f"Event is not open for attendance (current state: {event.state.value})"
+                "message": f"Event is not open for attendance (current state: {event.state.value}). Transition event to ATTENDANCE_OPEN first."
             }
         
         # Check if already attended
@@ -258,10 +258,10 @@ class AttendanceService:
             }
         
         # Check if event allows attendance
-        if event.state not in [EventState.ATTENDANCE_OPEN, EventState.RUNNING]:
+        if event.state not in [EventState.ATTENDANCE_OPEN, EventState.RUNNING, EventState.SCHEDULED]:
             return {
                 "success": False,
-                "message": f"Event is not open for attendance (current state: {event.state.value})"
+                "message": f"Event is not open for attendance (current state: {event.state.value}). Transition event to ATTENDANCE_OPEN first."
             }
         
         # Validate OTP

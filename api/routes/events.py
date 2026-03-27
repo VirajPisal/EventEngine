@@ -2,16 +2,19 @@
 Event Management Routes
 Endpoints for creating, listing, and managing events
 """
-from fastapi import APIRouter, HTTPException, Query
+from fastapi import APIRouter, HTTPException, Query, Depends
 from pydantic import BaseModel, Field
 from typing import Optional, List
 from datetime import datetime
+import re
+import json
 
 from db.base import get_db_context
 from services.event_service import EventService
 from services.registration_service import RegistrationService
 from models.participant import Participant
 from config.constants import EventType, EventState, ParticipantStatus
+from api.deps import get_current_organizer
 from utils.logger import logger
 
 
@@ -39,6 +42,10 @@ class EventUpdateRequest(BaseModel):
     max_participants: Optional[int] = Field(None, ge=1)
 
 
+class NLPParseRequest(BaseModel):
+    text: str = Field(..., min_length=5, max_length=2000)
+
+
 class EventTransitionRequest(BaseModel):
     new_state: str = Field(..., pattern="^(CREATED|REGISTRATION_OPEN|SCHEDULED|ATTENDANCE_OPEN|RUNNING|COMPLETED|ANALYZING|REPORT_GENERATED|CANCELLED)$")
     reason: Optional[str] = None
@@ -46,6 +53,124 @@ class EventTransitionRequest(BaseModel):
 
 
 # Endpoints
+@router.post("/parse-natural-language")
+async def parse_natural_language(
+    request: NLPParseRequest,
+    user: dict = Depends(get_current_organizer),
+):
+    """
+    Parse natural language text to extract event fields.
+    Tries OpenAI if API key is set, else uses regex+dateutil fallback.
+    """
+    text = request.text
+    try:
+        openai_key = __import__("os").getenv("OPENAI_API_KEY", "")
+        if openai_key:
+            import openai
+            client = openai.OpenAI(api_key=openai_key)
+            resp = client.chat.completions.create(
+                model="gpt-4o-mini",
+                messages=[
+                    {
+                        "role": "system",
+                        "content": (
+                            "Extract event details from user text. Return ONLY valid JSON with keys: "
+                            "name, description, event_type (ONLINE/OFFLINE/HYBRID), start_time (ISO8601), "
+                            "end_time (ISO8601), venue, meeting_link, max_participants. "
+                            "Use null for missing fields."
+                        ),
+                    },
+                    {"role": "user", "content": text},
+                ],
+                temperature=0.1,
+            )
+            raw = resp.choices[0].message.content.strip()
+            # Strip markdown fences if present
+            if raw.startswith("```"):
+                raw = re.sub(r"^```(?:json)?\s*", "", raw)
+                raw = re.sub(r"\s*```$", "", raw)
+            parsed = json.loads(raw)
+            return {"success": True, "source": "openai", "parsed": parsed}
+
+        # Fallback: dateutil + regex
+        from dateutil import parser as dateutil_parser
+        parsed = {"name": None, "description": None, "event_type": "OFFLINE",
+                  "start_time": None, "end_time": None, "venue": None,
+                  "meeting_link": None, "max_participants": None}
+
+        # Detect event type
+        lower = text.lower()
+        if "online" in lower:
+            parsed["event_type"] = "ONLINE"
+        elif "hybrid" in lower:
+            parsed["event_type"] = "HYBRID"
+
+        # Extract meeting link
+        link_match = re.search(r"https?://\S+", text)
+        if link_match:
+            parsed["meeting_link"] = link_match.group(0)
+
+        # Extract max participants
+        cap_match = re.search(r"(\d+)\s*(?:participants|seats|capacity|people|max)", lower)
+        if cap_match:
+            parsed["max_participants"] = int(cap_match.group(1))
+
+        # Try to find dates
+        # First pass: full date+time patterns (ISO or written)
+        date_candidates = re.findall(
+            r"\d{4}-\d{2}-\d{2}[T ]?\d{2}:\d{2}(?::\d{2})?"
+            r"|\d{1,2}(?:st|nd|rd|th)?\s+\w+\s+\d{4}(?:\s+(?:\d{1,2}:\d{2}|\d{1,2})\s*(?:AM|PM|am|pm))?"
+            r"|\w+\s+\d{1,2}(?:st|nd|rd|th)?,?\s+\d{4}(?:\s+(?:\d{1,2}:\d{2}|\d{1,2})\s*(?:AM|PM|am|pm))?",
+            text
+        )
+        times = []
+        for dc in date_candidates:
+            try:
+                times.append(dateutil_parser.parse(dc, fuzzy=True))
+            except (ValueError, OverflowError):
+                pass
+
+        # Second pass: if only one full date found, look for standalone time tokens
+        # e.g. "3 PM" or "5:30 PM" associated with that date
+        if len(times) == 1:
+            base_date = times[0]
+            time_tokens = re.findall(r"\b(\d{1,2}(?::\d{2})?)\s*(AM|PM|am|pm)\b", text)
+            extra_times = []
+            for tt in time_tokens:
+                try:
+                    t = dateutil_parser.parse(f"{tt[0]} {tt[1]}")
+                    combined = base_date.replace(hour=t.hour, minute=t.minute, second=0)
+                    extra_times.append(combined)
+                except (ValueError, OverflowError):
+                    pass
+            extra_times = sorted(set(extra_times))
+            if len(extra_times) >= 2:
+                times = extra_times
+            elif len(extra_times) == 1 and extra_times[0] != base_date:
+                times = sorted([base_date, extra_times[0]])
+
+        if len(times) >= 2:
+            times.sort()
+            parsed["start_time"] = times[0].isoformat()
+            parsed["end_time"] = times[1].isoformat()
+        elif len(times) == 1:
+            from datetime import timedelta
+            parsed["start_time"] = times[0].isoformat()
+            parsed["end_time"] = (times[0] + timedelta(hours=2)).isoformat()
+
+        # Use first sentence as name
+        sentences = re.split(r"[.!\n]", text)
+        if sentences:
+            parsed["name"] = sentences[0].strip()[:200]
+        parsed["description"] = text[:500]
+
+        return {"success": True, "source": "fallback", "parsed": parsed}
+
+    except Exception as e:
+        logger.error(f"[API] NLP parse failed: {e}")
+        raise HTTPException(status_code=500, detail=f"Parse failed: {str(e)}")
+
+
 @router.post("/", status_code=201)
 async def create_event(event: EventCreateRequest):
     """

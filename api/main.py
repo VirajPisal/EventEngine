@@ -17,7 +17,7 @@ from contextlib import asynccontextmanager
 import time
 import os
 
-from api.routes import events, registrations, attendance, analytics
+from api.routes import events, registrations, attendance, analytics, auth, agent
 from db.base import init_db
 from utils.logger import logger
 
@@ -59,15 +59,10 @@ app = FastAPI(
 # CORS Configuration - Allow frontend access
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=[
-        "http://localhost:3000",  # React default
-        "http://localhost:5173",  # Vite default
-        "http://127.0.0.1:3000",
-        "http://127.0.0.1:5173",
-    ],
-    allow_credentials=True,
-    allow_methods=["*"],  # Allow all HTTP methods
-    allow_headers=["*"],  # Allow all headers
+    allow_origins=["*"],
+    allow_credentials=False,
+    allow_methods=["*"],
+    allow_headers=["*"],
 )
 
 
@@ -134,6 +129,18 @@ app.include_router(
     analytics.router,
     prefix="/api/analytics",
     tags=["Analytics"]
+)
+
+app.include_router(
+    auth.router,
+    prefix="/api/auth",
+    tags=["Auth"]
+)
+
+app.include_router(
+    agent.router,
+    prefix="/api/agent",
+    tags=["Agent"]
 )
 
 

@@ -1,0 +1,720 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>EventEngine - Participant Portal</title>
+    <style>
+        /* ===== DARK THEME ===== */
+        :root {
+            --bg: #0f1117;
+            --surface: #1a1d27;
+            --surface2: #232733;
+            --border: #2d3141;
+            --text: #e4e6ed;
+            --text-dim: #8b8fa3;
+            --accent: #6366f1;
+            --accent-glow: rgba(99,102,241,.25);
+            --green: #22c55e;
+            --red: #ef4444;
+            --amber: #f59e0b;
+            --blue: #3b82f6;
+        }
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { background: var(--bg); color: var(--text); font-family: 'Inter','Segoe UI',sans-serif; }
+
+        /* ===== TOP BAR ===== */
+        .topbar {
+            background: var(--surface);
+            border-bottom: 1px solid var(--border);
+            padding: 12px 24px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+        .topbar .logo { font-size: 1.25rem; font-weight: 700; color: var(--accent); }
+        .topbar .logo span { color: var(--text); font-weight: 400; margin-left: 6px; font-size: .85rem; }
+        .topbar-right { display: flex; align-items: center; gap: 16px; }
+        .topbar-right .user-name { font-size: .85rem; color: var(--text-dim); }
+        .btn-sm {
+            padding: 6px 14px;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: .8rem;
+            font-weight: 500;
+            transition: .2s;
+        }
+        .btn-logout { background: var(--surface2); color: var(--text-dim); }
+        .btn-logout:hover { background: var(--red); color: #fff; }
+
+        /* ===== TABS ===== */
+        .tabs-container {
+            background: var(--surface);
+            border-bottom: 1px solid var(--border);
+            padding: 0 24px;
+        }
+        .tabs { display: flex; gap: 4px; }
+        .tab-btn {
+            padding: 12px 20px;
+            border: none;
+            background: transparent;
+            color: var(--text-dim);
+            font-size: .9rem;
+            font-weight: 500;
+            cursor: pointer;
+            border-bottom: 2px solid transparent;
+            transition: .2s;
+        }
+        .tab-btn.active {
+            color: var(--accent);
+            border-bottom-color: var(--accent);
+        }
+        .tab-btn:hover:not(.active) { color: var(--text); }
+
+        /* ===== CONTENT ===== */
+        .content { padding: 24px; max-width: 1400px; margin: 0 auto; }
+        .tab-content { display: none; }
+        .tab-content.active { display: block; }
+
+        /* ===== CARDS ===== */
+        .card {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            padding: 20px;
+            margin-bottom: 16px;
+            transition: .2s;
+        }
+        .card:hover { border-color: var(--accent); }
+
+        .card-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            margin-bottom: 12px;
+        }
+        .card-title {
+            font-size: 1.1rem;
+            font-weight: 600;
+            color: var(--text);
+        }
+        .card-meta {
+            font-size: .8rem;
+            color: var(--text-dim);
+            display: flex;
+            gap: 16px;
+            margin: 8px 0;
+            flex-wrap: wrap;
+        }
+        .card-desc {
+            font-size: .88rem;
+            color: var(--text-dim);
+            line-height: 1.5;
+            margin-bottom: 12px;
+        }
+
+        /* ===== BADGES ===== */
+        .badge {
+            font-size: .72rem;
+            padding: 4px 10px;
+            border-radius: 8px;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: .3px;
+        }
+        .badge-online { background: rgba(34,197,94,.15); color: var(--green); }
+        .badge-offline { background: rgba(59,130,246,.15); color: var(--blue); }
+        .badge-hybrid { background: rgba(139,92,246,.15); color: #a78bfa; }
+        .badge-pending { background: rgba(245,158,11,.15); color: var(--amber); }
+        .badge-confirmed { background: rgba(34,197,94,.15); color: var(--green); }
+        .badge-attended { background: rgba(99,102,241,.15); color: var(--accent); }
+        .badge-cancelled { background: rgba(239,68,68,.15); color: var(--red); }
+
+        .state-badge {
+            font-size: .7rem;
+            padding: 3px 8px;
+            border-radius: 6px;
+            font-weight: 600;
+        }
+        .state-REGISTRATION_OPEN { background: rgba(34,197,94,.15); color: var(--green); }
+        .state-CREATED,.state-SCHEDULED { background: rgba(59,130,246,.15); color: var(--blue); }
+        .state-ATTENDANCE_OPEN,.state-RUNNING { background: rgba(139,92,246,.15); color: #a78bfa; }
+        .state-COMPLETED { background: rgba(107,114,128,.15); color: #9ca3af; }
+        .state-CANCELLED { background: rgba(239,68,68,.15); color: var(--red); }
+
+        /* ===== BUTTONS ===== */
+        .btn {
+            padding: 8px 16px;
+            border: none;
+            border-radius: 8px;
+            font-size: .85rem;
+            font-weight: 500;
+            cursor: pointer;
+            transition: .2s;
+        }
+        .btn-primary { background: var(--accent); color: #fff; }
+        .btn-primary:hover { filter: brightness(1.1); }
+        .btn-primary:disabled { opacity: .5; cursor: not-allowed; }
+        .btn-outline {
+            background: transparent;
+            border: 1px solid var(--border);
+            color: var(--text-dim);
+        }
+        .btn-outline:hover { border-color: var(--accent); color: var(--accent); }
+
+        /* ===== GRID ===== */
+        .events-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
+            gap: 16px;
+        }
+
+        /* ===== EMPTY STATE ===== */
+        .empty {
+            text-align: center;
+            padding: 60px 20px;
+            color: var(--text-dim);
+        }
+        .empty .icon { font-size: 3rem; margin-bottom: 12px; opacity: .5; }
+        .empty .title { font-size: 1.1rem; font-weight: 600; margin-bottom: 6px; }
+        .empty .desc { font-size: .88rem; }
+
+        /* ===== QR CODE ===== */
+        .qr-container {
+            background: #fff;
+            padding: 16px;
+            border-radius: 12px;
+            display: inline-block;
+            margin: 12px 0;
+        }
+        .qr-container canvas { display: block; }
+
+        /* ===== MODAL ===== */
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,.7);
+            z-index: 1000;
+            align-items: center;
+            justify-content: center;
+        }
+        .modal.show { display: flex; }
+        .modal-content {
+            background: var(--surface);
+            border-radius: 16px;
+            padding: 28px;
+            max-width: 500px;
+            width: 90%;
+            max-height: 90vh;
+            overflow-y: auto;
+        }
+        .modal-header {
+            font-size: 1.3rem;
+            font-weight: 600;
+            margin-bottom: 20px;
+        }
+        .modal-close {
+            float: right;
+            font-size: 1.5rem;
+            cursor: pointer;
+            color: var(--text-dim);
+            line-height: 1;
+        }
+        .modal-close:hover { color: var(--red); }
+
+        /* ===== FORM ===== */
+        .form-group {
+            margin-bottom: 16px;
+        }
+        .form-group label {
+            display: block;
+            font-size: .85rem;
+            font-weight: 500;
+            margin-bottom: 6px;
+            color: var(--text-dim);
+        }
+        .form-group input {
+            width: 100%;
+            padding: 10px 12px;
+            background: var(--bg);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            color: var(--text);
+            font-size: .88rem;
+        }
+        .form-group input:focus {
+            outline: none;
+            border-color: var(--accent);
+            box-shadow: 0 0 0 3px var(--accent-glow);
+        }
+
+        /* ===== TOAST ===== */
+        .toast {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: 10px;
+            padding: 12px 20px;
+            font-size: .85rem;
+            z-index: 9999;
+            box-shadow: 0 8px 20px rgba(0,0,0,.3);
+            transform: translateY(80px);
+            opacity: 0;
+            transition: .3s;
+        }
+        .toast.show { transform: translateY(0); opacity: 1; }
+        .toast.success { border-color: var(--green); }
+        .toast.error { border-color: var(--red); }
+
+        /* ===== STATS ===== */
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 16px;
+            margin-bottom: 24px;
+        }
+        .stat-card {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            padding: 20px;
+            text-align: center;
+        }
+        .stat-value {
+            font-size: 2rem;
+            font-weight: 700;
+            color: var(--accent);
+        }
+        .stat-label {
+            font-size: .85rem;
+            color: var(--text-dim);
+            margin-top: 4px;
+        }
+    </style>
+</head>
+<body>
+    <!-- Top Bar -->
+    <div class="topbar">
+        <div class="logo">⚡ EventEngine <span>Participant Portal</span></div>
+        <div class="topbar-right">
+            <span class="user-name" id="userName"></span>
+            <button class="btn-sm btn-logout" onclick="doLogout()">Logout</button>
+        </div>
+    </div>
+
+    <!-- Tabs -->
+    <div class="tabs-container">
+        <div class="tabs">
+            <button class="tab-btn active" onclick="switchTab('events')">Available Events</button>
+            <button class="tab-btn" onclick="switchTab('registrations')">My Registrations</button>
+            <button class="tab-btn" onclick="switchTab('attendance')">My Attendance</button>
+        </div>
+    </div>
+
+    <!-- Content -->
+    <div class="content">
+        <!-- Tab 1: Available Events -->
+        <div class="tab-content active" id="tab-events">
+            <div class="events-grid" id="eventsList">
+                <div class="empty">
+                    <div class="icon">📅</div>
+                    <div class="title">Loading events...</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Tab 2: My Registrations -->
+        <div class="tab-content" id="tab-registrations">
+            <div class="stats-grid" id="regStats" style="display:none">
+                <div class="stat-card">
+                    <div class="stat-value" id="statTotal">0</div>
+                    <div class="stat-label">Total Registered</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-value" id="statConfirmed">0</div>
+                    <div class="stat-label">Confirmed</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-value" id="statAttended">0</div>
+                    <div class="stat-label">Attended</div>
+                </div>
+            </div>
+            <div id="registrationsList">
+                <div class="empty">
+                    <div class="icon">📝</div>
+                    <div class="title">Loading your registrations...</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Tab 3: My Attendance -->
+        <div class="tab-content" id="tab-attendance">
+            <div id="attendanceList">
+                <div class="empty">
+                    <div class="icon">✅</div>
+                    <div class="title">Loading attendance history...</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Registration Modal -->
+    <div class="modal" id="registerModal">
+        <div class="modal-content">
+            <span class="modal-close" onclick="closeRegisterModal()">&times;</span>
+            <div class="modal-header">Register for Event</div>
+            <form id="registerForm" onsubmit="handleRegister(event)">
+                <input type="hidden" id="registerEventId">
+                <div class="form-group">
+                    <label>Event</label>
+                    <input type="text" id="registerEventName" disabled>
+                </div>
+                <div class="form-group">
+                    <label>Your Name</label>
+                    <input type="text" id="registerName" required>
+                </div>
+                <div class="form-group">
+                    <label>Email</label>
+                    <input type="email" id="registerEmail" required>
+                </div>
+                <div class="form-group">
+                    <label>Phone (optional)</label>
+                    <input type="tel" id="registerPhone">
+                </div>
+                <button type="submit" class="btn btn-primary" style="width:100%">Register</button>
+            </form>
+        </div>
+    </div>
+
+    <!-- QR Modal -->
+    <div class="modal" id="qrModal">
+        <div class="modal-content">
+            <span class="modal-close" onclick="closeQRModal()">&times;</span>
+            <div class="modal-header">Your QR Code</div>
+            <div style="text-align:center">
+                <p style="margin-bottom:12px;color:var(--text-dim);font-size:.9rem">Show this QR code at the event for attendance</p>
+                <div class="qr-container">
+                    <canvas id="qrCanvas"></canvas>
+                </div>
+                <p style="margin-top:12px;font-size:.8rem;color:var(--text-dim)" id="qrEventName"></p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Toast -->
+    <div class="toast" id="toast"></div>
+
+    <script src="/frontend/js/auth.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/qrious@4.0.2/dist/qrious.min.js"></script>
+    <script>
+        /* ===== AUTH CHECK ===== */
+        (function(){
+            if(!getToken() || getRole() !== 'participant'){
+                window.location.href = '/frontend/login.html';
+                return;
+            }
+            document.getElementById('userName').textContent = getName() || getEmail() || 'Participant';
+            // Pre-fill name and email in registration form
+            document.getElementById('registerName').value = getName() || '';
+            document.getElementById('registerEmail').value = getEmail() || '';
+        })();
+
+        function doLogout(){ logout(); }
+
+        const API = '';
+        const hdrs = () => ({...authHeaders(), 'Content-Type': 'application/json'});
+
+        /* ===== TOAST ===== */
+        function showToast(msg, type='success'){
+            const t = document.getElementById('toast');
+            t.textContent = msg;
+            t.className = 'toast ' + type + ' show';
+            setTimeout(() => t.classList.remove('show'), 3000);
+        }
+
+        /* ===== TABS ===== */
+        function switchTab(tab){
+            document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
+            event.target.classList.add('active');
+            document.querySelectorAll('.tab-content').forEach(content => content.classList.remove('active'));
+            document.getElementById('tab-' + tab).classList.add('active');
+
+            if(tab === 'events') loadEvents();
+            if(tab === 'registrations') loadMyRegistrations();
+            if(tab === 'attendance') loadMyAttendance();
+        }
+
+        /* ===== AVAILABLE EVENTS ===== */
+        async function loadEvents(){
+            try {
+                const r = await fetch(API + '/api/events/?limit=100');
+                const d = await r.json();
+                if(d.success && d.events.length){
+                    renderEvents(d.events);
+                } else {
+                    document.getElementById('eventsList').innerHTML = `
+                        <div class="empty">
+                            <div class="icon">📅</div>
+                            <div class="title">No events available</div>
+                            <div class="desc">Check back later for upcoming events</div>
+                        </div>
+                    `;
+                }
+            } catch(e){
+                console.error('loadEvents', e);
+                showToast('Failed to load events', 'error');
+            }
+        }
+
+        function renderEvents(events){
+            const container = document.getElementById('eventsList');
+            container.innerHTML = events.map(ev => {
+                const canRegister = ev.state === 'REGISTRATION_OPEN';
+                return `
+                    <div class="card">
+                        <div class="card-header">
+                            <div>
+                                <div class="card-title">${esc(ev.name)}</div>
+                                <span class="state-badge state-${ev.state}">${ev.state.replace(/_/g, ' ')}</span>
+                            </div>
+                        </div>
+                        <div class="card-desc">${esc(ev.description || 'No description')}</div>
+                        <div class="card-meta">
+                            <span>📅 ${fmtDateTime(ev.start_time)}</span>
+                            <span>🌍 <span class="badge badge-${ev.event_type.toLowerCase()}">${ev.event_type}</span></span>
+                            ${ev.venue ? `<span>📍 ${esc(ev.venue)}</span>` : ''}
+                            ${ev.max_participants ? `<span>👥 Max: ${ev.max_participants}</span>` : ''}
+                        </div>
+                        ${canRegister ? `
+                            <button class="btn btn-primary" onclick="openRegisterModal(${ev.id}, '${esc(ev.name)}')">
+                                Register Now
+                            </button>
+                        ` : ev.state === 'CREATED' || ev.state === 'SCHEDULED' ? `
+                            <button class="btn btn-outline" disabled>Registration Opens Soon</button>
+                        ` : `
+                            <button class="btn btn-outline" disabled>Registration Closed</button>
+                        `}
+                    </div>
+                `;
+            }).join('');
+        }
+
+        /* ===== MY REGISTRATIONS ===== */
+        async function loadMyRegistrations(){
+            try {
+                const userEmail = getEmail();
+                if(!userEmail){
+                    showToast('Email not found', 'error');
+                    return;
+                }
+
+                const r = await fetch(API + `/api/registrations/participant/${encodeURIComponent(userEmail)}`, {
+                    headers: hdrs()
+                });
+                const d = await r.json();
+
+                if(d.success && d.registrations && d.registrations.length){
+                    renderRegistrations(d.registrations);
+                    updateRegStats(d.registrations);
+                } else {
+                    document.getElementById('registrationsList').innerHTML = `
+                        <div class="empty">
+                            <div class="icon">📝</div>
+                            <div class="title">No registrations yet</div>
+                            <div class="desc">Register for events to see them here</div>
+                        </div>
+                    `;
+                    document.getElementById('regStats').style.display = 'none';
+                }
+            } catch(e){
+                console.error('loadMyRegistrations', e);
+                document.getElementById('registrationsList').innerHTML = `
+                    <div class="empty">
+                        <div class="icon">📝</div>
+                        <div class="title">No registrations found</div>
+                        <div class="desc">Register for events from the Available Events tab</div>
+                    </div>
+                `;
+            }
+        }
+
+        function updateRegStats(regs){
+            const total = regs.length;
+            const confirmed = regs.filter(r => r.status === 'CONFIRMED').length;
+            const attended = regs.filter(r => r.status === 'ATTENDED').length;
+
+            document.getElementById('statTotal').textContent = total;
+            document.getElementById('statConfirmed').textContent = confirmed;
+            document.getElementById('statAttended').textContent = attended;
+            document.getElementById('regStats').style.display = 'grid';
+        }
+
+        function renderRegistrations(regs){
+            const container = document.getElementById('registrationsList');
+            container.innerHTML = regs.map(reg => `
+                <div class="card">
+                    <div class="card-header">
+                        <div class="card-title">${esc(reg.event_name || 'Event #' + reg.event_id)}</div>
+                        <span class="badge badge-${reg.status.toLowerCase()}">${reg.status}</span>
+                    </div>
+                    <div class="card-meta">
+                        <span>📅 Registered: ${fmtDateTime(reg.registered_at)}</span>
+                        ${reg.confirmed_at ? `<span>✅ Confirmed: ${fmtDateTime(reg.confirmed_at)}</span>` : ''}
+                    </div>
+                    ${reg.qr_token ? `
+                        <button class="btn btn-outline" onclick="showQR('${reg.qr_token}', '${esc(reg.event_name || 'Event')}')">
+                            Show QR Code
+                        </button>
+                    ` : ''}
+                </div>
+            `).join('');
+        }
+
+        /* ===== MY ATTENDANCE ===== */
+        async function loadMyAttendance(){
+            try {
+                const userEmail = getEmail();
+                if(!userEmail) return;
+
+                // Get all registrations first
+                const regResp = await fetch(API + `/api/registrations/participant/${encodeURIComponent(userEmail)}`, {
+                    headers: hdrs()
+                });
+                const regData = await regResp.json();
+
+                if(!regData.success || !regData.registrations || !regData.registrations.length){
+                    document.getElementById('attendanceList').innerHTML = `
+                        <div class="empty">
+                            <div class="icon">✅</div>
+                            <div class="title">No attendance records</div>
+                            <div class="desc">Attend events to see your history here</div>
+                        </div>
+                    `;
+                    return;
+                }
+
+                // Filter attended
+                const attended = regData.registrations.filter(r => r.status === 'ATTENDED');
+                if(attended.length === 0){
+                    document.getElementById('attendanceList').innerHTML = `
+                        <div class="empty">
+                            <div class="icon">✅</div>
+                            <div class="title">No attendance yet</div>
+                            <div class="desc">Check in at events to build your attendance history</div>
+                        </div>
+                    `;
+                    return;
+                }
+
+                renderAttendance(attended);
+            } catch(e){
+                console.error('loadMyAttendance', e);
+            }
+        }
+
+        function renderAttendance(records){
+            const container = document.getElementById('attendanceList');
+            container.innerHTML = records.map(rec => `
+                <div class="card">
+                    <div class="card-header">
+                        <div class="card-title">${esc(rec.event_name || 'Event #' + rec.event_id)}</div>
+                        <span class="badge badge-attended">ATTENDED</span>
+                    </div>
+                    <div class="card-meta">
+                        ${rec.confirmed_at ? `<span>✅ Confirmed: ${fmtDateTime(rec.confirmed_at)}</span>` : ''}
+                        <span>📍 Attended</span>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        /* ===== REGISTRATION MODAL ===== */
+        function openRegisterModal(eventId, eventName){
+            document.getElementById('registerEventId').value = eventId;
+            document.getElementById('registerEventName').value = eventName;
+            document.getElementById('registerModal').classList.add('show');
+        }
+
+        function closeRegisterModal(){
+            document.getElementById('registerModal').classList.remove('show');
+        }
+
+        async function handleRegister(e){
+            e.preventDefault();
+            const eventId = parseInt(document.getElementById('registerEventId').value);
+            const name = document.getElementById('registerName').value.trim();
+            const email = document.getElementById('registerEmail').value.trim();
+            const phone = document.getElementById('registerPhone').value.trim() || null;
+
+            try {
+                const r = await fetch(API + '/api/registrations/register', {
+                    method: 'POST',
+                    headers: hdrs(),
+                    body: JSON.stringify({ event_id: eventId, name, email, phone })
+                });
+                const d = await r.json();
+
+                if(d.success){
+                    showToast('Successfully registered!');
+                    closeRegisterModal();
+                    loadEvents();
+                    // Optionally show QR immediately
+                    if(d.participant && d.participant.qr_token){
+                        setTimeout(() => showQR(d.participant.qr_token, document.getElementById('registerEventName').value), 500);
+                    }
+                } else {
+                    showToast(d.detail || d.message || 'Registration failed', 'error');
+                }
+            } catch(err){
+                showToast('Error: ' + err.message, 'error');
+            }
+        }
+
+        /* ===== QR CODE ===== */
+        function showQR(token, eventName){
+            const canvas = document.getElementById('qrCanvas');
+            const qr = new QRious({
+                element: canvas,
+                value: token,
+                size: 280,
+                background: '#ffffff',
+                foreground: '#000000',
+                level: 'H'
+            });
+            document.getElementById('qrEventName').textContent = eventName;
+            document.getElementById('qrModal').classList.add('show');
+        }
+
+        function closeQRModal(){
+            document.getElementById('qrModal').classList.remove('show');
+        }
+
+        /* ===== HELPERS ===== */
+        function esc(s){
+            if(!s) return '';
+            const d = document.createElement('div');
+            d.textContent = s;
+            return d.innerHTML;
+        }
+        function fmtDateTime(iso){
+            if(!iso) return '-';
+            const d = new Date(iso);
+            return d.toLocaleDateString('en-IN', {day:'numeric', month:'short', year:'numeric'}) +
+                   ' ' + d.toLocaleTimeString('en-IN', {hour:'2-digit', minute:'2-digit'});
+        }
+
+        /* ===== INIT ===== */
+        loadEvents();
+    </script>
+</body>
+</html>
