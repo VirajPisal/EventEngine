@@ -1,0 +1,22 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Test Registration Button</title>
+    <script>
+        function testButton() {
+            const eventId = 1;
+            const eventName = "Plan an online tech meetup called 'Arduino Workshop' on January";
+            alert('Button clicked! Event ID: ' + eventId + ', Name: ' + eventName);
+        }
+    </script>
+</head>
+<body>
+    <h1>Test Page</h1>
+    <button onclick="testButton()">Test Button</button>
+    
+    <h2>Test with Data Attributes</h2>
+    <button data-event-id="1" data-event-name="Test Event" onclick="alert(this.dataset.eventName)">
+        Test Data Attribute
+    </button>
+</body>
+</html>

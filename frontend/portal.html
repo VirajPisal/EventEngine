@@ -496,7 +496,7 @@
                             ${ev.max_participants ? `<span>👥 Max: ${ev.max_participants}</span>` : ''}
                         </div>
                         ${canRegister ? `
-                            <button class="btn btn-primary" onclick="openRegisterModal(${ev.id}, '${esc(ev.name)}')">
+                            <button class="btn btn-primary" data-event-id="${ev.id}" data-event-name="${esc(ev.name)}" onclick="openRegisterModal(this.dataset.eventId, this.dataset.eventName)">
                                 Register Now
                             </button>
                         ` : ev.state === 'CREATED' || ev.state === 'SCHEDULED' ? `
