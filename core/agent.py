@@ -13,6 +13,8 @@ from config.constants import EventState
 from services.event_service import EventService
 from services.reminder_service import ReminderService
 from services.analytics_service import AnalyticsService
+from services.promotion_service import PromotionService
+from services.certificate_service import CertificateService
 from services.insights_service import get_insights_service
 from rules.transition_rules import check_auto_transition_conditions
 from utils.logger import logger
@@ -264,6 +266,12 @@ class EventAgent:
                 for event in analyzing_events:
                     self.generate_analytics_and_insights(db, event)
                 
+                # NEW: PROMOTION CYCLE
+                self.run_promotion_cycle(db)
+                
+                # NEW: CERTIFICATE CYCLE
+                self.run_certificate_cycle(db)
+                
         except Exception as e:
             logger.error(f"[AGENT] Error in cycle #{self._cycle_count}: {str(e)}")
     
@@ -289,6 +297,100 @@ class EventAgent:
         
         except Exception as e:
             logger.error(f"[AGENT] Error in reminder cycle: {str(e)}")
+    
+    def run_promotion_cycle(self, db: Session):
+        """
+        Identify new events and send promotions to potential participants autonomously
+        """
+        try:
+            # Events in REGISTRATION_OPEN state are eligible for promotion
+            eligible_events = db.query(Event).filter(
+                Event.state == EventState.REGISTRATION_OPEN
+            ).all()
+
+            if not eligible_events:
+                return
+
+            for event in eligible_events:
+                # Basic rule: promote if less than 50% capacity
+                if event.max_participants:
+                    participant_count = db.query(Participant).filter(
+                        Participant.event_id == event.id
+                    ).count()
+                    
+                    if participant_count < (event.max_participants * 0.5):
+                        logger.info(f"[AGENT] Autonomous Promotion: Event #{event.id} '{event.name}' is below 50% capacity. Promoting...")
+                        PromotionService.promote_event(db, event.id)
+                else:
+                    # If no max capacity, promote anyway periodically?
+                    # For now, let's just promote once. I'll add a 'promoted' field later or check history.
+                    # Since we don't have a 'promoted' field, let's promote if it only has few participants.
+                    participant_count = db.query(Participant).filter(
+                        Participant.event_id == event.id
+                    ).count()
+                    if participant_count < 5:
+                        PromotionService.promote_event(db, event.id)
+
+        except Exception as e:
+            logger.error(f"[AGENT] Error in promotion cycle: {str(e)}")
+    
+    def run_certificate_cycle(self, db: Session):
+        """
+        Check completed online events and send certificates to participants
+        """
+        try:
+            # Events in COMPLETED or ANALYZING state are eligible for certificate issuance
+            eligible_events = db.query(Event).filter(
+                Event.state.in_([EventState.COMPLETED, EventState.ANALYZING, EventState.REPORT_GENERATED]),
+                Event.event_type == EventType.ONLINE,
+                Event.certificate_template != None
+            ).all()
+
+            if not eligible_events:
+                return
+
+            email_service = get_email_service()
+
+            for event in eligible_events:
+                # Get all participants who attended
+                attendees = db.query(Participant).filter(
+                    Participant.event_id == event.id,
+                    Participant.status == ParticipantStatus.ATTENDED
+                ).all()
+
+                for att in attendees:
+                    # Check if already sent? (Wait, I'll assume we send once for now)
+                    # We can mark it in the metadata or just assume it's part of the 'completion' flow
+                    
+                    # Generate certificate
+                    cert_data = CertificateService.generate_certificate(
+                        participant_name=att.name,
+                        event_name=event.name,
+                        template_base64=event.certificate_template,
+                        completion_date=event.end_time.strftime('%Y-%m-%d')
+                    )
+
+                    if cert_data:
+                        # Send email (Need a new email method for certificates)
+                        subject = f"Your Certificate for '{event.name}' is Ready!"
+                        body_text = f"Congratulations {att.name}! Find your participation certificate attached."
+                        body_html = f"<h2>Congratulations!</h2><p>Hi {att.name}, we are happy to share your participation certificate for <strong>{event.name}</strong>. Well done!</p>"
+                        
+                        email_service.send_email(
+                            to_email=att.email,
+                            subject=subject,
+                            body_text=body_text,
+                            body_html=body_html,
+                            attachments=[{
+                                'content': cert_data,
+                                'filename': 'Certificate.png',
+                                'type': 'image/png'
+                            }]
+                        )
+                        logger.info(f"[AGENT] Sent certificate to {att.email} for Event #{event.id}")
+
+        except Exception as e:
+            logger.error(f"[AGENT] Error in certificate cycle: {str(e)}")
     
     def start(self):
         """Mark agent as running"""

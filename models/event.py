@@ -36,6 +36,10 @@ class Event(Base):
     # Capacity
     max_participants = Column(Integer, nullable=True)
     
+    # Custom Template (NEW)
+    custom_email_template = Column(Text, nullable=True)
+    certificate_template = Column(Text, nullable=True)
+    
     # Metadata
     created_at = Column(DateTime, default=lambda: datetime.now(timezone.utc), nullable=False)
     updated_at = Column(DateTime, default=lambda: datetime.now(timezone.utc), onupdate=lambda: datetime.now(timezone.utc), nullable=False)

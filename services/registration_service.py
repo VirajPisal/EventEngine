@@ -120,10 +120,15 @@ class RegistrationService:
                 event_details={
                     'event_type': event.event_type.value,
                     'venue': event.venue,
-                    'meeting_link': event.meeting_link
+                    'meeting_link': event.meeting_link,
+                    'description': event.description,
+                    'end_time': event.end_time,
+                    'registration_deadline': event.registration_deadline,
+                    'organizer': event.created_by
                 },
                 qr_code_data=qr_data.get('image_base64'),
-                participant_id=participant.id
+                participant_id=participant.id,
+                custom_content=event.custom_email_template
             )
             email_sent = email_result.get('success', False)
         except Exception as e:

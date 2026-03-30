@@ -32,6 +32,8 @@ class EventCreateRequest(BaseModel):
     meeting_link: Optional[str] = None
     max_participants: Optional[int] = Field(None, ge=1)
     registration_deadline: Optional[datetime] = None
+    custom_email_template: Optional[str] = None
+    certificate_template: Optional[str] = None
 
 
 class EventUpdateRequest(BaseModel):
@@ -201,7 +203,9 @@ async def create_event(event: EventCreateRequest):
                 venue=event.venue,
                 meeting_link=event.meeting_link,
                 max_participants=event.max_participants,
-                registration_deadline=event.registration_deadline
+                registration_deadline=event.registration_deadline,
+                custom_email_template=event.custom_email_template,
+                certificate_template=event.certificate_template
             )
             
             logger.info(f"[API] Created event: {created_event.name} (ID: {created_event.id})")
@@ -220,6 +224,8 @@ async def create_event(event: EventCreateRequest):
                     "venue": created_event.venue,
                     "meeting_link": created_event.meeting_link,
                     "max_participants": created_event.max_participants,
+                    "custom_email_template": created_event.custom_email_template,
+                    "certificate_template": created_event.certificate_template,
                     "created_at": created_event.created_at.isoformat()
                 }
             }

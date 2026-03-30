@@ -29,7 +29,9 @@ class EventService:
         meeting_link: Optional[str] = None,
         max_participants: Optional[int] = None,
         registration_deadline: Optional[datetime] = None,
-        created_by: Optional[str] = None
+        created_by: Optional[str] = None,
+        custom_email_template: Optional[str] = None,
+        certificate_template: Optional[str] = None
     ) -> Event:
         """
         Create a new event in CREATED state
@@ -61,7 +63,9 @@ class EventService:
             meeting_link=meeting_link,
             max_participants=max_participants,
             registration_deadline=registration_deadline,
-            created_by=created_by
+            created_by=created_by,
+            custom_email_template=custom_email_template,
+            certificate_template=certificate_template
         )
         
         db.add(event)
@@ -141,6 +145,8 @@ class EventService:
             "venue": event.venue,
             "meeting_link": event.meeting_link,
             "max_participants": event.max_participants,
+            "custom_email_template": event.custom_email_template,
+            "certificate_template": event.certificate_template,
             "created_at": event.created_at.isoformat(),
             "updated_at": event.updated_at.isoformat(),
             # Stats for UI

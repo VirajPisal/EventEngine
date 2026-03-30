@@ -109,71 +109,127 @@ class EmailService:
         event_start_time: datetime,
         event_details: Dict,
         qr_code_data: Optional[str] = None,
-        participant_id: Optional[int] = None
+        participant_id: Optional[int] = None,
+        custom_content: Optional[str] = None
     ) -> Dict:
         """
         Send registration confirmation email with QR code and confirmation link.
         """
-        subject = f"You're Registered: {event_name} — Please Confirm Attendance"
+        subject = f"Registration Confirmed: {event_name} - Action Required"
 
         confirm_url = f"http://localhost:8000/api/registrations/confirm/{participant_id}" if participant_id else None
-        confirm_text = f"\nPlease confirm you will attend by clicking this link:\n{confirm_url}\n" if confirm_url else ""
+        
+        # Handle custom content if provided
+        if custom_content:
+            body_text = f"""
+Hello {participant_name},
 
-        body_text = f"""
-Dear {participant_name},
+{custom_content}
 
-You have successfully registered for {event_name}!
-{confirm_text}
-Event Details:
-- Date & Time: {event_start_time.strftime('%B %d, %Y at %I:%M %p UTC')}
-- Type: {event_details.get('event_type', 'N/A')}
-- Venue: {event_details.get('venue') or 'N/A'}
-- Meeting Link: {event_details.get('meeting_link') or 'Will be provided closer to event'}
+---
+EVENT QUICK INFO:
+Event: {event_name}
+Date: {event_start_time.strftime('%B %d, %Y')}
+Confirm Attendance: {confirm_url}
+---
 
-Your QR code for attendance check-in is attached to this email.
+Best regards,
+EventEngine Team
+            """
+        else:
+            # Default enhanced plain text version
+            body_text = f"""
+Hello {participant_name},
+
+Congratulations! You have successfully registered for "{event_name}".
+
+EVENT DETAILS:
+-----------------------------------------
+Event: {event_name}
+Date & Time: {event_start_time.strftime('%B %d, %Y at %I:%M %p UTC')} to {event_details.get('end_time').strftime('%B %d, %Y at %I:%M %p UTC') if event_details.get('end_time') else 'N/A'}
+Organizer: {event_details.get('organizer') or 'EventEngine Team'}
+Format: {event_details.get('event_type', 'N/A').title()}
+Venue/Location: {event_details.get('venue') or 'To be announced'}
+{"Meeting Link: " + event_details.get('meeting_link') if event_details.get('meeting_link') else ""}
+Description: {event_details.get('description', 'No description available.')}
+-----------------------------------------
+
+IMPORTANT: ACTION REQUIRED
+Please click the link below to confirm your attendance. This helps us manage event capacity:
+{confirm_url}
+
+CHECK-IN INFORMATION:
+We have attached a unique QR code to this email. Please keep this handy on your phone as it will be scanned at the entrance for your attendance.
+
+Looking forward to seeing you there!
 
 Best regards,
 EventEngine Team
         """
 
-        confirm_btn = f"""
-            <div style="text-align:center; margin: 24px 0;">
-              <a href="{confirm_url}"
-                 style="background:#22c55e; color:white; padding:14px 32px;
-                        border-radius:8px; text-decoration:none; font-size:16px;
-                        font-weight:bold; display:inline-block;">
-                ✅ Confirm My Attendance
-              </a>
-            </div>
-            <p style="color:#888; font-size:12px; text-align:center;">
-              Or paste this link in your browser:<br>
-              <a href="{confirm_url}">{confirm_url}</a>
-            </p>
-        """ if confirm_url else ""
-
+        # Enhanced HTML version
         body_html = f"""
         <html>
-        <body style="font-family: Arial, sans-serif; color: #333; max-width:600px; margin:auto;">
-            <h2 style="color: #4f46e5;">You're Registered! 🎉</h2>
-            <p>Dear <strong>{participant_name}</strong>,</p>
-            <p>You have successfully registered for <strong>{event_name}</strong>.</p>
+        <body style="font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; color: #333; line-height: 1.6; max-width: 600px; margin: auto; padding: 20px; border: 1px solid #e0e0e0; border-radius: 10px;">
+            <div style="text-align: center; margin-bottom: 30px;">
+                <h1 style="color: #4f46e5; margin-bottom: 5px;">Registration Confirmed!</h1>
+                <p style="font-size: 1.1em; color: #666;">You're going to <strong>{event_name}</strong></p>
+            </div>
+            
+            <p>Hi <strong>{participant_name}</strong>,</p>
+            
+            {f'<div style="background-color: #f3f4f6; padding: 15px; border-radius: 8px; margin-bottom: 20px;">{custom_content}</div>' if custom_content else f'<p>Your registration for the upcoming event has been successfully processed. Here are the full details:</p>'}
+            
+            <div style="background-color: #f9fafb; padding: 20px; border-radius: 8px; margin: 25px 0; border-left: 4px solid #4f46e5;">
+                <h3 style="margin-top: 0; color: #1f2937;">Event Information</h3>
+                <table style="width: 100%; border-collapse: collapse;">
+                    <tr>
+                        <td style="padding: 5px 0; color: #6b7280; width: 120px;"><strong>Date & Time:</strong></td>
+                        <td style="padding: 5px 0; color: #111827;">{event_start_time.strftime('%B %d, %Y at %I:%M %p UTC')} to {event_details.get('end_time').strftime('%B %d, %Y at %I:%M %p UTC') if event_details.get('end_time') else 'N/A'}</td>
+                    </tr>
+                    <tr>
+                        <td style="padding: 5px 0; color: #6b7280;"><strong>Organizer:</strong></td>
+                        <td style="padding: 5px 0; color: #111827;">{event_details.get('organizer') or 'EventEngine Team'}</td>
+                    </tr>
+                    <tr>
+                        <td style="padding: 5px 0; color: #6b7280;"><strong>Type:</strong></td>
+                        <td style="padding: 5px 0; color: #111827;">{event_details.get('event_type', 'N/A').title()}</td>
+                    </tr>
+                    <tr>
+                        <td style="padding: 5px 0; color: #6b7280;"><strong>Venue/Link:</strong></td>
+                        <td style="padding: 5px 0; color: #111827;">{event_details.get('venue') or 'To be announced'}</td>
+                    </tr>
+                    {"<tr><td style='padding: 5px 0; color: #6b7280;'><strong>Meeting Link:</strong></td><td style='padding: 5px 0;'><a href='" + event_details.get('meeting_link') + "' style='color: #4f46e5; text-decoration: none;'>" + event_details.get('meeting_link') + "</a></td></tr>" if event_details.get('meeting_link') else ""}
+                </table>
+                <div style="margin-top: 15px; padding-top: 15px; border-top: 1px solid #e5e7eb;">
+                    <p style="margin: 0; font-size: 0.95em;"><strong>Description:</strong><br>{event_details.get('description', 'Join us for this exciting event!')}</p>
+                </div>
+            </div>
 
-            <h3>Action Required</h3>
-            <p>Please confirm that you will attend by clicking the button below:</p>
-            {confirm_btn}
+            <div style="text-align: center; margin: 35px 0; padding: 25px; border: 2px dashed #22c55e; border-radius: 12px; background-color: #f0fdf4;">
+                <h3 style="margin-top: 0; color: #15803d;">RSVP Confirmation</h3>
+                <p style="margin-bottom: 20px;">Please let us know if you'll definitely be attending!</p>
+                <a href="{confirm_url}"
+                   style="background-color: #22c55e; color: white; padding: 14px 35px;
+                          border-radius: 8px; text-decoration: none; font-size: 16px;
+                          font-weight: bold; display: inline-block; transition: background-color 0.3s;">
+                  ✅ YES, I WILL ATTEND
+                </a>
+                <p style="margin-top: 15px; font-size: 0.85em; color: #666;">
+                    Confirming helps us ensure we have enough resources for everyone.
+                </p>
+            </div>
 
-            <h3>Event Details:</h3>
-            <ul>
-                <li><strong>Date & Time:</strong> {event_start_time.strftime('%B %d, %Y at %I:%M %p UTC')}</li>
-                <li><strong>Type:</strong> {event_details.get('event_type', 'N/A')}</li>
-                <li><strong>Venue:</strong> {event_details.get('venue') or 'N/A'}</li>
-                <li><strong>Meeting Link:</strong> <a href="{event_details.get('meeting_link', '#')}">{event_details.get('meeting_link') or 'Will be provided'}</a></li>
-            </ul>
+            <div style="margin-top: 30px; text-align: center;">
+                <h3 style="color: #1f2937;">Your Entry Pass</h3>
+                <p>We've attached your personal <strong>QR code</strong> to this email. Please show it at the check-in desk when you arrive.</p>
+            </div>
 
-            <p>Your <strong>QR code</strong> for attendance check-in is attached. Keep it handy on event day.</p>
-
-            <hr style="border: 1px solid #eee;">
-            <p style="color: #666; font-size: 12px;">EventEngine — Autonomous Event Management</p>
+            <hr style="border: none; border-top: 1px solid #eeeeee; margin: 30px 0;">
+            <div style="text-align: center; color: #9ca3af; font-size: 0.8em;">
+                <p>Sent via <strong>EventEngine</strong> — Autonomous Event Management</p>
+                <p>You received this because you registered for {event_name}.</p>
+            </div>
         </body>
         </html>
         """
@@ -182,7 +238,7 @@ EventEngine Team
         if qr_code_data:
             attachments.append({
                 'content': qr_code_data,
-                'filename': 'attendance_qr.png',
+                'filename': 'entry_pass_qr.png',
                 'type': 'image/png'
             })
 
@@ -310,6 +366,65 @@ EventEngine Team
         </html>
         """
         
+        return self.send_email(to_email, subject, body_text, body_html)
+
+    def send_promotion_email(
+        self,
+        to_email: str,
+        participant_name: str,
+        event_name: str,
+        event_description: str,
+        event_id: int
+    ) -> Dict:
+        """
+        Send a promotional email to a potential participant
+        """
+        subject = f"Invitation: Don't miss out on '{event_name}'!"
+        reg_url = f"http://localhost:8000/frontend/portal.html?event_id={event_id}"
+        
+        body_text = f"""
+Hello {participant_name},
+
+We thought you might be interested in our upcoming event: "{event_name}".
+
+{event_description[:200]}...
+
+Interested? You can view more details and register here:
+{reg_url}
+
+We hope to see you there!
+
+Best regards,
+EventEngine AI Promoter
+"""
+        
+        body_html = f"""
+<html>
+<body style="font-family: 'Segoe UI', sans-serif; color: #333; line-height: 1.6; max-width: 600px; margin: auto; padding: 20px;">
+    <div style="text-align: center; background: linear-gradient(135deg, #4f46e5 0%, #7c3aed 100%); color: white; padding: 40px; border-radius: 12px; margin-bottom: 30px;">
+        <h1 style="margin: 0;">Special Invitation</h1>
+        <p style="font-size: 1.2em; opacity: 0.9;">Join us for {event_name}</p>
+    </div>
+    
+    <p>Hi <strong>{participant_name}</strong>,</p>
+    <p>Our autonomous agent identified that you might be interested in this upcoming event. It's a great opportunity to learn and network!</p>
+    
+    <div style="background-color: #f8fafc; padding: 20px; border-radius: 8px; border: 1px solid #e2e8f0; margin: 25px 0;">
+        <h3 style="margin-top: 0; color: #4f46e5;">{event_name}</h3>
+        <p>{event_description[:300]}...</p>
+    </div>
+    
+    <div style="text-align: center; margin: 35px 0;">
+        <a href="{reg_url}" style="background-color: #4f46e5; color: white; padding: 14px 35px; border-radius: 8px; text-decoration: none; font-size: 16px; font-weight: bold; display: inline-block;">
+            View Event & Register
+        </a>
+    </div>
+    
+    <hr style="border: none; border-top: 1px solid #eee; margin: 30px 0;">
+    <p style="text-align: center; color: #94a3b8; font-size: 0.85em;">Sent by EventEngine AI Promoter</p>
+</body>
+</html>
+"""
         return self.send_email(to_email, subject, body_text, body_html)
 
 
