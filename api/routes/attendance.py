@@ -203,6 +203,49 @@ async def validate_otp_check_in(request: ValidateOTPRequest):
         raise HTTPException(status_code=500, detail=f"Failed OTP check-in: {str(e)}")
 
 
+@router.post("/join/{participant_id}")
+async def join_meeting_and_check_in(participant_id: int):
+    """
+    Mark participant as ATTENDED when they join an online meeting via the portal.
+    """
+    try:
+        from services.attendance_service import AttendanceService
+        with get_db_context() as db:
+            # We bypass OTP check since they are already authenticated via the portal
+            # and mark them as attended directly.
+            participant = db.query(Participant).filter(Participant.id == participant_id).first()
+            if not participant:
+                raise HTTPException(status_code=404, detail="Participant not found")
+            
+            # Record attendance directly
+            from models.attendance import Attendance
+            from config.constants import AttendanceMethod, ParticipantStatus
+            from datetime import timezone
+            
+            # Check if already attended
+            existing = db.query(Attendance).filter(
+                Attendance.participant_id == participant_id
+            ).first()
+            
+            if not existing:
+                attendance = Attendance(
+                    event_id=participant.event_id,
+                    participant_id=participant.id,
+                    checked_in_at=datetime.now(timezone.utc),
+                    check_in_method=AttendanceMethod.OTP, # Mark as digital check-in
+                    is_valid=True,
+                    validation_notes="Automatic check-in via 'Join Event' button"
+                )
+                db.add(attendance)
+                participant.status = ParticipantStatus.ATTENDED
+                db.commit()
+            
+            return {"success": True, "message": "Attendance recorded automatically"}
+    except Exception as e:
+        logger.error(f"[API] Failed online join: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+
 @router.get("/event/{event_id}")
 async def get_event_attendance(event_id: int):
     """

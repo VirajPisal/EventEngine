@@ -110,7 +110,9 @@ class EmailService:
         event_details: Dict,
         qr_code_data: Optional[str] = None,
         participant_id: Optional[int] = None,
-        custom_content: Optional[str] = None
+        custom_content: Optional[str] = None,
+        ics_content: Optional[str] = None,
+        google_cal_link: Optional[str] = None
     ) -> Dict:
         """
         Send registration confirmation email with QR code and confirmation link.
@@ -126,11 +128,7 @@ Hello {participant_name},
 
 {custom_content}
 
----
-EVENT QUICK INFO:
-Event: {event_name}
-Date: {event_start_time.strftime('%B %d, %Y')}
-Confirm Attendance: {confirm_url}
+{f"Add to Google Calendar: {google_cal_link}" if google_cal_link else ""}
 ---
 
 Best regards,
@@ -161,7 +159,7 @@ Please click the link below to confirm your attendance. This helps us manage eve
 CHECK-IN INFORMATION:
 We have attached a unique QR code to this email. Please keep this handy on your phone as it will be scanned at the entrance for your attendance.
 
-Looking forward to seeing you there!
+{f"Add to Google Calendar: {google_cal_link}" if google_cal_link else ""}
 
 Best regards,
 EventEngine Team
@@ -218,11 +216,12 @@ EventEngine Team
                 <p style="margin-top: 15px; font-size: 0.85em; color: #666;">
                     Confirming helps us ensure we have enough resources for everyone.
                 </p>
+                {f'<div style="margin-top: 15px; border-top: 1px solid #e5e7eb; padding-top: 15px;"><a href="{google_cal_link}" style="color: #4285F4; text-decoration: none; font-weight: bold; border: 1px solid #4285F4; padding: 10px 20px; border-radius: 6px; display: inline-block;">📅 Add to Google Calendar</a></div>' if google_cal_link else ''}
             </div>
-
             <div style="margin-top: 30px; text-align: center;">
                 <h3 style="color: #1f2937;">Your Entry Pass</h3>
                 <p>We've attached your personal <strong>QR code</strong> to this email. Please show it at the check-in desk when you arrive.</p>
+                {f'<p style="margin-top:10px; font-size:0.9em; color:#4f46e5;">📅 <strong>Calendar Invite Attached:</strong> We have also included a calendar file (.ics). Open it to add this event to your calendar!</p>' if ics_content else ''}
             </div>
 
             <hr style="border: none; border-top: 1px solid #eeeeee; margin: 30px 0;">
@@ -240,6 +239,15 @@ EventEngine Team
                 'content': qr_code_data,
                 'filename': 'entry_pass_qr.png',
                 'type': 'image/png'
+            })
+        
+        if ics_content:
+            # Calendar files should be base64 encoded for the send_email method
+            ics_base64 = base64.b64encode(ics_content.encode()).decode()
+            attachments.append({
+                'content': ics_base64,
+                'filename': f'invite_{participant_id or "event"}.ics',
+                'type': 'text/calendar'
             })
 
         return self.send_email(to_email, subject, body_text, body_html, attachments)

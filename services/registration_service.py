@@ -12,6 +12,7 @@ from config.constants import EventState, ParticipantStatus
 from utils.logger import logger
 from utils.qr_generator import get_qr_generator
 from notifications.email import get_email_service
+from services.calendar_service import CalendarService
 
 
 class RegistrationService:
@@ -109,7 +110,26 @@ class RegistrationService:
         participant.qr_token = qr_data['token']
         db.commit()
         
-        # Send confirmation email with QR code
+        # Generate Calendar Invite (.ics)
+        ics_content = CalendarService.generate_ics_content(
+            name=event.name,
+            description=event.description or f"Event {event.name}",
+            start_time=event.start_time,
+            end_time=event.end_time or event.start_time,
+            location=event.venue or event.meeting_link or "Online",
+            uid=f"event-{event.id}-part-{participant.id}"
+        )
+        
+        # Generate Google Calendar Link
+        google_cal_link = CalendarService.generate_google_calendar_link(
+            name=event.name,
+            description=event.description or f"Event {event.name}",
+            start_time=event.start_time,
+            end_time=event.end_time or event.start_time,
+            location=event.venue or event.meeting_link or "Online"
+        )
+        
+        # Send confirmation email with QR code and Calendar Invite
         email_service = get_email_service()
         try:
             email_result = email_service.send_registration_confirmation(
@@ -128,7 +148,9 @@ class RegistrationService:
                 },
                 qr_code_data=qr_data.get('image_base64'),
                 participant_id=participant.id,
-                custom_content=event.custom_email_template
+                custom_content=event.custom_email_template,
+                ics_content=ics_content,
+                google_cal_link=google_cal_link
             )
             email_sent = email_result.get('success', False)
         except Exception as e:

@@ -2,16 +2,18 @@
 Registration Routes
 Endpoints for participant registration and confirmation
 """
-from fastapi import APIRouter, HTTPException
+from fastapi import APIRouter, HTTPException, Response
 from fastapi.responses import HTMLResponse
 from pydantic import BaseModel, Field, EmailStr
-from typing import Optional
+from typing import Optional, List
+from sqlalchemy.orm import Session
 
-from db.base import get_db_context
+from db.base import get_db, get_db_context
 from services.registration_service import RegistrationService
+from services.calendar_service import CalendarService
 from models.participant import Participant
+from models.event import Event
 from utils.logger import logger
-
 
 router = APIRouter()
 
@@ -331,7 +333,13 @@ async def get_participant_registrations(email: str):
                     "is_confirmed": p.is_confirmed,
                     "confirmed_at": p.confirmed_at.isoformat() if p.confirmed_at else None,
                     "registered_at": p.registered_at.isoformat(),
-                    "qr_token": p.qr_token
+                    "qr_token": p.qr_token,
+                    "event_start_time": event.start_time.isoformat() if event else None,
+                    "event_end_time": event.end_time.isoformat() if event and event.end_time else (event.start_time.isoformat() if event else None),
+                    "event_location": (event.venue or event.meeting_link or "Online") if event else "N/A",
+                    "meeting_link": event.meeting_link if event else None,
+                    "event_state": event.state.value if event else None,
+                    "event_description": event.description if event else ""
                 })
 
             return {
@@ -343,3 +351,35 @@ async def get_participant_registrations(email: str):
     except Exception as e:
         logger.error(f"[API] Failed to get registrations for {email}: {e}")
         raise HTTPException(status_code=500, detail=f"Failed to get registrations: {str(e)}")
+
+
+@router.get("/{registration_id}/ics")
+async def get_registration_ics(
+    registration_id: int
+):
+    """Generate and return an .ics calendar file for a registration"""
+    with get_db_context() as db:
+        participant = db.query(Participant).filter(Participant.id == registration_id).first()
+        if not participant:
+            raise HTTPException(status_code=404, detail="Registration not found")
+            
+        event = db.query(Event).filter(Event.id == participant.event_id).first()
+        if not event:
+            raise HTTPException(status_code=404, detail="Event not found")
+            
+        ics_content = CalendarService.generate_ics_content(
+            name=event.name,
+            description=event.description or f"Event {event.name}",
+            start_time=event.start_time,
+            end_time=event.end_time or event.start_time,
+            location=event.venue or event.meeting_link or "Online",
+            uid=f"event-{event.id}-part-{participant.id}"
+        )
+        
+        return Response(
+            content=ics_content,
+            media_type="text/calendar",
+            headers={
+                "Content-Disposition": f"attachment; filename=event_{event.id}.ics"
+            }
+        )

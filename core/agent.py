@@ -8,8 +8,10 @@ from sqlalchemy.orm import Session
 
 from db.base import get_db_context
 from models.event import Event
+from models.participant import Participant
 from models.agent_action import AgentAction
-from config.constants import EventState
+from models.feedback import Feedback
+from config.constants import EventState, EventType, ParticipantStatus
 from services.event_service import EventService
 from services.reminder_service import ReminderService
 from services.analytics_service import AnalyticsService
@@ -271,6 +273,12 @@ class EventAgent:
                 
                 # NEW: CERTIFICATE CYCLE
                 self.run_certificate_cycle(db)
+
+                # NEW: FEEDBACK CYCLE
+                self.run_feedback_cycle(db)
+
+                # NEW: FEEDBACK SUMMARY CYCLE
+                self.run_feedback_summary_cycle(db)
                 
         except Exception as e:
             logger.error(f"[AGENT] Error in cycle #{self._cycle_count}: {str(e)}")
@@ -391,6 +399,111 @@ class EventAgent:
 
         except Exception as e:
             logger.error(f"[AGENT] Error in certificate cycle: {str(e)}")
+
+    def run_feedback_cycle(self, db: Session):
+        """
+        Check completed events and send feedback survey links to attendees
+        """
+        try:
+            # Events in COMPLETED or ANALYZING state can receive survey links
+            # We target participants of COMPLETED events specifically
+            completed_events = db.query(Event).filter(
+                Event.state == EventState.COMPLETED
+            ).all()
+
+            if not completed_events:
+                return
+
+            email_service = get_email_service()
+
+            for event in completed_events:
+                # Get all participants who attended
+                attendees = db.query(Participant).filter(
+                    Participant.event_id == event.id,
+                    Participant.status == ParticipantStatus.ATTENDED
+                ).all()
+
+                for att in attendees:
+                    # Send feedback invitation
+                    subject = f"How was '{event.name}'? Share your feedback!"
+                    feedback_url = f"http://localhost:8000/frontend/portal.html?feedback={event.id}"
+                    
+                    body_html = f"""
+                    <div style="font-family: Arial, sans-serif; max-width: 600px; margin: auto; padding: 20px; border: 1px solid #eee; border-radius: 10px;">
+                        <h2 style="color: #6366f1;">Thanks for attending!</h2>
+                        <p>Hi <strong>{att.name}</strong>, we hope you enjoyed <strong>{event.name}</strong>.</p>
+                        <p>Could you take 30 seconds to rate the event? Your feedback helps us improve future events!</p>
+                        <div style="text-align: center; margin: 30px 0;">
+                            <a href="{feedback_url}" style="background:#6366f1; color:white; padding:12px 30px; border-radius:8px; text-decoration:none; font-weight: bold; display:inline-block;">
+                                ⭐ Give Feedback
+                            </a>
+                        </div>
+                        <p style="color: #666; font-size: 0.9em;">If the button doesn't work, copy this link: {feedback_url}</p>
+                    </div>
+                    """
+                    
+                    email_service.send_email(
+                        to_email=att.email,
+                        subject=subject,
+                        body_text=f"Please rate {event.name} at {feedback_url}",
+                        body_html=body_html
+                    )
+
+                # Move to ANALYZING once surveys are sent
+                event.state = EventState.ANALYZING
+                db.commit()
+                logger.info(f"[AGENT] Surveys sent for Event #{event.id}, transitioning to ANALYZING")
+
+        except Exception as e:
+            logger.error(f"[AGENT] Error in feedback cycle: {str(e)}")
+
+    def run_feedback_summary_cycle(self, db: Session):
+        """
+        Summarize feedback for events in ANALYZING state
+        """
+        try:
+            # Events in ANALYZING state that might have feedback now
+            analyzing_events = db.query(Event).filter(
+                Event.state == EventState.ANALYZING
+            ).all()
+
+            for event in analyzing_events:
+                # Check for feedback
+                feedbacks = db.query(Feedback).filter(Feedback.event_id == event.id).all()
+                
+                # Logic: Summarize if we have at least some feedback, 
+                # or if it's been in ANALYZING for > some time.
+                # For this demo, if count > 0, we summarize.
+                if not feedbacks:
+                    continue
+                
+                # Aggregate summary
+                avg_rating = sum(f.rating for f in feedbacks) / len(feedbacks)
+                comments = [f.comment for f in feedbacks if f.comment]
+                
+                # Propose a 'REPORT_GENERATION' action or just mark as COMPLETED
+                # We'll push it to REPORT_GENERATED after summarizing
+                action = AgentAction(
+                    event_id=event.id,
+                    action_type="REPORT_GENERATION",
+                    description=f"Generated AI performance summary from {len(feedbacks)} reviews. Avg Rating: {avg_rating:.1f}/5.",
+                    status="PENDING",
+                    parameters={
+                        "avg_rating": avg_rating,
+                        "response_count": len(feedbacks),
+                        "top_comments": comments[:5]
+                    }
+                )
+                db.add(action)
+                
+                # Update event state to REPORT_GENERATED
+                event.state = EventState.REPORT_GENERATED
+                db.commit()
+                logger.info(f"[AGENT] Compiled feedback for Event #{event.id}. Avg: {avg_rating:.1f}")
+
+        except Exception as e:
+            logger.error(f"[AGENT] Error in feedback summary cycle: {str(e)}")
+
     
     def start(self):
         """Mark agent as running"""
