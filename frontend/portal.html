@@ -692,7 +692,10 @@
                                     ✅ Already Registered
                                 </div>
                             ` : canRegister ? `
-                                <button class="btn btn-primary" onclick="openRegisterModal(${ev.id}, '${esc(ev.name)}')">
+                                <button class="btn btn-primary" 
+                                        data-id="${ev.id}" 
+                                        data-name="${esc(ev.name)}" 
+                                        onclick="openRegisterModal(this.dataset.id, this.dataset.name)">
                                     Register Now
                                 </button>
                             ` : `
@@ -737,8 +740,12 @@
                         <div class="card-title">${esc(reg.event_name || 'Event #' + reg.event_id)}</div>
                         <span class="badge badge-${reg.status.toLowerCase()}">${reg.status}</span>
                     </div>
-                    ${(reg.status === 'CONFIRMED') ? `
-                        <button class="btn btn-outline" onclick="showQR('${reg.qr_token || ''}', '${esc(reg.event_name || 'Event')}', ${reg.id})">
+                    ${['REGISTERED', 'CONFIRMED', 'ATTENDED'].includes(reg.status) ? `
+                        <button class="btn btn-outline" 
+                                data-token="${reg.qr_token || ''}" 
+                                data-name="${esc(reg.event_name || 'Event')}" 
+                                data-id="${reg.id}" 
+                                onclick="showQR(this.dataset.token, this.dataset.name, this.dataset.id)">
                             Show QR Code
                         </button>
                     ` : ''}
@@ -748,13 +755,22 @@
                             <a href="${getGoogleCalLink(reg)}" target="_blank" class="btn btn-primary" style="flex:1; font-size:.75rem; text-decoration:none; text-align:center; background:#4285F4;">Google</a>
                         </div>
                     ` : ''}
-                    ${reg.status === 'CONFIRMED' && reg.event_state === 'RUNNING' && reg.meeting_link ? `
-                        <button class="btn btn-primary" onclick="joinEvent(${reg.id}, '${reg.meeting_link}')" style="width:100%; margin-top:8px; background:#22c55e;">
+                    ${reg.status === 'CONFIRMED' && (reg.event_state === 'RUNNING' || reg.event_state === 'SCHEDULED' || reg.event_state === 'ATTENDANCE_OPEN') && reg.meeting_link ? `
+                        <button class="btn btn-primary" 
+                                data-id="${reg.id}" 
+                                data-link="${reg.meeting_link}"
+                                onclick="joinEvent(this.dataset.id, this.dataset.link)" 
+                                style="width:100%; margin-top:8px; background:#22c55e;">
                             🚀 Join Live Event
                         </button>
                     ` : ''}
-                    ${reg.status === 'COMPLETED' || reg.status === 'ANALYZING' || reg.status === 'REPORT_GENERATED' ? `
-                        <button class="btn btn-accent" onclick="openFeedback(${reg.event_id}, ${reg.id}, '${esc(reg.event_name)}')" style="width:100%; margin-top:8px;">
+                    ${['COMPLETED', 'ANALYZING', 'REPORT_GENERATED'].includes(reg.status) || ['COMPLETED', 'ANALYZING', 'REPORT_GENERATED'].includes(reg.event_state) ? `
+                        <button class="btn btn-accent" 
+                                data-event-id="${reg.event_id}" 
+                                data-reg-id="${reg.id}" 
+                                data-name="${esc(reg.event_name)}"
+                                onclick="openFeedback(this.dataset.eventId, this.dataset.regId, this.dataset.name)" 
+                                style="width:100%; margin-top:8px;">
                             ⭐ Share Feedback
                         </button>
                     ` : ''}
@@ -940,28 +956,52 @@
 
         /* ===== QR CODE ===== */
         async function showQR(token, eventName, regId) {
+            // Handle string "null" from dataset
+            if (!token || token === 'null' || token === 'undefined') token = null;
+
             if (!token && regId) {
+                showToast('Generating secure ticket...', 'info');
                 try {
                     const r = await fetch(API + '/api/attendance/qr/generate', {
-                        method: 'POST', headers: hdrs(), body: JSON.stringify({ participant_id: regId })
+                        method: 'POST', 
+                        headers: hdrs(), 
+                        body: JSON.stringify({ participant_id: parseInt(regId) })
                     });
                     const d = await r.json();
-                    if (d.success) token = d.qr_code.token;
-                } catch (e) { console.error(e); }
+                    if (d.success) {
+                        token = d.qr_code.token;
+                    } else {
+                        showToast(d.detail || 'Ticket generation failed', 'error');
+                        return;
+                    }
+                } catch (e) { 
+                    console.error(e);
+                    showToast('Connection error', 'error');
+                    return;
+                }
             }
-            if (!token) { alert("QR Code not available yet."); return; }
 
-            const canvas = document.getElementById('qrCanvas');
-            new QRious({
-                element: canvas,
-                value: token,
-                size: 250,
-                background: '#ffffff',
-                foreground: '#000000',
-                level: 'H'
-            });
-            document.getElementById('qrEventName').textContent = eventName;
-            document.getElementById('qrModal').classList.add('show');
+            if (!token) { 
+                showToast("QR Token not ready. Please try again or contact support.", "error"); 
+                return; 
+            }
+
+            try {
+                const canvas = document.getElementById('qrCanvas');
+                new QRious({
+                    element: canvas,
+                    value: token,
+                    size: 250,
+                    background: '#ffffff',
+                    foreground: '#000000',
+                    level: 'H'
+                });
+                document.getElementById('qrEventName').textContent = eventName;
+                document.getElementById('qrModal').classList.add('show');
+            } catch (err) {
+                console.error('QR Render error:', err);
+                showToast('QR Code display failed', 'error');
+            }
         }
 
         function closeQRModal() {

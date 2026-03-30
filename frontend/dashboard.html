@@ -791,7 +791,11 @@
                 </div>
                 <div class="event-actions">
                     ${getTransitionButtons(ev)}
-                    <button class="btn-action danger" onclick="event.stopPropagation();cancelEvent(${ev.id})">Cancel</button>
+                    ${ev.state === 'CANCELLED' ? `
+                        <button class="btn-action danger" onclick="event.stopPropagation();cancelEvent(${ev.id}, true)" style="border-color:var(--db-red); color:var(--db-red);">Delete Forever</button>
+                    ` : `
+                        <button class="btn-action danger" onclick="event.stopPropagation();cancelEvent(${ev.id})">Cancel</button>
+                    `}
                 </div>
                 ${sel ? `
                 <div class="chart-container">
@@ -836,12 +840,17 @@
             } catch (e) { showToast('Error: ' + e.message, 'error'); }
         }
 
-        async function cancelEvent(id) {
-            if (!confirm('Cancel this event?')) return;
+        async function cancelEvent(id, hard = false) {
+            const msg = hard ? 'Permanently DELETE this event? This cannot be undone.' : 'Cancel this event?';
+            if (!confirm(msg)) return;
             try {
-                const r = await fetch(API + `/api/events/${id}`, { method: 'DELETE', headers: hdrs() });
+                const url = hard ? API + `/api/events/${id}?hard_delete=true` : API + `/api/events/${id}`;
+                const r = await fetch(url, { method: 'DELETE', headers: hdrs() });
                 const d = await r.json();
-                if (d.success) { showToast('Event cancelled'); loadEvents(); }
+                if (d.success) { 
+                    showToast(hard ? 'Event deleted' : 'Event cancelled'); 
+                    loadEvents(); 
+                }
                 else showToast(d.detail || 'Failed', 'error');
             } catch (e) { showToast('Error: ' + e.message, 'error'); }
         }

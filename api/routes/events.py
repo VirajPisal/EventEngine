@@ -160,10 +160,15 @@ async def parse_natural_language(
             parsed["start_time"] = times[0].isoformat()
             parsed["end_time"] = (times[0] + timedelta(hours=2)).isoformat()
 
-        # Use first sentence as name
-        sentences = re.split(r"[.!\n]", text)
+        # Use first sentence as name, stripping common placeholder prefixes
+        text_clean = re.sub(r"^(Example|Sample|Test):\s*", "", text, flags=re.IGNORECASE)
+        sentences = re.split(r"[.!\n]", text_clean)
         if sentences:
-            parsed["name"] = sentences[0].strip()[:200]
+            name = sentences[0].strip()
+            # If name is too long, it's likely just a generic description
+            if len(name) > 100:
+                name = name[:97] + "..."
+            parsed["name"] = name
         parsed["description"] = text[:500]
 
         return {"success": True, "source": "fallback", "parsed": parsed}
@@ -371,37 +376,45 @@ async def transition_event(event_id: int, request: EventTransitionRequest):
 
 
 @router.delete("/{event_id}")
-async def cancel_event(event_id: int, reason: Optional[str] = None):
+async def cancel_event(event_id: int, reason: Optional[str] = None, hard_delete: bool = Query(False)):
     """
-    Cancel an event
+    Cancel or permanently delete an event
     
     - **event_id**: Event ID
     - **reason**: Optional cancellation reason
+    - **hard_delete**: If true, permanently delete the event from DB (default: false)
     """
     try:
         with get_db_context() as db:
-            result = EventService.transition_event_state(
-                db=db,
-                event_id=event_id,
-                new_state=EventState.CANCELLED,
-                reason=reason or "Event cancelled via API",
-                triggered_by="api"
-            )
-            
-            if not result["success"]:
-                raise HTTPException(status_code=400, detail=result["message"])
-            
-            return {
-                "success": True,
-                "message": "Event cancelled successfully",
-                "event_id": event_id
-            }
+            if hard_delete:
+                success = EventService.delete_event(db, event_id)
+                if not success:
+                    raise HTTPException(status_code=404, detail="Event not found or could not be deleted")
+                return {"success": True, "message": "Event permanently deleted"}
+            else:
+                # Normal cancellation (state transition)
+                result = EventService.transition_event_state(
+                    db=db,
+                    event_id=event_id,
+                    new_state=EventState.CANCELLED,
+                    reason=reason or "Event cancelled via Dashboard",
+                    triggered_by="organizer"
+                )
+                
+                if not result["success"]:
+                    raise HTTPException(status_code=400, detail=result["message"])
+                
+                return {
+                    "success": True,
+                    "message": "Event cancelled successfully",
+                    "event_id": event_id
+                }
     
     except HTTPException:
         raise
     except Exception as e:
-        logger.error(f"[API] Failed to cancel event {event_id}: {e}")
-        raise HTTPException(status_code=500, detail=f"Failed to cancel event: {str(e)}")
+        logger.error(f"[API] Failed to delete/cancel event {event_id}: {e}")
+        raise HTTPException(status_code=500, detail=f"Failed to process request: {str(e)}")
 
 
 @router.get("/{event_id}/participants")
