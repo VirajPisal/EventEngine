@@ -20,6 +20,7 @@ from services.certificate_service import CertificateService
 from services.insights_service import get_insights_service
 from rules.transition_rules import check_auto_transition_conditions
 from utils.logger import logger
+from notifications.email import get_email_service
 import json
 
 

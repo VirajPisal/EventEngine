@@ -35,13 +35,37 @@ async def lifespan(app: FastAPI):
         logger.info("[API] Starting EventEngine API server...")
         init_db()
         logger.info("[API] Database initialized successfully")
+        
+        # Start Autonomous Agent Scheduler
+        from core.scheduler import get_scheduler
+        from core.agent import EventAgent
+        
+        agent = EventAgent()
+        scheduler = get_scheduler()
+        
+        # Schedule the main agent loop (transitions, analytics, promotions)
+        scheduler.add_agent_loop_job(agent.run_cycle, interval_seconds=30)
+        
+        # Schedule the reminder evaluation cycle
+        scheduler.add_reminder_evaluation_job(agent.run_reminder_cycle, interval_minutes=5)
+        
+        scheduler.start()
+        logger.info("[API] Autonomous Agent Scheduler started")
+        
     except Exception as e:
-        logger.error(f"[API] Database initialization failed: {e}")
-        logger.info("[API] Continuing without database initialization...")
+        logger.error(f"[API] Initialization failed: {e}")
+        logger.info("[API] Continuing without full initialization...")
     
     yield
     
     # Shutdown
+    try:
+        from core.scheduler import get_scheduler
+        get_scheduler().stop()
+        logger.info("[API] Autonomous Agent Scheduler stopped")
+    except:
+        pass
+    
     logger.info("[API] Shutting down EventEngine API server...")
 
 

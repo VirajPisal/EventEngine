@@ -52,7 +52,10 @@ class PromotionService:
                     participant_name=account.name,
                     event_name=event.name,
                     event_description=event.description or "No description provided.",
-                    event_id=event.id
+                    event_id=event.id,
+                    start_time=event.start_time,
+                    event_type=event.event_type.value,
+                    location=event.venue or event.meeting_link or "Online"
                 )
                 count += 1
             except Exception as e:

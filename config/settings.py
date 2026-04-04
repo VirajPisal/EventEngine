@@ -68,9 +68,11 @@ class Settings:
     TWILIO_AUTH_TOKEN: str = os.getenv("TWILIO_AUTH_TOKEN", "")
     TWILIO_PHONE_NUMBER: str = os.getenv("TWILIO_PHONE_NUMBER", "")
     
-    # OpenAI Configuration (for AI insights)
+    # AI Configuration (OpenAI/Google Gemini)
     OPENAI_API_KEY: str = os.getenv("OPENAI_API_KEY", "")
     OPENAI_MODEL: str = os.getenv("OPENAI_MODEL", "gpt-4o-mini")
+    GOOGLE_API_KEY: str = os.getenv("GOOGLE_API_KEY", "")
+    GEMINI_MODEL: str = os.getenv("GEMINI_MODEL", "gemini-1.5-flash")
     
     # Agent Configuration
     AGENT_LOOP_INTERVAL_SECONDS: int = int(os.getenv("AGENT_LOOP_INTERVAL_SECONDS", "60"))

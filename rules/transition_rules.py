@@ -278,8 +278,30 @@ def check_auto_transition_conditions(db: Session, event: Event) -> Dict[str, any
     start_time = ensure_timezone_aware(event.start_time)
     end_time = ensure_timezone_aware(event.end_time)
     
+    # CREATED → REGISTRATION_OPEN (Immediate or 1 minute after creation)
+    if event.state == EventState.CREATED:
+        # Only auto-open if event was created more than 2 minutes ago (gives organizer time to review)
+        created_at = ensure_timezone_aware(event.created_at)
+        if (now - created_at).total_seconds() > 120:
+            if event.start_time and event.end_time:
+                return {
+                    "should_transition": True,
+                    "target_state": EventState.REGISTRATION_OPEN,
+                    "reason": "Event review period complete, opening registration"
+                }
+
+    # REGISTRATION_OPEN → SCHEDULED (24 hours before start time)
+    elif event.state == EventState.REGISTRATION_OPEN:
+        scheduling_deadline = start_time - timedelta(hours=24)
+        if now >= scheduling_deadline:
+            return {
+                "should_transition": True,
+                "target_state": EventState.SCHEDULED,
+                "reason": "Registration closed (24-hour scheduling deadline reached)"
+            }
+
     # SCHEDULED → ATTENDANCE_OPEN (30 min before start)
-    if event.state == EventState.SCHEDULED:
+    elif event.state == EventState.SCHEDULED:
         attendance_open_time = start_time - timedelta(minutes=30)
         if now >= attendance_open_time:
             return {
@@ -315,6 +337,15 @@ def check_auto_transition_conditions(db: Session, event: Event) -> Dict[str, any
             "target_state": EventState.ANALYZING,
             "reason": "Event completed, ready for analytics"
         }
+
+    # ANALYZING → REPORT_GENERATED (after analytics are processed)
+    elif event.state == EventState.ANALYZING:
+        if event.analytics:
+            return {
+                "should_transition": True,
+                "target_state": EventState.REPORT_GENERATED,
+                "reason": "Analytics processing complete"
+            }
     
     return {
         "should_transition": False,

@@ -85,6 +85,8 @@ class EmailService:
                     part.set_payload(base64.b64decode(att["content"]))
                     encoders.encode_base64(part)
                     part.add_header("Content-Disposition", f'attachment; filename="{att["filename"]}"')
+                    if "cid" in att:
+                        part.add_header("Content-ID", f'<{att["cid"]}>')
                     msg.attach(part)
 
             context = ssl.create_default_context()
@@ -220,7 +222,9 @@ EventEngine Team
             </div>
             <div style="margin-top: 30px; text-align: center;">
                 <h3 style="color: #1f2937;">Your Entry Pass</h3>
-                <p>We've attached your personal <strong>QR code</strong> to this email. Please show it at the check-in desk when you arrive.</p>
+                <p>Please show this QR code at the check-in desk when you arrive.</p>
+                {f'<div style="background: white; padding: 15px; border-radius: 12px; display: inline-block; border: 1px solid #e5e7eb; margin: 15px 0;"><img src="cid:qr_pass" width="200" height="200" alt="Attendance QR Code"></div>' if qr_code_data else '<p style="color: #666;">(QR Code attached below)</p>'}
+                <p style="font-size: 0.9rem; color: #4f46e5;">We recommend saving this email or the attached QR code image to your phone.</p>
                 {f'<p style="margin-top:10px; font-size:0.9em; color:#4f46e5;">📅 <strong>Calendar Invite Attached:</strong> We have also included a calendar file (.ics). Open it to add this event to your calendar!</p>' if ics_content else ''}
             </div>
 
@@ -238,7 +242,8 @@ EventEngine Team
             attachments.append({
                 'content': qr_code_data,
                 'filename': 'entry_pass_qr.png',
-                'type': 'image/png'
+                'type': 'image/png',
+                'cid': 'qr_pass'
             })
         
         if ics_content:
@@ -382,7 +387,10 @@ EventEngine Team
         participant_name: str,
         event_name: str,
         event_description: str,
-        event_id: int
+        event_id: int,
+        start_time: Optional[datetime] = None,
+        event_type: str = "OFFLINE",
+        location: str = "To be announced"
     ) -> Dict:
         """
         Send a promotional email to a potential participant
@@ -419,6 +427,11 @@ EventEngine AI Promoter
     
     <div style="background-color: #f8fafc; padding: 20px; border-radius: 8px; border: 1px solid #e2e8f0; margin: 25px 0;">
         <h3 style="margin-top: 0; color: #4f46e5;">{event_name}</h3>
+        <p style="font-size: 0.9em; margin-bottom: 10px;">
+            📅 <strong>Date:</strong> ${start_time.strftime('%B %d, %Y at %I:%M %p UTC') if start_time else 'Coming Soon'}<br>
+            📍 <strong>Format:</strong> ${event_type.title()}<br>
+            📍 <strong>Location:</strong> ${location}
+        </p>
         <p>{event_description[:300]}...</p>
     </div>
     

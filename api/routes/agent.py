@@ -155,3 +155,26 @@ async def get_recent_actions(
     except Exception as e:
         logger.error(f"[AGENT-API] Failed to get recent actions: {e}")
         raise HTTPException(status_code=500, detail=str(e))
+
+
+@router.get("/insights/{event_id}")
+async def get_event_insights(
+    event_id: int,
+    user: dict = Depends(get_current_organizer),
+):
+    """Get AI strategic insights for a specific event using LangGraph"""
+    try:
+        from services.ai.insights_service_ai import get_insights_service_ai
+        with get_db_context() as db:
+            service = get_insights_service_ai()
+            result = service.run_analysis(db, event_id)
+            
+            if not result.get("success"):
+                raise HTTPException(status_code=500, detail=result.get("error", "AI analysis failed"))
+            
+            return result
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"[AGENT-API] Failed to generate AI insights for event {event_id}: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
