@@ -1,6 +1,5 @@
 <!DOCTYPE html>
 <html lang="en">
-
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -15,24 +14,14 @@
             --text: #e4e6ed;
             --text-dim: #8b8fa3;
             --accent: #6366f1;
-            --accent-glow: rgba(99, 102, 241, .25);
+            --accent-glow: rgba(99,102,241,.25);
             --green: #22c55e;
             --red: #ef4444;
             --amber: #f59e0b;
             --blue: #3b82f6;
         }
-
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
-
-        body {
-            background: var(--bg);
-            color: var(--text);
-            font-family: 'Inter', 'Segoe UI', sans-serif;
-        }
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { background: var(--bg); color: var(--text); font-family: 'Inter','Segoe UI',sans-serif; }
 
         /* ===== TOP BAR ===== */
         .topbar {
@@ -46,31 +35,10 @@
             top: 0;
             z-index: 100;
         }
-
-        .topbar .logo {
-            font-size: 1.25rem;
-            font-weight: 700;
-            color: var(--accent);
-        }
-
-        .topbar .logo span {
-            color: var(--text);
-            font-weight: 400;
-            margin-left: 6px;
-            font-size: .85rem;
-        }
-
-        .topbar-right {
-            display: flex;
-            align-items: center;
-            gap: 16px;
-        }
-
-        .topbar-right .user-name {
-            font-size: .85rem;
-            color: var(--text-dim);
-        }
-
+        .topbar .logo { font-size: 1.25rem; font-weight: 700; color: var(--accent); }
+        .topbar .logo span { color: var(--text); font-weight: 400; margin-left: 6px; font-size: .85rem; }
+        .topbar-right { display: flex; align-items: center; gap: 16px; }
+        .topbar-right .user-name { font-size: .85rem; color: var(--text-dim); }
         .btn-sm {
             padding: 6px 14px;
             border: none;
@@ -80,16 +48,8 @@
             font-weight: 500;
             transition: .2s;
         }
-
-        .btn-logout {
-            background: var(--surface2);
-            color: var(--text-dim);
-        }
-
-        .btn-logout:hover {
-            background: var(--red);
-            color: #fff;
-        }
+        .btn-logout { background: var(--surface2); color: var(--text-dim); }
+        .btn-logout:hover { background: var(--red); color: #fff; }
 
         /* ===== TABS ===== */
         .tabs-container {
@@ -97,12 +57,7 @@
             border-bottom: 1px solid var(--border);
             padding: 0 24px;
         }
-
-        .tabs {
-            display: flex;
-            gap: 4px;
-        }
-
+        .tabs { display: flex; gap: 4px; }
         .tab-btn {
             padding: 12px 20px;
             border: none;
@@ -114,30 +69,16 @@
             border-bottom: 2px solid transparent;
             transition: .2s;
         }
-
         .tab-btn.active {
             color: var(--accent);
             border-bottom-color: var(--accent);
         }
-
-        .tab-btn:hover:not(.active) {
-            color: var(--text);
-        }
+        .tab-btn:hover:not(.active) { color: var(--text); }
 
         /* ===== CONTENT ===== */
-        .content {
-            padding: 24px;
-            max-width: 1400px;
-            margin: 0 auto;
-        }
-
-        .tab-content {
-            display: none;
-        }
-
-        .tab-content.active {
-            display: block;
-        }
+        .content { padding: 24px; max-width: 1400px; margin: 0 auto; }
+        .tab-content { display: none; }
+        .tab-content.active { display: block; }
 
         /* ===== CARDS ===== */
         .card {
@@ -148,10 +89,7 @@
             margin-bottom: 16px;
             transition: .2s;
         }
-
-        .card:hover {
-            border-color: var(--accent);
-        }
+        .card:hover { border-color: var(--accent); }
 
         .card-header {
             display: flex;
@@ -159,13 +97,11 @@
             align-items: flex-start;
             margin-bottom: 12px;
         }
-
         .card-title {
             font-size: 1.1rem;
             font-weight: 600;
             color: var(--text);
         }
-
         .card-meta {
             font-size: .8rem;
             color: var(--text-dim);
@@ -174,7 +110,6 @@
             margin: 8px 0;
             flex-wrap: wrap;
         }
-
         .card-desc {
             font-size: .88rem;
             color: var(--text-dim);
@@ -191,41 +126,13 @@
             text-transform: uppercase;
             letter-spacing: .3px;
         }
-
-        .badge-online {
-            background: rgba(34, 197, 94, .15);
-            color: var(--green);
-        }
-
-        .badge-offline {
-            background: rgba(59, 130, 246, .15);
-            color: var(--blue);
-        }
-
-        .badge-hybrid {
-            background: rgba(139, 92, 246, .15);
-            color: #a78bfa;
-        }
-
-        .badge-pending {
-            background: rgba(245, 158, 11, .15);
-            color: var(--amber);
-        }
-
-        .badge-confirmed {
-            background: rgba(34, 197, 94, .15);
-            color: var(--green);
-        }
-
-        .badge-attended {
-            background: rgba(99, 102, 241, .15);
-            color: var(--accent);
-        }
-
-        .badge-cancelled {
-            background: rgba(239, 68, 68, .15);
-            color: var(--red);
-        }
+        .badge-online { background: rgba(34,197,94,.15); color: var(--green); }
+        .badge-offline { background: rgba(59,130,246,.15); color: var(--blue); }
+        .badge-hybrid { background: rgba(139,92,246,.15); color: #a78bfa; }
+        .badge-pending { background: rgba(245,158,11,.15); color: var(--amber); }
+        .badge-confirmed { background: rgba(34,197,94,.15); color: var(--green); }
+        .badge-attended { background: rgba(99,102,241,.15); color: var(--accent); }
+        .badge-cancelled { background: rgba(239,68,68,.15); color: var(--red); }
 
         .state-badge {
             font-size: .7rem;
@@ -233,33 +140,11 @@
             border-radius: 6px;
             font-weight: 600;
         }
-
-        .state-REGISTRATION_OPEN {
-            background: rgba(34, 197, 94, .15);
-            color: var(--green);
-        }
-
-        .state-CREATED,
-        .state-SCHEDULED {
-            background: rgba(59, 130, 246, .15);
-            color: var(--blue);
-        }
-
-        .state-ATTENDANCE_OPEN,
-        .state-RUNNING {
-            background: rgba(139, 92, 246, .15);
-            color: #a78bfa;
-        }
-
-        .state-COMPLETED {
-            background: rgba(107, 114, 128, .15);
-            color: #9ca3af;
-        }
-
-        .state-CANCELLED {
-            background: rgba(239, 68, 68, .15);
-            color: var(--red);
-        }
+        .state-REGISTRATION_OPEN { background: rgba(34,197,94,.15); color: var(--green); }
+        .state-CREATED,.state-SCHEDULED { background: rgba(59,130,246,.15); color: var(--blue); }
+        .state-ATTENDANCE_OPEN,.state-RUNNING { background: rgba(139,92,246,.15); color: #a78bfa; }
+        .state-COMPLETED { background: rgba(107,114,128,.15); color: #9ca3af; }
+        .state-CANCELLED { background: rgba(239,68,68,.15); color: var(--red); }
 
         /* ===== BUTTONS ===== */
         .btn {
@@ -271,31 +156,15 @@
             cursor: pointer;
             transition: .2s;
         }
-
-        .btn-primary {
-            background: var(--accent);
-            color: #fff;
-        }
-
-        .btn-primary:hover {
-            filter: brightness(1.1);
-        }
-
-        .btn-primary:disabled {
-            opacity: .5;
-            cursor: not-allowed;
-        }
-
+        .btn-primary { background: var(--accent); color: #fff; }
+        .btn-primary:hover { filter: brightness(1.1); }
+        .btn-primary:disabled { opacity: .5; cursor: not-allowed; }
         .btn-outline {
             background: transparent;
             border: 1px solid var(--border);
             color: var(--text-dim);
         }
-
-        .btn-outline:hover {
-            border-color: var(--accent);
-            color: var(--accent);
-        }
+        .btn-outline:hover { border-color: var(--accent); color: var(--accent); }
 
         /* ===== GRID ===== */
         .events-grid {
@@ -310,22 +179,9 @@
             padding: 60px 20px;
             color: var(--text-dim);
         }
-
-        .empty .icon {
-            font-size: 3rem;
-            margin-bottom: 12px;
-            opacity: .5;
-        }
-
-        .empty .title {
-            font-size: 1.1rem;
-            font-weight: 600;
-            margin-bottom: 6px;
-        }
-
-        .empty .desc {
-            font-size: .88rem;
-        }
+        .empty .icon { font-size: 3rem; margin-bottom: 12px; opacity: .5; }
+        .empty .title { font-size: 1.1rem; font-weight: 600; margin-bottom: 6px; }
+        .empty .desc { font-size: .88rem; }
 
         /* ===== QR CODE ===== */
         .qr-container {
@@ -335,10 +191,7 @@
             display: inline-block;
             margin: 12px 0;
         }
-
-        .qr-container canvas {
-            display: block;
-        }
+        .qr-container canvas { display: block; }
 
         /* ===== MODAL ===== */
         .modal {
@@ -348,16 +201,12 @@
             left: 0;
             width: 100%;
             height: 100%;
-            background: rgba(0, 0, 0, .7);
+            background: rgba(0,0,0,.7);
             z-index: 1000;
             align-items: center;
             justify-content: center;
         }
-
-        .modal.show {
-            display: flex;
-        }
-
+        .modal.show { display: flex; }
         .modal-content {
             background: var(--surface);
             border-radius: 16px;
@@ -367,13 +216,11 @@
             max-height: 90vh;
             overflow-y: auto;
         }
-
         .modal-header {
             font-size: 1.3rem;
             font-weight: 600;
             margin-bottom: 20px;
         }
-
         .modal-close {
             float: right;
             font-size: 1.5rem;
@@ -381,36 +228,12 @@
             color: var(--text-dim);
             line-height: 1;
         }
-
-        /* ===== RATING STARS ===== */
-        .rating-stars {
-            display: flex;
-            gap: 10px;
-            justify-content: center;
-            margin: 20px 0;
-        }
-
-        .star {
-            font-size: 2rem;
-            cursor: pointer;
-            color: var(--border);
-            transition: 0.2s;
-        }
-
-        .star.active {
-            color: var(--accent);
-            transform: scale(1.2);
-        }
-
-        .modal-close:hover {
-            color: var(--red);
-        }
+        .modal-close:hover { color: var(--red); }
 
         /* ===== FORM ===== */
         .form-group {
             margin-bottom: 16px;
         }
-
         .form-group label {
             display: block;
             font-size: .85rem;
@@ -418,7 +241,6 @@
             margin-bottom: 6px;
             color: var(--text-dim);
         }
-
         .form-group input {
             width: 100%;
             padding: 10px 12px;
@@ -428,7 +250,6 @@
             color: var(--text);
             font-size: .88rem;
         }
-
         .form-group input:focus {
             outline: none;
             border-color: var(--accent);
@@ -446,24 +267,14 @@
             padding: 12px 20px;
             font-size: .85rem;
             z-index: 9999;
-            box-shadow: 0 8px 20px rgba(0, 0, 0, .3);
+            box-shadow: 0 8px 20px rgba(0,0,0,.3);
             transform: translateY(80px);
             opacity: 0;
             transition: .3s;
         }
-
-        .toast.show {
-            transform: translateY(0);
-            opacity: 1;
-        }
-
-        .toast.success {
-            border-color: var(--green);
-        }
-
-        .toast.error {
-            border-color: var(--red);
-        }
+        .toast.show { transform: translateY(0); opacity: 1; }
+        .toast.success { border-color: var(--green); }
+        .toast.error { border-color: var(--red); }
 
         /* ===== STATS ===== */
         .stats-grid {
@@ -472,7 +283,6 @@
             gap: 16px;
             margin-bottom: 24px;
         }
-
         .stat-card {
             background: var(--surface);
             border: 1px solid var(--border);
@@ -480,13 +290,11 @@
             padding: 20px;
             text-align: center;
         }
-
         .stat-value {
             font-size: 2rem;
             font-weight: 700;
             color: var(--accent);
         }
-
         .stat-label {
             font-size: .85rem;
             color: var(--text-dim);
@@ -494,7 +302,6 @@
         }
     </style>
 </head>
-
 <body>
     <!-- Top Bar -->
     <div class="topbar">
@@ -595,8 +402,7 @@
             <span class="modal-close" onclick="closeQRModal()">&times;</span>
             <div class="modal-header">Your QR Code</div>
             <div style="text-align:center">
-                <p style="margin-bottom:12px;color:var(--text-dim);font-size:.9rem">Show this QR code at the event for
-                    attendance</p>
+                <p style="margin-bottom:12px;color:var(--text-dim);font-size:.9rem">Show this QR code at the event for attendance</p>
                 <div class="qr-container">
                     <canvas id="qrCanvas"></canvas>
                 </div>
@@ -612,8 +418,8 @@
     <script src="https://cdn.jsdelivr.net/npm/qrious@4.0.2/dist/qrious.min.js"></script>
     <script>
         /* ===== AUTH CHECK ===== */
-        (function () {
-            if (!getToken() || getRole() !== 'participant') {
+        (function(){
+            if(!getToken() || getRole() !== 'participant'){
                 window.location.href = '/frontend/login.html';
                 return;
             }
@@ -623,14 +429,13 @@
             document.getElementById('registerEmail').value = getEmail() || '';
         })();
 
-        function doLogout() { logout(); }
+        function doLogout(){ logout(); }
 
         const API = '';
-        const hdrs = () => ({ ...authHeaders(), 'Content-Type': 'application/json' });
-        let myRegistrations = [];
+        const hdrs = () => ({...authHeaders(), 'Content-Type': 'application/json'});
 
         /* ===== TOAST ===== */
-        function showToast(msg, type = 'success') {
+        function showToast(msg, type='success'){
             const t = document.getElementById('toast');
             t.textContent = msg;
             t.className = 'toast ' + type + ' show';
@@ -638,90 +443,112 @@
         }
 
         /* ===== TABS ===== */
-        function switchTab(tab) {
+        function switchTab(tab){
             document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
             event.target.classList.add('active');
             document.querySelectorAll('.tab-content').forEach(content => content.classList.remove('active'));
             document.getElementById('tab-' + tab).classList.add('active');
 
-            if (tab === 'events') loadEvents();
-            if (tab === 'registrations') loadMyRegistrations();
-            if (tab === 'attendance') loadMyAttendance();
+            if(tab === 'events') loadEvents();
+            if(tab === 'registrations') loadMyRegistrations();
+            if(tab === 'attendance') loadMyAttendance();
         }
 
         /* ===== AVAILABLE EVENTS ===== */
-        async function loadEvents() {
+        async function loadEvents(){
             try {
                 const r = await fetch(API + '/api/events/?limit=100');
                 const d = await r.json();
-                if (d.success && d.events) {
-                    renderAvailableEvents(d.events);
+                if(d.success && d.events.length){
+                    renderEvents(d.events);
+                } else {
+                    document.getElementById('eventsList').innerHTML = `
+                        <div class="empty">
+                            <div class="icon">📅</div>
+                            <div class="title">No events available</div>
+                            <div class="desc">Check back later for upcoming events</div>
+                        </div>
+                    `;
                 }
-            } catch (e) {
+            } catch(e){
                 console.error('loadEvents', e);
                 showToast('Failed to load events', 'error');
             }
         }
 
-        function renderAvailableEvents(events) {
+        function renderEvents(events){
             const container = document.getElementById('eventsList');
-            const activeEvents = events.filter(e => e.state !== 'CANCELLED');
-            
-            if (activeEvents.length === 0) {
-                container.innerHTML = '<div class="empty"><div class="icon">📅</div><div class="title">No events available</div></div>';
-                return;
-            }
-
-            container.innerHTML = activeEvents.map(ev => {
-                const isReg = myRegistrations ? myRegistrations.some(r => r.event_id === ev.id) : false;
-                const canRegister = ev.state === 'REGISTRATION_OPEN' && !isReg;
-                
+            container.innerHTML = events.map(ev => {
+                const canRegister = ev.state === 'REGISTRATION_OPEN';
                 return `
                     <div class="card">
                         <div class="card-header">
-                            <div class="card-title">${esc(ev.name)}</div>
-                            <span class="badge badge-${ev.event_type.toLowerCase()}">${ev.event_type}</span>
+                            <div>
+                                <div class="card-title">${esc(ev.name)}</div>
+                                <span class="state-badge state-${ev.state}">${ev.state.replace(/_/g, ' ')}</span>
+                            </div>
                         </div>
+                        <div class="card-desc">${esc(ev.description || 'No description')}</div>
                         <div class="card-meta">
                             <span>📅 ${fmtDateTime(ev.start_time)}</span>
+                            <span>🌍 <span class="badge badge-${ev.event_type.toLowerCase()}">${ev.event_type}</span></span>
                             ${ev.venue ? `<span>📍 ${esc(ev.venue)}</span>` : ''}
+                            ${ev.max_participants ? `<span>👥 Max: ${ev.max_participants}</span>` : ''}
                         </div>
-                        <div style="margin-top:12px;">
-                            ${isReg ? `
-                                <div style="background:rgba(34,197,94,0.15); color:#22c55e; padding:10px; border-radius:8px; text-align:center; font-weight:600; font-size:.85rem;">
-                                    ✅ Already Registered
-                                </div>
-                            ` : canRegister ? `
-                                <button class="btn btn-primary" 
-                                        data-id="${ev.id}" 
-                                        data-name="${esc(ev.name)}" 
-                                        onclick="openRegisterModal(this.dataset.id, this.dataset.name)">
-                                    Register Now
-                                </button>
-                            ` : `
-                                <button class="btn btn-outline" disabled>${ev.state.replace('_', ' ')}</button>
-                            `}
-                        </div>
+                        ${canRegister ? `
+                            <button class="btn btn-primary" data-event-id="${ev.id}" data-event-name="${esc(ev.name)}" onclick="openRegisterModal(this.dataset.eventId, this.dataset.eventName)">
+                                Register Now
+                            </button>
+                        ` : ev.state === 'CREATED' || ev.state === 'SCHEDULED' ? `
+                            <button class="btn btn-outline" disabled>Registration Opens Soon</button>
+                        ` : `
+                            <button class="btn btn-outline" disabled>Registration Closed</button>
+                        `}
                     </div>
                 `;
             }).join('');
         }
 
         /* ===== MY REGISTRATIONS ===== */
-        async function loadMyRegistrations() {
+        async function loadMyRegistrations(){
             try {
                 const userEmail = getEmail();
-                const r = await fetch(API + `/api/registrations/participant/${encodeURIComponent(userEmail)}`, { headers: hdrs() });
+                if(!userEmail){
+                    showToast('Email not found', 'error');
+                    return;
+                }
+
+                const r = await fetch(API + `/api/registrations/participant/${encodeURIComponent(userEmail)}`, {
+                    headers: hdrs()
+                });
                 const d = await r.json();
-                if (d.success && d.registrations) {
-                    myRegistrations = d.registrations;
+
+                if(d.success && d.registrations && d.registrations.length){
                     renderRegistrations(d.registrations);
                     updateRegStats(d.registrations);
+                } else {
+                    document.getElementById('registrationsList').innerHTML = `
+                        <div class="empty">
+                            <div class="icon">📝</div>
+                            <div class="title">No registrations yet</div>
+                            <div class="desc">Register for events to see them here</div>
+                        </div>
+                    `;
+                    document.getElementById('regStats').style.display = 'none';
                 }
-            } catch (e) { console.error(e); }
+            } catch(e){
+                console.error('loadMyRegistrations', e);
+                document.getElementById('registrationsList').innerHTML = `
+                    <div class="empty">
+                        <div class="icon">📝</div>
+                        <div class="title">No registrations found</div>
+                        <div class="desc">Register for events from the Available Events tab</div>
+                    </div>
+                `;
+            }
         }
 
-        function updateRegStats(regs) {
+        function updateRegStats(regs){
             const total = regs.length;
             const confirmed = regs.filter(r => r.status === 'CONFIRMED').length;
             const attended = regs.filter(r => r.status === 'ATTENDED').length;
@@ -732,7 +559,7 @@
             document.getElementById('regStats').style.display = 'grid';
         }
 
-        function renderRegistrations(regs) {
+        function renderRegistrations(regs){
             const container = document.getElementById('registrationsList');
             container.innerHTML = regs.map(reg => `
                 <div class="card">
@@ -740,125 +567,24 @@
                         <div class="card-title">${esc(reg.event_name || 'Event #' + reg.event_id)}</div>
                         <span class="badge badge-${reg.status.toLowerCase()}">${reg.status}</span>
                     </div>
-                    ${['REGISTERED', 'CONFIRMED', 'ATTENDED'].includes(reg.status) ? `
-                        <button class="btn btn-outline" 
-                                data-token="${reg.qr_token || ''}" 
-                                data-name="${esc(reg.event_name || 'Event')}" 
-                                data-id="${reg.id}" 
-                                onclick="showQR(this.dataset.token, this.dataset.name, this.dataset.id)">
+                    <div class="card-meta">
+                        <span>📅 Registered: ${fmtDateTime(reg.registered_at)}</span>
+                        ${reg.confirmed_at ? `<span>✅ Confirmed: ${fmtDateTime(reg.confirmed_at)}</span>` : ''}
+                    </div>
+                    ${reg.qr_token ? `
+                        <button class="btn btn-outline" onclick="showQR('${reg.qr_token}', '${esc(reg.event_name || 'Event')}')">
                             Show QR Code
-                        </button>
-                    ` : ''}
-                    ${reg.status !== 'ATTENDED' && reg.status !== 'COMPLETED' && reg.event_state !== 'COMPLETED' ? `
-                        <div style="display:flex; gap:8px; margin-top:8px;">
-                            <button class="btn btn-outline" onclick="downloadICS(${reg.id})" style="flex:1; font-size:.75rem;">📥 .ics</button>
-                            <a href="${getGoogleCalLink(reg)}" target="_blank" class="btn btn-primary" style="flex:1; font-size:.75rem; text-decoration:none; text-align:center; background:#4285F4;">Google</a>
-                        </div>
-                    ` : ''}
-                    ${reg.status === 'CONFIRMED' && (reg.event_state === 'RUNNING' || reg.event_state === 'SCHEDULED' || reg.event_state === 'ATTENDANCE_OPEN') && reg.meeting_link ? `
-                        <button class="btn btn-primary" 
-                                data-id="${reg.id}" 
-                                data-link="${reg.meeting_link}"
-                                onclick="joinEvent(this.dataset.id, this.dataset.link)" 
-                                style="width:100%; margin-top:8px; background:#22c55e;">
-                            🚀 Join Live Event
-                        </button>
-                    ` : ''}
-                    ${['COMPLETED', 'ANALYZING', 'REPORT_GENERATED'].includes(reg.status) || ['COMPLETED', 'ANALYZING', 'REPORT_GENERATED'].includes(reg.event_state) ? `
-                        <button class="btn btn-accent" 
-                                data-event-id="${reg.event_id}" 
-                                data-reg-id="${reg.id}" 
-                                data-name="${esc(reg.event_name)}"
-                                onclick="openFeedback(this.dataset.eventId, this.dataset.regId, this.dataset.name)" 
-                                style="width:100%; margin-top:8px;">
-                            ⭐ Share Feedback
                         </button>
                     ` : ''}
                 </div>
             `).join('');
         }
 
-        function getGoogleCalLink(reg) {
-            if (!reg.event_start_time) return '#';
-            const dt = (iso) => iso.replace(/[-:]/g, '').split('.')[0] + 'Z';
-            return `https://www.google.com/calendar/render?action=TEMPLATE&text=${encodeURIComponent(reg.event_name)}&dates=${dt(reg.event_start_time)}/${dt(reg.event_end_time || reg.event_start_time)}`;
-        }
-
-        async function downloadICS(regId) {
-            window.location.href = API + `/api/registrations/${regId}/ics`;
-        }
-
-        async function joinEvent(regId, link) {
-            try {
-                // Auto-mark attendance
-                await fetch(API + `/api/attendance/join/${regId}`, {
-                    method: 'POST',
-                    headers: hdrs()
-                });
-                // Open meeting
-                window.open(link, '_blank');
-                loadMyRegistrations(); // Refresh to show 'ATTENDED'
-            } catch (e) {
-                console.error(e);
-                window.open(link, '_blank');
-            }
-        }
-
-        /* ===== FEEDBACK MODAL ===== */
-        let currentFeedbackEvent = null;
-        let selectedRating = 0;
-
-        function openFeedback(eventId, regId, name) {
-            currentFeedbackEvent = { eventId, regId };
-            selectedRating = 0;
-            document.getElementById('feedbackTitle').textContent = `Rate ${name}`;
-            document.getElementById('feedbackComment').value = '';
-            document.querySelectorAll('.star').forEach(s => s.classList.remove('active'));
-            document.getElementById('feedbackModal').style.display = 'flex';
-        }
-
-        function setRating(r) {
-            selectedRating = r;
-            document.querySelectorAll('.star').forEach((s, idx) => {
-                s.classList.toggle('active', idx < r);
-            });
-        }
-
-        async function submitFeedback() {
-            if (selectedRating === 0) { alert('Please select a rating'); return; }
-            const body = {
-                event_id: currentFeedbackEvent.eventId,
-                participant_id: currentFeedbackEvent.regId,
-                rating: selectedRating,
-                comment: document.getElementById('feedbackComment').value
-            };
-            const r = await fetch(API + '/api/feedback/', {
-                method: 'POST', headers: hdrs(), body: JSON.stringify(body)
-            });
-            const d = await r.json();
-            if (d.success) {
-                alert('Thank you for your feedback!');
-                document.getElementById('feedbackModal').style.display = 'none';
-            } else {
-                alert(d.message || 'Submission failed');
-            }
-        }
-
-        // Check URL for feedback link
-        window.addEventListener('DOMContentLoaded', () => {
-            const params = new URLSearchParams(window.location.search);
-            const feedbackEventId = params.get('feedback');
-            if (feedbackEventId) {
-                // We'll naturally find it in the My Registrations list if it exists
-                switchTab('registrations');
-            }
-        });
-
         /* ===== MY ATTENDANCE ===== */
-        async function loadMyAttendance() {
+        async function loadMyAttendance(){
             try {
                 const userEmail = getEmail();
-                if (!userEmail) return;
+                if(!userEmail) return;
 
                 // Get all registrations first
                 const regResp = await fetch(API + `/api/registrations/participant/${encodeURIComponent(userEmail)}`, {
@@ -866,7 +592,7 @@
                 });
                 const regData = await regResp.json();
 
-                if (!regData.success || !regData.registrations || !regData.registrations.length) {
+                if(!regData.success || !regData.registrations || !regData.registrations.length){
                     document.getElementById('attendanceList').innerHTML = `
                         <div class="empty">
                             <div class="icon">✅</div>
@@ -879,7 +605,7 @@
 
                 // Filter attended
                 const attended = regData.registrations.filter(r => r.status === 'ATTENDED');
-                if (attended.length === 0) {
+                if(attended.length === 0){
                     document.getElementById('attendanceList').innerHTML = `
                         <div class="empty">
                             <div class="icon">✅</div>
@@ -891,12 +617,12 @@
                 }
 
                 renderAttendance(attended);
-            } catch (e) {
+            } catch(e){
                 console.error('loadMyAttendance', e);
             }
         }
 
-        function renderAttendance(records) {
+        function renderAttendance(records){
             const container = document.getElementById('attendanceList');
             container.innerHTML = records.map(rec => `
                 <div class="card">
@@ -913,17 +639,17 @@
         }
 
         /* ===== REGISTRATION MODAL ===== */
-        function openRegisterModal(eventId, eventName) {
+        function openRegisterModal(eventId, eventName){
             document.getElementById('registerEventId').value = eventId;
             document.getElementById('registerEventName').value = eventName;
             document.getElementById('registerModal').classList.add('show');
         }
 
-        function closeRegisterModal() {
+        function closeRegisterModal(){
             document.getElementById('registerModal').classList.remove('show');
         }
 
-        async function handleRegister(e) {
+        async function handleRegister(e){
             e.preventDefault();
             const eventId = parseInt(document.getElementById('registerEventId').value);
             const name = document.getElementById('registerName').value.trim();
@@ -938,118 +664,57 @@
                 });
                 const d = await r.json();
 
-                if (d.success) {
+                if(d.success){
                     showToast('Successfully registered!');
                     closeRegisterModal();
                     loadEvents();
                     // Optionally show QR immediately
-                    if (d.participant && d.participant.qr_token) {
+                    if(d.participant && d.participant.qr_token){
                         setTimeout(() => showQR(d.participant.qr_token, document.getElementById('registerEventName').value), 500);
                     }
                 } else {
                     showToast(d.detail || d.message || 'Registration failed', 'error');
                 }
-            } catch (err) {
+            } catch(err){
                 showToast('Error: ' + err.message, 'error');
             }
         }
 
         /* ===== QR CODE ===== */
-        async function showQR(token, eventName, regId) {
-            // Handle string "null" from dataset
-            if (!token || token === 'null' || token === 'undefined') token = null;
-
-            if (!token && regId) {
-                showToast('Generating secure ticket...', 'info');
-                try {
-                    const r = await fetch(API + '/api/attendance/qr/generate', {
-                        method: 'POST', 
-                        headers: hdrs(), 
-                        body: JSON.stringify({ participant_id: parseInt(regId) })
-                    });
-                    const d = await r.json();
-                    if (d.success) {
-                        token = d.qr_code.token;
-                    } else {
-                        showToast(d.detail || 'Ticket generation failed', 'error');
-                        return;
-                    }
-                } catch (e) { 
-                    console.error(e);
-                    showToast('Connection error', 'error');
-                    return;
-                }
-            }
-
-            if (!token) { 
-                showToast("QR Token not ready. Please try again or contact support.", "error"); 
-                return; 
-            }
-
-            try {
-                const canvas = document.getElementById('qrCanvas');
-                new QRious({
-                    element: canvas,
-                    value: token,
-                    size: 250,
-                    background: '#ffffff',
-                    foreground: '#000000',
-                    level: 'H'
-                });
-                document.getElementById('qrEventName').textContent = eventName;
-                document.getElementById('qrModal').classList.add('show');
-            } catch (err) {
-                console.error('QR Render error:', err);
-                showToast('QR Code display failed', 'error');
-            }
+        function showQR(token, eventName){
+            const canvas = document.getElementById('qrCanvas');
+            const qr = new QRious({
+                element: canvas,
+                value: token,
+                size: 280,
+                background: '#ffffff',
+                foreground: '#000000',
+                level: 'H'
+            });
+            document.getElementById('qrEventName').textContent = eventName;
+            document.getElementById('qrModal').classList.add('show');
         }
 
-        function closeQRModal() {
+        function closeQRModal(){
             document.getElementById('qrModal').classList.remove('show');
         }
 
         /* ===== HELPERS ===== */
-        function esc(s) {
-            if (!s) return '';
+        function esc(s){
+            if(!s) return '';
             const d = document.createElement('div');
             d.textContent = s;
             return d.innerHTML;
         }
-        function fmtDateTime(iso) {
-            if (!iso) return '-';
+        function fmtDateTime(iso){
+            if(!iso) return '-';
             const d = new Date(iso);
-            return d.toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' }) +
-                ' ' + d.toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit' });
+            return d.toLocaleDateString('en-IN', {day:'numeric', month:'short', year:'numeric'}) +
+                   ' ' + d.toLocaleTimeString('en-IN', {hour:'2-digit', minute:'2-digit'});
         }
 
         /* ===== INIT ===== */
-        (async () => {
-            await loadMyRegistrations();
-            await loadEvents();
-        })();
+        loadEvents();
     </script>
-    <!-- Feedback Modal -->
-    <div class="modal" id="feedbackModal">
-        <div class="modal-content">
-            <span class="close-modal"
-                onclick="document.getElementById('feedbackModal').style.display='none'">&times;</span>
-            <h2 id="feedbackTitle" style="text-align:center; margin-bottom:10px;">Rate Event</h2>
-            <p style="text-align:center; color:var(--text-secondary); font-size:.9rem;">How was your experience?</p>
-
-            <div class="rating-stars">
-                <span class="star" onclick="setRating(1)">★</span>
-                <span class="star" onclick="setRating(2)">★</span>
-                <span class="star" onclick="setRating(3)">★</span>
-                <span class="star" onclick="setRating(4)">★</span>
-                <span class="star" onclick="setRating(5)">★</span>
-            </div>
-
-            <textarea id="feedbackComment" placeholder="Any comments? (Optional)"
-                style="width:100%; height:80px; background:var(--bg-color); border:1px solid var(--border-color); color:var(--text-primary); border-radius:8px; padding:10px; margin-bottom:20px; font-family:inherit;"></textarea>
-
-            <button class="btn btn-primary" onclick="submitFeedback()" style="width:100%;">Submit Feedback</button>
-        </div>
-    </div>
 </body>
-
 </html>

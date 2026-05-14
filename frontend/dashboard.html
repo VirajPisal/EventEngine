@@ -92,7 +92,10 @@
                 overflow: auto;
                 display: block;
             }
-            .panel { margin-bottom: 16px; }
+
+            .panel {
+                margin-bottom: 16px;
+            }
         }
 
         /* ===== WORKSPACE COMPONENTS ===== */
@@ -209,7 +212,9 @@
             border-color: var(--db-accent);
         }
 
-        .ai-action-item .icon { color: var(--db-accent); }
+        .ai-action-item .icon {
+            color: var(--db-accent);
+        }
 
         /* ===== PANEL ===== */
         .panel {
@@ -443,6 +448,7 @@
         .parsed-field {
             margin-bottom: 12px;
         }
+
         .parsed-field label {
             display: block;
             font-size: 0.65rem;
@@ -451,9 +457,12 @@
             letter-spacing: 0.5px;
             margin-bottom: 4px;
         }
-        .parsed-field input, .parsed-field textarea, .parsed-field select {
+
+        .parsed-field input,
+        .parsed-field textarea,
+        .parsed-field select {
             width: 100%;
-            background: rgba(255,255,255,0.03) !important;
+            background: rgba(255, 255, 255, 0.03) !important;
             border: 1px solid var(--db-border) !important;
             border-radius: 6px !important;
             color: white !important;
@@ -461,28 +470,33 @@
             font-size: 0.85rem !important;
             transition: all 0.2s;
         }
-        .parsed-field input:focus, .parsed-field textarea:focus {
+
+        .parsed-field input:focus,
+        .parsed-field textarea:focus {
             outline: none;
             border-color: var(--db-accent) !important;
-            background: rgba(255,255,255,0.06) !important;
+            background: rgba(255, 255, 255, 0.06) !important;
         }
+
         .ai-draft-section {
-            background: rgba(255,255,255,0.02);
+            background: rgba(255, 255, 255, 0.02);
             border-radius: 8px;
             padding: 12px;
             margin-bottom: 16px;
-            border: 1px solid rgba(255,255,255,0.05);
+            border: 1px solid rgba(255, 255, 255, 0.05);
         }
+
         .section-label {
             display: block;
             font-size: 0.75rem;
             font-weight: 600;
             color: var(--db-accent);
             margin-bottom: 10px;
-            border-bottom: 1px solid rgba(255,255,255,0.05);
+            border-bottom: 1px solid rgba(255, 255, 255, 0.05);
             padding-bottom: 5px;
             opacity: 0.8;
         }
+
         .btn-create-event {
             width: 100%;
             background: var(--db-accent);
@@ -495,10 +509,12 @@
             box-shadow: 0 4px 12px var(--db-accent-glow);
             transition: 0.2s;
         }
+
         .btn-create-event:hover {
             transform: translateY(-1px);
             filter: brightness(1.1);
         }
+
         /* End AI Styling */
 
         @keyframes pulse {
@@ -806,7 +822,8 @@
                 <h2><span class="icon">📌</span> Navigator</h2>
                 <div style="display:flex; align-items:center; gap:10px;">
                     <label style="font-size:0.65rem; color:var(--db-text-dim); cursor:pointer;">
-                        <input type="checkbox" id="showCancelled" onchange="loadEvents()" style="vertical-align:middle;"> Show Cancelled
+                        <input type="checkbox" id="showCancelled" onchange="loadEvents()"
+                            style="vertical-align:middle;"> Show Cancelled
                     </label>
                     <span class="badge badge-count" id="eventCount">0</span>
                 </div>
@@ -831,13 +848,16 @@
                     <h3 style="color: var(--db-text); margin-bottom: 8px;">Welcome, Organizer</h3>
                     <p>Select an event from the Navigator to begin strategic management.</p>
                 </div>
-                
+
                 <div id="eventDetailView" style="display: none;">
                     <div class="workspace-hero">
                         <div style="display: flex; justify-content: space-between; align-items: flex-start;">
                             <div>
-                                <h1 id="viewEventName" style="margin: 0; font-size: 1.6rem; color: var(--db-text);">Event Title</h1>
-                                <p id="viewEventMeta" style="margin: 8px 0 0; color: var(--db-accent); font-weight: 500; font-size: 0.9rem;">Date | Location</p>
+                                <h1 id="viewEventName" style="margin: 0; font-size: 1.6rem; color: var(--db-text);">
+                                    Event Title</h1>
+                                <p id="viewEventMeta"
+                                    style="margin: 8px 0 0; color: var(--db-accent); font-weight: 500; font-size: 0.9rem;">
+                                    Date | Location</p>
                             </div>
                             <div id="viewEventBadge"></div>
                         </div>
@@ -861,16 +881,18 @@
                             <div class="value" id="statCapacity">0</div>
                         </div>
                     </div>
-                    
+
                     <div id="eventActionCenter" style="margin-bottom: 20px;"></div>
 
                     <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px;">
                         <div class="chart-container" style="height: 220px;">
-                            <h3 style="font-size: 0.8rem; margin: 0 0 10px; color: var(--db-text-dim);">REGISTRATION GROWTH</h3>
+                            <h3 style="font-size: 0.8rem; margin: 0 0 10px; color: var(--db-text-dim);">REGISTRATION
+                                GROWTH</h3>
                             <canvas id="registrationChart"></canvas>
                         </div>
                         <div class="chart-container" style="height: 220px;">
-                            <h3 style="font-size: 0.8rem; margin: 0 0 10px; color: var(--db-text-dim);">ATTENDANCE RATIO</h3>
+                            <h3 style="font-size: 0.8rem; margin: 0 0 10px; color: var(--db-text-dim);">ATTENDANCE RATIO
+                            </h3>
                             <canvas id="attendanceChart"></canvas>
                         </div>
                     </div>
@@ -915,14 +937,16 @@
                         <div id="aiContent" style="display: none;">
                             <div class="ai-tag">Gemini-powered Insights</div>
                             <div class="ai-suggestion-text" id="aiStrategyText"></div>
-                            <label style="font-size: 0.7rem; color: var(--db-text-dim); text-transform: uppercase;">Next Steps</label>
+                            <label style="font-size: 0.7rem; color: var(--db-text-dim); text-transform: uppercase;">Next
+                                Steps</label>
                             <div class="ai-action-list" id="aiActionList"></div>
                         </div>
                     </div>
                 </div>
 
                 <div style="margin-top: 30px;">
-                    <label class="live-feed-title">Agent Logic Feed <span class="badge badge-count" id="pendingCount">0</span></label>
+                    <label class="live-feed-title">Agent Logic Feed <span class="badge badge-count"
+                            id="pendingCount">0</span></label>
                     <div id="agentInbox" style="margin-top: 12px; max-height: 250px; overflow-y: auto;">
                         <div class="empty" style="padding: 10px 0;">Agent is monitoring lifecycle...</div>
                     </div>
@@ -975,8 +999,8 @@
                     document.getElementById('eventCount').textContent = d.count;
                     renderNavigator();
                 }
-            } catch (e) { 
-                console.error('loadEvents', e); 
+            } catch (e) {
+                console.error('loadEvents', e);
                 showToast('API unreachable. Is the server running on port 8000?', 'error');
             }
         }
@@ -985,7 +1009,7 @@
             const el = document.getElementById('eventList');
             const showCan = document.getElementById('showCancelled').checked;
             const filtered = allEvents.filter(ev => showCan || ev.state !== 'CANCELLED');
-            
+
             if (!filtered.length) {
                 el.innerHTML = '<div class="empty">No events found.</div>';
                 return;
@@ -1039,7 +1063,7 @@
             // Populate Action Center
             const actionCenter = document.getElementById('eventActionCenter');
             actionCenter.innerHTML = '';
-            
+
             if (ev.state === 'CREATED') {
                 actionCenter.innerHTML = `
                     <div class="ai-draft-section" style="border: 1px dashed var(--db-accent); background: rgba(99,102,241,0.05); text-align: center;">
@@ -1096,7 +1120,7 @@
         function renderCharts(stats, event) {
             const ctxReg = document.getElementById('registrationChart').getContext('2d');
             if (regChart) regChart.destroy();
-            
+
             // Dummy trend for presentation
             const baseline = Math.floor(stats.total_registered * 0.4);
             const mid = Math.floor(stats.total_registered * 0.7);
@@ -1116,13 +1140,13 @@
                         pointRadius: 0
                     }]
                 },
-                options: { 
-                    maintainAspectRatio: false, 
-                    plugins: { legend: { display: false } }, 
-                    scales: { 
+                options: {
+                    maintainAspectRatio: false,
+                    plugins: { legend: { display: false } },
+                    scales: {
                         y: { beginAtZero: true, grid: { color: 'rgba(255,255,255,0.05)' }, ticks: { color: '#8b8fa3', font: { size: 10 } } },
-                        x: { grid: { display: false }, ticks: { color: '#8b8fa3', font: { size: 10 } } } 
-                    } 
+                        x: { grid: { display: false }, ticks: { color: '#8b8fa3', font: { size: 10 } } }
+                    }
                 }
             });
 
@@ -1139,12 +1163,12 @@
                         borderWidth: 1
                     }]
                 },
-                options: { 
-                    maintainAspectRatio: false, 
-                    cutout: '75%', 
-                    plugins: { 
-                        legend: { position: 'bottom', labels: { color: '#8b8fa3', boxWidth: 8, font: { size: 10 } } } 
-                    } 
+                options: {
+                    maintainAspectRatio: false,
+                    cutout: '75%',
+                    plugins: {
+                        legend: { position: 'bottom', labels: { color: '#8b8fa3', boxWidth: 8, font: { size: 10 } } }
+                    }
                 }
             });
         }
@@ -1153,14 +1177,14 @@
         async function fetchAIInsights(id) {
             const loading = document.getElementById('aiLoading');
             const content = document.getElementById('aiContent');
-            
+
             loading.style.display = 'block';
             content.style.display = 'none';
 
             try {
                 const r = await fetch(API + `/api/agent/insights/${id}`, { headers: hdrs() });
                 const d = await r.json();
-                
+
                 loading.style.display = 'none';
                 content.style.display = 'block';
 
@@ -1174,9 +1198,9 @@
                         </div>
                     `).join('');
                 }
-            } catch (e) { 
+            } catch (e) {
                 loading.style.display = 'none';
-                console.error('AI Insights Error', e); 
+                console.error('AI Insights Error', e);
             }
         }
 
@@ -1268,13 +1292,13 @@
             const preview = document.getElementById('parsedPreview');
             const fields = document.getElementById('parsedFields');
             preview.style.display = 'block';
-            
+
             // Auto-generate meet link if online and not provided
             let link = p.meeting_link || '';
             if (!link && p.event_type === 'ONLINE') {
-                const id = Math.random().toString(36).substring(2, 5) + '-' + 
-                           Math.random().toString(36).substring(2, 6) + '-' + 
-                           Math.random().toString(36).substring(2, 5);
+                const id = Math.random().toString(36).substring(2, 5) + '-' +
+                    Math.random().toString(36).substring(2, 6) + '-' +
+                    Math.random().toString(36).substring(2, 5);
                 link = `https://meet.google.com/${id}`;
             }
 
@@ -1343,9 +1367,9 @@
             typeSel.addEventListener('change', () => {
                 linkGrp.style.display = (typeSel.value === 'OFFLINE') ? 'none' : 'block';
                 if (typeSel.value === 'ONLINE' && !document.getElementById('p_link').value) {
-                    const id = Math.random().toString(36).substring(2, 5) + '-' + 
-                               Math.random().toString(36).substring(2, 6) + '-' + 
-                               Math.random().toString(36).substring(2, 5);
+                    const id = Math.random().toString(36).substring(2, 5) + '-' +
+                        Math.random().toString(36).substring(2, 6) + '-' +
+                        Math.random().toString(36).substring(2, 5);
                     document.getElementById('p_link').value = `https://meet.google.com/${id}`;
                 }
             });
@@ -1378,8 +1402,8 @@
 
         /* ===== UTILS ===== */
         function esc(t) { if (!t) return ''; const d = document.createElement('div'); d.textContent = t; return d.innerHTML; }
-        function fmtDate(ds) { 
-            if (!ds) return '-'; 
+        function fmtDate(ds) {
+            if (!ds) return '-';
             const d = new Date(ds);
             return d.toLocaleDateString(undefined, { month: 'short', day: 'numeric', year: 'numeric' });
         }
@@ -1397,15 +1421,16 @@
 
         /* INIT */
         document.addEventListener('DOMContentLoaded', () => {
-             init().catch(e => {
-                 console.error('Init failed:', e);
-                 showToast('Dashboard failed to initialize: ' + e.message, 'error');
-             });
+            init().catch(e => {
+                console.error('Init failed:', e);
+                showToast('Dashboard failed to initialize: ' + e.message, 'error');
+            });
         });
     </script>
 </body>
+
 </html>
-    </script>
+</script>
 </body>
 
 </html>
