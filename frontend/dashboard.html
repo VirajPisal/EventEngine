@@ -445,8 +445,14 @@
         }
 
         /* AI Draft & Assistant Styling */
+        .parsed-preview,
+        .ai-draft-section {
+            overflow-x: hidden;
+        }
+
         .parsed-field {
             margin-bottom: 12px;
+            display: block;
         }
 
         .parsed-field label {
@@ -461,21 +467,26 @@
         .parsed-field input,
         .parsed-field textarea,
         .parsed-field select {
+            display: block;
             width: 100%;
-            background: rgba(255, 255, 255, 0.03) !important;
-            border: 1px solid var(--db-border) !important;
-            border-radius: 6px !important;
-            color: white !important;
-            padding: 8px 12px !important;
-            font-size: 0.85rem !important;
+            max-width: 100%;
+            box-sizing: border-box;
+            background: rgba(255, 255, 255, 0.06);
+            border: 1px solid rgba(255,255,255,0.15);
+            border-radius: 6px;
+            color: #e4e6ed;
+            padding: 9px 10px;
+            font-size: 0.82rem;
             transition: all 0.2s;
+            color-scheme: dark;
         }
 
         .parsed-field input:focus,
-        .parsed-field textarea:focus {
+        .parsed-field textarea:focus,
+        .parsed-field select:focus {
             outline: none;
-            border-color: var(--db-accent) !important;
-            background: rgba(255, 255, 255, 0.06) !important;
+            border-color: var(--db-accent);
+            background: rgba(255, 255, 255, 0.09);
         }
 
         .ai-draft-section {
@@ -499,6 +510,7 @@
 
         .btn-create-event {
             width: 100%;
+            box-sizing: border-box;
             background: var(--db-accent);
             color: white;
             border: none;
@@ -681,61 +693,7 @@
             margin-bottom: 10px;
         }
 
-        .parsed-field {
-            display: flex;
-            justify-content: space-between;
-            padding: 5px 0;
-            border-bottom: 1px solid rgba(45, 49, 65, .5);
-            font-size: .8rem;
-        }
-
-        .parsed-field .label {
-            color: var(--db-text-dim);
-        }
-
-        .parsed-field .value {
-            color: var(--db-text);
-            font-weight: 500;
-            text-align: right;
-            max-width: 60%;
-            word-break: break-word;
-        }
-
-        .parsed-field input,
-        .parsed-field select {
-            background: var(--db-surface);
-            border: 1px solid var(--db-border);
-            color: var(--db-text);
-            padding: 4px 8px;
-            border-radius: 4px;
-            font-size: .78rem;
-            width: 60%;
-            text-align: right;
-        }
-
-        .parsed-field input:focus,
-        .parsed-field select:focus {
-            outline: none;
-            border-color: var(--db-accent);
-        }
-
-        .btn-create-event {
-            width: 100%;
-            padding: 10px;
-            background: var(--db-green);
-            color: #fff;
-            border: none;
-            border-radius: 8px;
-            font-size: .88rem;
-            font-weight: 600;
-            cursor: pointer;
-            margin-top: 12px;
-            transition: .2s;
-        }
-
-        .btn-create-event:hover {
-            filter: brightness(1.1);
-        }
+        /* (old duplicate removed — styles at line ~447) */
 
         /* ===== EMPTY STATE ===== */
         .empty {
@@ -843,6 +801,14 @@
                 <div id="activeEventStatus"></div>
             </div>
             <div class="panel-body" id="workspaceContent">
+                <div id="eventStateBadge" class="badge" style="display:none;">CREATED</div>
+
+                <!-- Download Report Button (Visible only when state is REPORT_GENERATED) -->
+                <div id="reportDownloadSection" style="display: none; margin-bottom: 20px;">
+                    <a id="reportDownloadBtn" href="#" target="_blank" class="btn btn-primary" style="display: flex; align-items: center; gap: 8px; justify-content: center; background: linear-gradient(135deg, #10b981, #059669); border: none;">
+                        <span>📊 Download Final Event Report</span>
+                    </a>
+                </div>
                 <div id="workspaceEmptyState" class="empty" style="margin-top: 15vh;">
                     <div class="icon">🏢</div>
                     <h3 style="color: var(--db-text); margin-bottom: 8px;">Welcome, Organizer</h3>
@@ -927,23 +893,29 @@
                     </div>
                 </div>
 
-                <div id="aiSection" style="display: none;">
-                    <label class="live-feed-title">LangGraph Strategy</label>
-                    <div class="ai-strategy-card" id="aiStrategyCard">
+                <!-- LangGraph Strategic Insights (Collapsible) -->
+                <div id="aiSection" style="display: none; margin-top: 20px;">
+                    <div class="collapsible-header" onclick="toggleCollapsible(this)">
+                        <label class="live-feed-title" style="cursor: pointer; margin:0;">🧠 Strategic Advisor (LangGraph)</label>
+                        <span class="collapsible-icon">▾</span>
+                    </div>
+                    <div class="collapsible-content ai-strategy-card" id="aiStrategyCard" style="margin-top: 10px;">
                         <div id="aiLoading" style="text-align: center; padding: 20px;">
                             <div class="live-dot" style="margin: 0 auto 10px;"></div>
                             <span style="font-size: 0.8rem; color: var(--db-text-dim);">Agent Reasoning...</span>
                         </div>
                         <div id="aiContent" style="display: none;">
                             <div class="ai-tag">Gemini-powered Insights</div>
-                            <div class="ai-suggestion-text" id="aiStrategyText"></div>
-                            <label style="font-size: 0.7rem; color: var(--db-text-dim); text-transform: uppercase;">Next
-                                Steps</label>
+                            <div class="ai-suggestion-text" id="aiStrategyText" style="margin-bottom: 15px; font-style: italic; color: #d1d5db;"></div>
+                            
+                            <label style="font-size: 0.7rem; color: var(--db-text-dim); text-transform: uppercase; font-weight: 600; display: block; margin-bottom: 8px; border-bottom: 1px solid var(--db-border); padding-bottom: 4px;">Recommended Next Steps</label>
                             <div class="ai-action-list" id="aiActionList"></div>
+                        </div>
+                        <div id="aiError" style="display: none; text-align: center; padding: 15px;">
+                            <span style="font-size: 0.8rem; color: var(--db-red);">Strategic analysis currently unavailable.</span>
                         </div>
                     </div>
                 </div>
-
                 <div style="margin-top: 30px;">
                     <label class="live-feed-title">Agent Logic Feed <span class="badge badge-count"
                             id="pendingCount">0</span></label>
@@ -1049,6 +1021,16 @@
             document.getElementById('viewEventName').textContent = ev.name;
             document.getElementById('viewEventMeta').textContent = `${fmtDate(ev.start_time)} @ ${ev.venue || ev.event_type}`;
             document.getElementById('activeEventStatus').innerHTML = `<span class="event-card-state state-${ev.state}">${ev.state.replace(/_/g, ' ')}</span>`;
+            
+            // Handle Report Download visibility
+            const reportSec = document.getElementById('reportDownloadSection');
+            const reportBtn = document.getElementById('reportDownloadBtn');
+            if (ev.state === 'REPORT_GENERATED') {
+                reportSec.style.display = 'block';
+                reportBtn.href = API + `/api/events/${id}/report`;
+            } else {
+                reportSec.style.display = 'none';
+            }
 
             // Set metrics
             const s = ev.stats || {};
@@ -1177,29 +1159,34 @@
         async function fetchAIInsights(id) {
             const loading = document.getElementById('aiLoading');
             const content = document.getElementById('aiContent');
+            const error = document.getElementById('aiError');
 
             loading.style.display = 'block';
             content.style.display = 'none';
+            error.style.display = 'none';
 
             try {
                 const r = await fetch(API + `/api/agent/insights/${id}`, { headers: hdrs() });
                 const d = await r.json();
 
                 loading.style.display = 'none';
-                content.style.display = 'block';
 
-                if (d.success) {
+                if (d.success && d.strategy) {
+                    content.style.display = 'block';
                     document.getElementById('aiStrategyText').textContent = d.strategy;
                     const list = document.getElementById('aiActionList');
-                    list.innerHTML = d.actions.map(act => `
+                    list.innerHTML = (d.actions || []).map(act => `
                         <div class="ai-action-item">
                             <span class="icon">➜</span>
                             <span>${act}</span>
                         </div>
                     `).join('');
+                } else {
+                    error.style.display = 'block';
                 }
             } catch (e) {
                 loading.style.display = 'none';
+                error.style.display = 'block';
                 console.error('AI Insights Error', e);
             }
         }
@@ -1309,33 +1296,29 @@
                         <label>Event Title</label>
                         <input type="text" id="p_name" value="${p.name || ''}" placeholder="Enter event name...">
                     </div>
-                    <div style="display: flex; gap: 10px;">
-                        <div class="parsed-field" style="flex: 1;">
-                            <label>Start Date/Time</label>
-                            <input type="datetime-local" id="p_start" value="${toLocalInput(p.start_time)}">
-                        </div>
-                        <div class="parsed-field" style="flex: 1;">
-                            <label>End Date/Time</label>
-                            <input type="datetime-local" id="p_end" value="${toLocalInput(p.end_time || new Date(new Date(p.start_time).getTime() + 7200000).toISOString())}">
-                        </div>
+                    <div class="parsed-field">
+                        <label>📅 Start Date & Time</label>
+                        <input type="datetime-local" id="p_start" value="${toLocalInput(p.start_time)}">
+                    </div>
+                    <div class="parsed-field">
+                        <label>📅 End Date & Time</label>
+                        <input type="datetime-local" id="p_end" value="${toLocalInput(p.end_time || new Date(new Date(p.start_time).getTime() + 7200000).toISOString())}">
                     </div>
                 </div>
 
                 <div class="ai-draft-section">
                     <label class="section-label">🎪 Type & Logistics</label>
-                    <div style="display: flex; gap: 10px;">
-                        <div class="parsed-field" style="flex: 1;">
-                            <label>Event Format</label>
-                            <select id="p_type" style="width: 100%; padding: 8px; background: rgba(255,255,255,0.05); border: 1px solid var(--db-border); border-radius: 4px; color: white;">
-                                <option value="ONLINE" ${p.event_type === 'ONLINE' ? 'selected' : ''}>Online</option>
-                                <option value="OFFLINE" ${p.event_type === 'OFFLINE' ? 'selected' : ''}>Offline</option>
-                                <option value="HYBRID" ${p.event_type === 'HYBRID' ? 'selected' : ''}>Hybrid</option>
-                            </select>
-                        </div>
-                        <div class="parsed-field" style="flex: 1;">
-                            <label>Max Seats</label>
-                            <input type="number" id="p_cap" value="${p.max_participants || 100}">
-                        </div>
+                    <div class="parsed-field">
+                        <label>Event Format</label>
+                        <select id="p_type">
+                            <option value="ONLINE" ${p.event_type === 'ONLINE' ? 'selected' : ''}>Online</option>
+                            <option value="OFFLINE" ${p.event_type === 'OFFLINE' ? 'selected' : ''}>Offline</option>
+                            <option value="HYBRID" ${p.event_type === 'HYBRID' ? 'selected' : ''}>Hybrid</option>
+                        </select>
+                    </div>
+                    <div class="parsed-field">
+                        <label>Max Seats</label>
+                        <input type="number" id="p_cap" value="${p.max_participants || 100}">
                     </div>
                     <div class="parsed-field" id="p_venue_group">
                         <label>Location / Venue</label>
@@ -1352,11 +1335,30 @@
                     <div class="parsed-field">
                         <label>Confirmation Email Message</label>
                         <textarea id="p_custom_email" style="min-height: 80px; font-size: 0.8rem; padding: 10px;" 
-                            placeholder="Add a custom welcome message for the confirmation email...">${p.custom_email_template || `Dear Participant, Greetings! Thank you for registering for the **${p.name || 'Event'}**. We are excited to have you join us for this engaging session.`}</textarea>
+                            placeholder="Type your custom welcome message here...">${p.custom_email_template || `Dear Participant, Thank you for registering for ${p.name || 'our event'}. We are excited to have you join us!`}</textarea>
+                        <div style="margin-top: 6px;">
+                            <label style="display:inline-flex; align-items:center; gap:5px; font-size:0.7rem; padding:5px 10px; border:1px solid var(--db-border); border-radius:5px; background:rgba(255,255,255,0.04); color:var(--db-accent); cursor:pointer; text-transform:none; letter-spacing:0;">
+                                📄 Or upload .txt / .html file
+                                <input type="file" accept=".txt,.html" style="display:none;" onchange="loadEmailFile(this)">
+                            </label>
+                            <span id="emailFileName" style="font-size:0.7rem; color:var(--db-text-dim); margin-left:8px;"></span>
+                        </div>
                     </div>
                     <div class="parsed-field">
-                        <label>Certificate Template (Base64/URL)</label>
-                        <input type="text" id="p_cert" value="${p.certificate_template || ''}" placeholder="Leave blank for no certificates">
+                        <label>🎓 Certificate Template</label>
+                        <p style="font-size:0.7rem; color:var(--db-text-dim); margin:0 0 8px;">Upload a certificate background image (PNG/JPG). Participant name, event name & date will be auto-printed on it.</p>
+                        <label style="display:inline-flex; align-items:center; gap:5px; font-size:0.75rem; padding:8px 14px; border:1px dashed var(--db-accent); border-radius:6px; background:rgba(99,102,241,0.06); color:var(--db-accent); cursor:pointer; text-transform:none; letter-spacing:0; width:100%; box-sizing:border-box; justify-content:center;">
+                            📎 Upload Certificate Image
+                            <input type="file" id="p_cert_file" accept="image/*" style="display:none;" onchange="loadCertFile(this)">
+                        </label>
+                        <div id="certPreview" style="margin-top:8px; display:none;">
+                            <div style="display:flex; align-items:center; gap:8px;">
+                                <span style="color:var(--db-green); font-size:0.75rem;">✅</span>
+                                <span id="certFileName" style="font-size:0.7rem; color:var(--db-text-dim);"></span>
+                                <button type="button" onclick="clearCert()" style="font-size:0.65rem; background:none; border:1px solid var(--db-red); color:var(--db-red); border-radius:4px; padding:2px 6px; cursor:pointer;">✕ Remove</button>
+                            </div>
+                        </div>
+                        <input type="hidden" id="p_cert" value="${p.certificate_template || ''}">
                     </div>
                 </div>
             `;
@@ -1419,6 +1421,48 @@
             setTimeout(() => t.classList.remove('show'), 3000);
         }
 
+        /* ===== FILE UPLOAD HELPERS ===== */
+        function loadCertFile(input) {
+            const file = input.files[0];
+            if (!file) return;
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                // Store the full data-URL base64 string in the hidden input
+                document.getElementById('p_cert').value = e.target.result;
+                document.getElementById('certFileName').textContent = file.name;
+                document.getElementById('certPreview').style.display = 'block';
+                showToast('Certificate template uploaded: ' + file.name);
+            };
+            reader.readAsDataURL(file);
+        }
+
+        function clearCert() {
+            document.getElementById('p_cert').value = '';
+            document.getElementById('certPreview').style.display = 'none';
+            document.getElementById('certFileName').textContent = '';
+            const fileInput = document.getElementById('p_cert_file');
+            if (fileInput) fileInput.value = '';
+        }
+
+        function loadEmailFile(input) {
+            const file = input.files[0];
+            if (!file) return;
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                document.getElementById('p_custom_email').value = e.target.result;
+                document.getElementById('emailFileName').textContent = file.name;
+                showToast('Email template loaded from: ' + file.name);
+            };
+            reader.readAsText(file);
+        }
+
+        /* ===== COLLAPSIBLE SECTIONS ===== */
+        function toggleCollapsible(header) {
+            header.classList.toggle('open');
+            const body = header.nextElementSibling;
+            if (body) body.classList.toggle('open');
+        }
+
         /* INIT */
         document.addEventListener('DOMContentLoaded', () => {
             init().catch(e => {
@@ -1429,8 +1473,4 @@
     </script>
 </body>
 
-</html>
-</script>
-</body>
-
-</html>
+</html>

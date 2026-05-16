@@ -68,11 +68,15 @@ class Settings:
     TWILIO_AUTH_TOKEN: str = os.getenv("TWILIO_AUTH_TOKEN", "")
     TWILIO_PHONE_NUMBER: str = os.getenv("TWILIO_PHONE_NUMBER", "")
     
-    # AI Configuration (OpenAI/Google Gemini)
+    # AI Configuration (OpenAI/Google Gemini/Groq)
     OPENAI_API_KEY: str = os.getenv("OPENAI_API_KEY", "")
     OPENAI_MODEL: str = os.getenv("OPENAI_MODEL", "gpt-4o-mini")
     GOOGLE_API_KEY: str = os.getenv("GOOGLE_API_KEY", "")
     GEMINI_MODEL: str = os.getenv("GEMINI_MODEL", "gemini-1.5-flash")
+    
+    # Groq Support with Multi-Key Failover
+    GROQ_API_KEYS: str = os.getenv("GROQ_API_KEYS", "")  # Can be a comma-separated list
+    GROQ_MODEL: str = os.getenv("GROQ_MODEL", "llama-3.3-70b-versatile")
     
     # Agent Configuration
     AGENT_LOOP_INTERVAL_SECONDS: int = int(os.getenv("AGENT_LOOP_INTERVAL_SECONDS", "60"))

@@ -446,7 +446,23 @@ async def get_event_participants(event_id: int):
                     for p in participants
                 ]
             }
-    
     except Exception as e:
         logger.error(f"[API] Failed to get participants for event {event_id}: {e}")
         raise HTTPException(status_code=500, detail=f"Failed to get participants: {str(e)}")
+
+
+@router.get("/{event_id}/report")
+async def download_report(event_id: int):
+    """
+    Download/View a professional HTML report for the event
+    """
+    from fastapi.responses import HTMLResponse
+    from services.analytics_service import AnalyticsService
+    
+    try:
+        with get_db_context() as db:
+            html = AnalyticsService.generate_html_report(db, event_id)
+            return HTMLResponse(content=html)
+    except Exception as e:
+        logger.error(f"[API] Failed to generate report for event {event_id}: {e}")
+        raise HTTPException(status_code=500, detail="Failed to generate report")

@@ -2,7 +2,7 @@
 Agent - Autonomous event lifecycle management
 Observe-Decide-Act loop for self-managing events
 """
-from datetime import datetime, timezone
+from datetime import datetime, timezone, timedelta
 from typing import List, Dict
 from sqlalchemy.orm import Session
 
@@ -321,24 +321,46 @@ class EventAgent:
                 return
 
             for event in eligible_events:
+                # Check for recent promotion to avoid spamming (24 hour cooldown)
+                recent_promotion = db.query(AgentAction).filter(
+                    AgentAction.event_id == event.id,
+                    AgentAction.action_type == "PROMOTION",
+                    AgentAction.created_at >= datetime.now(timezone.utc) - timedelta(hours=24)
+                ).first()
+
+                if recent_promotion:
+                    continue
+
                 # Basic rule: promote if less than 50% capacity
+                should_promote = False
                 if event.max_participants:
                     participant_count = db.query(Participant).filter(
                         Participant.event_id == event.id
                     ).count()
                     
                     if participant_count < (event.max_participants * 0.5):
-                        logger.info(f"[AGENT] Autonomous Promotion: Event #{event.id} '{event.name}' is below 50% capacity. Promoting...")
-                        PromotionService.promote_event(db, event.id)
+                        should_promote = True
                 else:
-                    # If no max capacity, promote anyway periodically?
-                    # For now, let's just promote once. I'll add a 'promoted' field later or check history.
-                    # Since we don't have a 'promoted' field, let's promote if it only has few participants.
                     participant_count = db.query(Participant).filter(
                         Participant.event_id == event.id
                     ).count()
                     if participant_count < 5:
-                        PromotionService.promote_event(db, event.id)
+                        should_promote = True
+                
+                if should_promote:
+                    logger.info(f"[AGENT] Autonomous Promotion: Event #{event.id} '{event.name}' is below capacity. Promoting...")
+                    PromotionService.promote_event(db, event.id)
+                    
+                    # Record the promotion to trigger the 24h cooldown
+                    new_action = AgentAction(
+                        event_id=event.id,
+                        action_type="PROMOTION",
+                        description=f"Sent promotional emails for '{event.name}'",
+                        status="EXECUTED",
+                        executed_at=datetime.now(timezone.utc)
+                    )
+                    db.add(new_action)
+                    db.commit()
 
         except Exception as e:
             logger.error(f"[AGENT] Error in promotion cycle: {str(e)}")

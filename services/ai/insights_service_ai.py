@@ -1,14 +1,29 @@
 """
 LangChain & LangGraph - Strategic Event Insights
 Analyzes event data and provides strategic suggestions via Graph reasoning.
+Supports Multi-Key Failover for Groq.
 """
 import json
-from typing import TypedDict, List, Dict, Annotated
+import os
+from typing import TypedDict, List, Dict, Annotated, Optional, Any
 from datetime import datetime, timezone, timedelta
 from sqlalchemy.orm import Session
 
-from langchain_google_genai import ChatGoogleGenerativeAI
-from langchain_openai import ChatOpenAI
+try:
+    from langchain_google_genai import ChatGoogleGenerativeAI
+except ImportError:
+    ChatGoogleGenerativeAI = None
+
+try:
+    from langchain_openai import ChatOpenAI
+except ImportError:
+    ChatOpenAI = None
+
+try:
+    from langchain_groq import ChatGroq
+except ImportError:
+    ChatGroq = None
+
 from langchain_core.messages import HumanMessage, SystemMessage
 from langgraph.graph import StateGraph, END
 
@@ -29,23 +44,73 @@ class AgentState(TypedDict):
 
 class LangGraphInsightsService:
     def __init__(self):
-        self.llm = None
-        if settings.GOOGLE_API_KEY:
-            self.llm = ChatGoogleGenerativeAI(
+        self.groq_keys = [k.strip() for k in settings.GROQ_API_KEYS.split(",") if k.strip()]
+        self.current_key_index = 0
+        self.llm = self._initialize_llm()
+        self.graph = self._build_graph()
+
+    def _initialize_llm(self) -> Optional[Any]:
+        """Initialize LLM based on available keys with priority: Groq > Gemini > OpenAI"""
+        # 1. Try Groq (with failover support)
+        if self.groq_keys and ChatGroq:
+            key = self.groq_keys[self.current_key_index]
+            try:
+                llm = ChatGroq(
+                    model=settings.GROQ_MODEL,
+                    groq_api_key=key,
+                    temperature=0.2
+                )
+                logger.info(f"[LANGGRAPH] Configured with Groq ({settings.GROQ_MODEL}) - Key #{self.current_key_index + 1}")
+                return llm
+            except Exception as e:
+                logger.error(f"[LANGGRAPH] Failed to init Groq key #{self.current_key_index + 1}: {e}")
+                if self._rotate_key():
+                    return self._initialize_llm()
+
+        # 2. Fallback to Gemini
+        if settings.GOOGLE_API_KEY and ChatGoogleGenerativeAI:
+            logger.info(f"[LANGGRAPH] Falling back to Gemini ({settings.GEMINI_MODEL})")
+            return ChatGoogleGenerativeAI(
                 model=settings.GEMINI_MODEL,
                 google_api_key=settings.GOOGLE_API_KEY,
                 temperature=0.2
             )
-            logger.info(f"[LANGGRAPH] Configured with {settings.GEMINI_MODEL}")
-        elif settings.OPENAI_API_KEY:
-            self.llm = ChatOpenAI(
+
+        # 3. Fallback to OpenAI
+        if settings.OPENAI_API_KEY and ChatOpenAI:
+            logger.info(f"[LANGGRAPH] Falling back to OpenAI ({settings.OPENAI_MODEL})")
+            return ChatOpenAI(
                 model=settings.OPENAI_MODEL,
                 api_key=settings.OPENAI_API_KEY,
                 temperature=0.2
             )
-            logger.info(f"[LANGGRAPH] Configured with {settings.OPENAI_MODEL}")
+
+        logger.warning("[LANGGRAPH] No AI API keys configured!")
+        return None
+
+    def _rotate_key(self) -> bool:
+        """Rotate to the next Groq key if available"""
+        if self.current_key_index < len(self.groq_keys) - 1:
+            self.current_key_index += 1
+            logger.info(f"[LANGGRAPH] Rotating to Groq Key #{self.current_key_index + 1}")
+            return True
+        return False
+
+    def _safe_invoke(self, prompt: List) -> Any:
+        """Invoke LLM with automatic failover for Groq"""
+        if not self.llm:
+            raise Exception("No LLM configured")
             
-        self.graph = self._build_graph()
+        try:
+            return self.llm.invoke(prompt)
+        except Exception as e:
+            # If it's a rate limit or token error and we are using Groq, try rotating
+            if self.groq_keys and "rate_limit" in str(e).lower() or "quota" in str(e).lower():
+                logger.warning(f"[LANGGRAPH] Groq Key #{self.current_key_index + 1} failed. Attempting rotation...")
+                if self._rotate_key():
+                    self.llm = self._initialize_llm()
+                    return self._safe_invoke(prompt)
+            raise e
 
     def _build_graph(self):
         """Construct the strategic reasoning graph"""
@@ -68,7 +133,6 @@ class LangGraphInsightsService:
         """Node 1: Extract insights from raw data"""
         data = state['event_data']
         
-        # Internal analytics logic (could be done by LLM too)
         capacity = data.get('max_participants') or 100
         registered = data.get('registered') or 0
         rem_days = data.get('days_remaining') or 0
@@ -100,8 +164,12 @@ class LangGraphInsightsService:
             HumanMessage(content=f"Event: {event_name}. Problem: {analysis}. Risk Level: {risk}. Why might this be happening and what strategic approach should we take?")
         ]
         
-        response = self.llm.invoke(prompt)
-        state['suggestions'] = [response.content]
+        try:
+            response = self._safe_invoke(prompt)
+            state['suggestions'] = [response.content]
+        except Exception as e:
+            state['suggestions'] = [f"Error generating strategy: {str(e)}"]
+            
         return state
 
     def _node_generate_actions(self, state: AgentState):
@@ -114,13 +182,11 @@ class LangGraphInsightsService:
         
         prompt = [
             SystemMessage(content="Convert the provided strategy into 3-4 professional, concise action items for an event organizer."),
-            HumanMessage(content=f"Strategy: {suggestions}. Provide exactly 3 short action points as JSON list strings.")
+            HumanMessage(content=f"Strategy: {suggestions}. Provide exactly 3 short action points as plain text lines.")
         ]
         
         try:
-            # We want structured output for the list
-            response = self.llm.invoke(prompt)
-            # Simple list cleaning if not valid JSON
+            response = self._safe_invoke(prompt)
             steps = [s.strip('- ').strip() for s in response.content.split('\n') if len(s) > 5]
             state['next_steps'] = steps[:4]
         except:
@@ -134,7 +200,6 @@ class LangGraphInsightsService:
         if not event:
             return {"error": "Event not found"}
             
-        # Gather metrics
         from services.registration_service import RegistrationService
         stats = RegistrationService.get_participant_stats(db, event_id)
         
@@ -150,7 +215,6 @@ class LangGraphInsightsService:
             "state": event.state.value
         }
         
-        # Run LangGraph
         initial_state = {
             "event_id": event_id,
             "event_data": event_data,
@@ -160,15 +224,18 @@ class LangGraphInsightsService:
             "next_steps": []
         }
         
-        result = self.graph.invoke(initial_state)
-        
-        return {
-            "success": True,
-            "analysis": result['analysis'],
-            "risk": result['risk_level'],
-            "strategy": result['suggestions'][0],
-            "actions": result['next_steps']
-        }
+        try:
+            result = self.graph.invoke(initial_state)
+            return {
+                "success": True,
+                "analysis": result['analysis'],
+                "risk": result['risk_level'],
+                "strategy": result['suggestions'][0],
+                "actions": result['next_steps']
+            }
+        except Exception as e:
+            logger.error(f"[LANGGRAPH] Analysis failed: {e}")
+            return {"success": False, "error": str(e)}
 
 # Singleton
 _insights_service_ai = None

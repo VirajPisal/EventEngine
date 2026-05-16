@@ -52,9 +52,9 @@ class AnalyticsService:
             Participant.is_confirmed == True
         ).count()
         
-        total_attended = db.query(Attendance).filter(
-            Attendance.event_id == event_id,
-            Attendance.is_valid == True
+        total_attended = db.query(Participant).filter(
+            Participant.event_id == event_id,
+            Participant.status == ParticipantStatus.ATTENDED
         ).count()
         
         # Calculate rates
@@ -298,23 +298,12 @@ class AnalyticsService:
         db: Session,
         event_id: int
     ) -> str:
-        """
-        Generate human-readable summary report
-        
-        Args:
-            db: Database session
-            event_id: Event ID
-        
-        Returns:
-            Formatted text report
-        """
+        """Generate human-readable text summary report"""
         result = AnalyticsService.calculate_event_analytics(db, event_id)
-        
         if not result['success']:
             return f"Error: {result['message']}"
         
         data = result['analytics']
-        
         report = f"""
 Event Analytics Report
 {'=' * 60}
@@ -337,3 +326,99 @@ COMMUNICATION:
 {'=' * 60}
 """
         return report.strip()
+
+    @staticmethod
+    def generate_html_report(db: Session, event_id: int) -> str:
+        """Generate a professional HTML report for the event"""
+        result = AnalyticsService.calculate_event_analytics(db, event_id)
+        if not result['success']:
+            return f"<h1>Error generating report</h1><p>{result['message']}</p>"
+        
+        data = result['analytics']
+        
+        # Color based on performance
+        perf_color = "#10b981" if data['performance_category'] == "EXCELLENT" else \
+                     "#3b82f6" if data['performance_category'] == "GOOD" else \
+                     "#f59e0b" if data['performance_category'] == "AVERAGE" else "#ef4444"
+
+        html = f"""
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Event Report: {data['event_name']}</title>
+    <style>
+        body {{ font-family: 'Inter', -apple-system, sans-serif; line-height: 1.6; color: #1f2937; max-width: 800px; margin: 40px auto; padding: 20px; background: #f9fafb; }}
+        .card {{ background: white; border-radius: 12px; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1); padding: 30px; margin-bottom: 20px; }}
+        .header {{ border-bottom: 2px solid #e5e7eb; padding-bottom: 20px; margin-bottom: 30px; }}
+        .title {{ font-size: 24px; font-weight: 800; color: #111827; margin: 0; }}
+        .subtitle {{ color: #6b7280; font-size: 14px; margin-top: 5px; }}
+        .grid {{ display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-top: 20px; }}
+        .stat-box {{ background: #f3f4f6; padding: 15px; border-radius: 8px; text-align: center; }}
+        .stat-val {{ font-size: 22px; font-weight: 700; color: #111827; display: block; }}
+        .stat-label {{ font-size: 12px; color: #6b7280; text-transform: uppercase; font-weight: 600; }}
+        .perf-badge {{ display: inline-block; padding: 4px 12px; border-radius: 20px; font-weight: 700; font-size: 12px; color: white; background: {perf_color}; margin-top: 10px; }}
+        .score-circle {{ width: 100px; height: 100px; border-radius: 50%; border: 8px solid {perf_color}; display: flex; align-items: center; justify-content: center; margin: 0 auto; }}
+        .score-val {{ font-size: 28px; font-weight: 800; }}
+        .footer {{ text-align: center; margin-top: 40px; font-size: 12px; color: #9ca3af; }}
+        @media print {{ body {{ background: white; margin: 0; }} .card {{ box-shadow: none; border: 1px solid #e5e7eb; }} }}
+    </style>
+</head>
+<body>
+    <div class="card header">
+        <h1 class="title">{data['event_name']}</h1>
+        <p class="subtitle">Event ID: {data['event_id']} | Generated on {datetime.now().strftime('%B %d, %Y')}</p>
+        <div class="perf-badge">{data['performance_category']} PERFORMANCE</div>
+    </div>
+
+    <div class="grid">
+        <div class="card" style="margin-bottom: 0;">
+            <h2 style="font-size: 16px; margin-top: 0;">Attendance Overview</h2>
+            <div class="grid" style="grid-template-columns: 1fr 1fr; gap: 10px;">
+                <div class="stat-box">
+                    <span class="stat-val">{data['total_registered']}</span>
+                    <span class="stat-label">Invited</span>
+                </div>
+                <div class="stat-box">
+                    <span class="stat-val">{data['total_attended']}</span>
+                    <span class="stat-label">Attended</span>
+                </div>
+                <div class="stat-box">
+                    <span class="stat-val">{data['attendance_rate']}%</span>
+                    <span class="stat-label">Turnout Rate</span>
+                </div>
+                <div class="stat-box">
+                    <span class="stat-val">{data['no_show_count']}</span>
+                    <span class="stat-label">No-Shows</span>
+                </div>
+            </div>
+        </div>
+        
+        <div class="card" style="margin-bottom: 0; text-align: center;">
+            <h2 style="font-size: 16px; margin-top: 0;">Engagement Score</h2>
+            <div class="score-circle">
+                <span class="score-val">{data['engagement_score']}</span>
+            </div>
+            <p style="font-size: 12px; color: #6b7280; margin-top: 15px;">Based on conversion and attendance rates.</p>
+        </div>
+    </div>
+
+    <div class="card">
+        <h2 style="font-size: 16px; margin-top: 0;">Organizer Insights</h2>
+        <p style="font-size: 14px;">The event was categorized as <strong>{data['performance_category']}</strong>. 
+        With a conversion rate of <strong>{data['confirmation_rate']}%</strong> and an average response time of 
+        <strong>{data['avg_response_time_hours'] or 'N/A'} hours</strong>, the engagement level was stable.</p>
+        <ul style="font-size: 14px; padding-left: 20px;">
+            <li>Successfully reached {data['total_attended']} participants.</li>
+            <li>Communication: {data['reminder_count']} automated reminders were dispatched.</li>
+            <li>No-show management: {data['no_show_rate']}% of confirmed participants did not attend.</li>
+        </ul>
+    </div>
+
+    <div class="footer">
+        Generated by EventEngine Autonomous Agent | © 2026 Professional Event Management
+    </div>
+</body>
+</html>
+        """
+        return html.strip()
