@@ -443,13 +443,18 @@
         }
 
         /* ===== TABS ===== */
-        function switchTab(tab){
+                async function switchTab(tab){
             document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
-            event.target.classList.add('active');
+            // Use event.target if available, otherwise find button by tab name
+            const btn = document.querySelector(`.tab-btn[onclick*="${tab}"]`);
+            if(btn) btn.classList.add('active');
             document.querySelectorAll('.tab-content').forEach(content => content.classList.remove('active'));
             document.getElementById('tab-' + tab).classList.add('active');
 
-            if(tab === 'events') loadEvents();
+            if(tab === 'events') {
+                await loadMyRegistrations(); // fetch registrations first
+                await loadEvents();
+            }
             if(tab === 'registrations') loadMyRegistrations();
             if(tab === 'attendance') loadMyAttendance();
         }
@@ -477,37 +482,42 @@
         }
 
         function renderEvents(events){
-            const container = document.getElementById('eventsList');
-            container.innerHTML = events.map(ev => {
-                const canRegister = ev.state === 'REGISTRATION_OPEN';
-                return `
-                    <div class="card">
-                        <div class="card-header">
-                            <div>
-                                <div class="card-title">${esc(ev.name)}</div>
-                                <span class="state-badge state-${ev.state}">${ev.state.replace(/_/g, ' ')}</span>
-                            </div>
-                        </div>
-                        <div class="card-desc">${esc(ev.description || 'No description')}</div>
-                        <div class="card-meta">
-                            <span>📅 ${fmtDateTime(ev.start_time)}</span>
-                            <span>🌍 <span class="badge badge-${ev.event_type.toLowerCase()}">${ev.event_type}</span></span>
-                            ${ev.venue ? `<span>📍 ${esc(ev.venue)}</span>` : ''}
-                            ${ev.max_participants ? `<span>👥 Max: ${ev.max_participants}</span>` : ''}
-                        </div>
-                        ${canRegister ? `
-                            <button class="btn btn-primary" data-event-id="${ev.id}" data-event-name="${esc(ev.name)}" onclick="openRegisterModal(this.dataset.eventId, this.dataset.eventName)">
-                                Register Now
-                            </button>
-                        ` : ev.state === 'CREATED' || ev.state === 'SCHEDULED' ? `
-                            <button class="btn btn-outline" disabled>Registration Opens Soon</button>
-                        ` : `
-                            <button class="btn btn-outline" disabled>Registration Closed</button>
-                        `}
+    const container = document.getElementById('eventsList');
+    container.innerHTML = events.map(ev => {
+        const canRegister = ev.state === 'REGISTRATION_OPEN';
+        const isRegistered = participantRegistrations.includes(ev.id);
+        const meetingLink = ev.meeting_link || '';
+        return `
+            <div class="card">
+                <div class="card-header">
+                    <div>
+                        <div class="card-title">${esc(ev.name)}</div>
+                        <span class="state-badge state-${ev.state}">${ev.state.replace(/_/g, ' ')}</span>
                     </div>
-                `;
-            }).join('');
-        }
+                </div>
+                <div class="card-desc">${esc(ev.description || 'No description')}</div>
+                <div class="card-meta">
+                    <span>📅 ${fmtDateTime(ev.start_time)}</span>
+                    <span>🌍 <span class="badge badge-${ev.event_type.toLowerCase()}">${ev.event_type}</span></span>
+                    ${ev.venue ? `<span>📍 ${esc(ev.venue)}</span>` : ''}
+                    ${ev.max_participants ? `<span>👥 Max: ${ev.max_participants}</span>` : ''}
+                </div>
+                ${
+                    isRegistered ? `
+                        <button class="btn btn-outline" disabled>Registered</button>
+                        ${meetingLink && !['COMPLETED','CANCELLED','REPORT_GENERATED'].includes(ev.state) ? `<button class="btn btn-primary" onclick="joinMeeting('${meetingLink}')">Join Meeting</button>` : ''}
+                    ` : canRegister ? `
+                        <button class="btn btn-primary" data-event-id="${ev.id}" data-event-name="${esc(ev.name)}" onclick="openRegisterModal(this.dataset.eventId, this.dataset.eventName)">Register Now</button>
+                    ` : ev.state === 'CREATED' || ev.state === 'SCHEDULED' ? `
+                        <button class="btn btn-outline" disabled>Registration Opens Soon</button>
+                    ` : `
+                        <button class="btn btn-outline" disabled>Registration Closed</button>
+                    `
+                }
+            </div>
+        `;
+    }).join('');
+}
 
         /* ===== MY REGISTRATIONS ===== */
         async function loadMyRegistrations(){
@@ -524,6 +534,8 @@
                 const d = await r.json();
 
                 if(d.success && d.registrations && d.registrations.length){
+                    // Store registered event IDs for UI rendering
+                    participantRegistrations = d.registrations.map(reg => reg.event_id);
                     renderRegistrations(d.registrations);
                     updateRegStats(d.registrations);
                 } else {
@@ -639,11 +651,24 @@
         }
 
         /* ===== REGISTRATION MODAL ===== */
-        function openRegisterModal(eventId, eventName){
-            document.getElementById('registerEventId').value = eventId;
-            document.getElementById('registerEventName').value = eventName;
-            document.getElementById('registerModal').classList.add('show');
-        }
+        let participantRegistrations = [];
+
+function openRegisterModal(eventId, eventName){
+    document.getElementById('registerEventId').value = eventId;
+    document.getElementById('registerEventName').value = eventName;
+    document.getElementById('registerModal').classList.add('show');
+}
+
+function joinMeeting(link){
+    if(link){
+        window.open(link, '_blank');
+    } else {
+        showToast('Meeting link not available', 'error');
+    }
+}
+
+
+
 
         function closeRegisterModal(){
             document.getElementById('registerModal').classList.remove('show');
@@ -714,7 +739,7 @@
         }
 
         /* ===== INIT ===== */
-        loadEvents();
+        switchTab('events');
     </script>
 </body>
 </html>

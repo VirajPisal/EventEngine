@@ -136,6 +136,39 @@
             color: var(--db-text);
         }
 
+        /* Modal Overlay */
+        .modal-overlay {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0,0,0,0.6); backdrop-filter: blur(8px);
+            z-index: 1000; display: flex; align-items: center; justify-content: center;
+        }
+        .modal-content {
+            width: 90%; max-width: 700px; max-height: 85vh;
+            background: rgba(23, 25, 35, 0.95); border: 1px solid var(--db-border);
+            border-radius: 20px; overflow: hidden; display: flex; flex-direction: column;
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+        }
+        .modal-header {
+            padding: 20px 24px; border-bottom: 1px solid var(--db-border);
+            display: flex; justify-content: space-between; align-items: center;
+        }
+        .modal-header h2 { margin: 0; font-size: 1.25rem; color: #fff; }
+        .close-btn { 
+            background: none; border: none; color: var(--db-text-dim); 
+            font-size: 2rem; cursor: pointer; transition: 0.2s;
+        }
+        .close-btn:hover { color: #fff; transform: rotate(90deg); }
+        .modal-body { padding: 24px; overflow-y: auto; color: var(--db-text); }
+        .modal-loading { padding: 60px; text-align: center; }
+        .modal-error { padding: 40px; text-align: center; color: #ef4444; }
+
+        /* Markdown Styling */
+        .markdown-body h2 { color: var(--db-accent); font-size: 1.2rem; margin: 20px 0 10px; border-bottom: 1px solid rgba(255,255,255,0.1); padding-bottom: 8px; }
+        .markdown-body ul { padding-left: 20px; margin: 10px 0; }
+        .markdown-body li { margin-bottom: 8px; color: var(--db-text-dim); }
+        .markdown-body strong { color: #fff; }
+        .markdown-body p { margin-bottom: 12px; line-height: 1.7; }
+
         .chart-container {
             background: var(--db-surface2);
             border: 1px solid var(--db-border);
@@ -306,6 +339,23 @@
         .event-card:hover {
             border-color: var(--db-accent);
             box-shadow: 0 0 0 1px var(--db-accent-glow);
+        }
+
+        /* Advisor Card */
+        .ai-advisor-card {
+            background: rgba(99, 102, 241, 0.05); border: 1px solid rgba(99, 102, 241, 0.2);
+            border-radius: 16px; padding: 20px; transition: 0.3s;
+        }
+        .ai-advisor-card:hover { border-color: rgba(99, 102, 241, 0.5); background: rgba(99, 102, 241, 0.08); }
+        .icon-pulse {
+            width: 40px; height: 40px; background: rgba(99, 102, 241, 0.2);
+            border-radius: 10px; display: flex; align-items: center; justify-content: center;
+            font-size: 1.2rem; animation: pulse 2s infinite;
+        }
+        @keyframes pulse {
+            0% { box-shadow: 0 0 0 0 rgba(99, 102, 241, 0.4); }
+            70% { box-shadow: 0 0 0 10px rgba(99, 102, 241, 0); }
+            100% { box-shadow: 0 0 0 0 rgba(99, 102, 241, 0); }
         }
 
         .event-card.selected {
@@ -850,6 +900,12 @@
 
                     <div id="eventActionCenter" style="margin-bottom: 20px;"></div>
 
+                    <div id="socialMediaCenter" style="margin-bottom: 20px; display: none;">
+                        <button class="btn btn-primary" style="background: #0077b5; width: 100%; justify-content: center; border: none; font-weight: 600;" onclick="openLinkedInModal()">
+                            🔗 Generate LinkedIn Promotion Post
+                        </button>
+                    </div>
+
                     <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px;">
                         <div class="chart-container" style="height: 220px;">
                             <h3 style="font-size: 0.8rem; margin: 0 0 10px; color: var(--db-text-dim);">REGISTRATION
@@ -893,26 +949,23 @@
                     </div>
                 </div>
 
-                <!-- LangGraph Strategic Insights (Collapsible) -->
+                <!-- LangGraph Strategic Insights (Modal Trigger) -->
                 <div id="aiSection" style="display: none; margin-top: 20px;">
-                    <div class="collapsible-header" onclick="toggleCollapsible(this)">
-                        <label class="live-feed-title" style="cursor: pointer; margin:0;">🧠 Strategic Advisor (LangGraph)</label>
-                        <span class="collapsible-icon">▾</span>
-                    </div>
-                    <div class="collapsible-content ai-strategy-card" id="aiStrategyCard" style="margin-top: 10px;">
-                        <div id="aiLoading" style="text-align: center; padding: 20px;">
-                            <div class="live-dot" style="margin: 0 auto 10px;"></div>
-                            <span style="font-size: 0.8rem; color: var(--db-text-dim);">Agent Reasoning...</span>
+                    <div class="ai-advisor-card">
+                        <div style="display: flex; align-items: center; gap: 12px; margin-bottom: 16px;">
+                            <div class="icon-pulse">🧠</div>
+                            <div style="flex: 1;">
+                                <h4 style="margin: 0; color: #fff; font-size: 0.95rem;">Strategic Advisor</h4>
+                                <p style="margin: 4px 0 0; color: var(--db-text-dim); font-size: 0.75rem;">Powered by LangGraph & Groq</p>
+                            </div>
                         </div>
-                        <div id="aiContent" style="display: none;">
-                            <div class="ai-tag">Gemini-powered Insights</div>
-                            <div class="ai-suggestion-text" id="aiStrategyText" style="margin-bottom: 15px; font-style: italic; color: #d1d5db;"></div>
-                            
-                            <label style="font-size: 0.7rem; color: var(--db-text-dim); text-transform: uppercase; font-weight: 600; display: block; margin-bottom: 8px; border-bottom: 1px solid var(--db-border); padding-bottom: 4px;">Recommended Next Steps</label>
-                            <div class="ai-action-list" id="aiActionList"></div>
+                        <div id="aiAdvisorTriggerArea">
+                            <button class="btn btn-primary" style="width: 100%; justify-content: center; background: linear-gradient(135deg, #6366f1, #4f46e5);" onclick="openAIInsights()">
+                                🔍 View Strategic Analysis
+                            </button>
                         </div>
-                        <div id="aiError" style="display: none; text-align: center; padding: 15px;">
-                            <span style="font-size: 0.8rem; color: var(--db-red);">Strategic analysis currently unavailable.</span>
+                        <div id="aiAdvisorSuppressed" style="display: none; color: var(--db-text-dim); font-size: 0.8rem; font-style: italic; text-align: center; padding: 10px; border: 1px dashed rgba(255,255,255,0.1); border-radius: 8px;">
+                            Event completed. Strategic analysis is archived.
                         </div>
                     </div>
                 </div>
@@ -927,8 +980,49 @@
         </div>
     </main>
 
+    <!-- AI Insights Modal -->
+    <div id="aiModal" class="modal-overlay" style="display: none;">
+        <div class="modal-content glass">
+            <div class="modal-header">
+                <h2><span class="icon">✨</span> Strategic AI Insights</h2>
+                <button class="close-btn" onclick="closeAIModal()">×</button>
+            </div>
+            <div id="aiModalLoading" class="modal-loading">
+                <div class="spinner"></div>
+                <p>Generating Strategy...</p>
+            </div>
+            <div id="aiModalError" class="modal-error" style="display: none;">
+                <p>Strategic analysis currently unavailable.</p>
+            </div>
+            <div id="aiModalBody" class="modal-body markdown-body" style="display: none;"></div>
+        </div>
+    </div>
+
+    <!-- LinkedIn Post Modal -->
+    <div id="linkedinModal" class="modal-overlay" style="display: none;">
+        <div class="modal-content glass" style="max-width: 600px;">
+            <div class="modal-header">
+                <h2><span class="icon">💼</span> LinkedIn Post Generator</h2>
+                <button class="close-btn" onclick="closeLinkedInModal()">×</button>
+            </div>
+            <div id="linkedinModalLoading" class="modal-loading" style="display: none;">
+                <div class="spinner"></div>
+                <p>Generating an engaging professional post...</p>
+            </div>
+            <div id="linkedinModalBody" style="display: none;">
+                <p style="color: var(--db-text-dim); margin-bottom: 12px; font-size: 0.9rem;">Review and copy your AI-generated LinkedIn post. It's tailored with emojis and hashtags!</p>
+                <textarea id="linkedinPostContent" style="width: 100%; height: 250px; background: rgba(255,255,255,0.05); color: #fff; border: 1px solid rgba(255,255,255,0.1); border-radius: 8px; padding: 15px; font-size: 0.95rem; resize: vertical; line-height: 1.5; font-family: inherit; margin-bottom: 15px;"></textarea>
+                <button class="btn btn-primary" style="width: 100%; background: #0a66c2; border: none; font-weight: bold; justify-content: center; padding: 12px;" onclick="copyAndOpenLinkedIn()">
+                    📋 Copy Text & Open LinkedIn
+                </button>
+            </div>
+        </div>
+    </div>
+
     <!-- Toast -->
+
     <div class="toast" id="toast"></div>
+    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
     <script src="/frontend/js/auth.js"></script>
     <script>
         /* ===== AUTH CHECK & INIT ===== */
@@ -1016,6 +1110,18 @@
             document.getElementById('workspaceEmptyState').style.display = 'none';
             document.getElementById('eventDetailView').style.display = 'block';
             document.getElementById('aiSection').style.display = 'block';
+            document.getElementById('socialMediaCenter').style.display = (ev.state !== 'CANCELLED' && ev.state !== 'REPORT_GENERATED') ? 'block' : 'none';
+
+            // Suppress Insights for REPORT_GENERATED
+            const triggerArea = document.getElementById('aiAdvisorTriggerArea');
+            const suppressedArea = document.getElementById('aiAdvisorSuppressed');
+            if (ev.state === 'REPORT_GENERATED') {
+                if(triggerArea) triggerArea.style.display = 'none';
+                if(suppressedArea) suppressedArea.style.display = 'block';
+            } else {
+                if(triggerArea) triggerArea.style.display = 'block';
+                if(suppressedArea) suppressedArea.style.display = 'none';
+            }
 
             // Set basic info
             document.getElementById('viewEventName').textContent = ev.name;
@@ -1048,29 +1154,63 @@
 
             if (ev.state === 'CREATED') {
                 actionCenter.innerHTML = `
-                    <div class="ai-draft-section" style="border: 1px dashed var(--db-accent); background: rgba(99,102,241,0.05); text-align: center;">
+                    <div class="ai-draft-section" style="border: 1px dashed var(--db-accent); background: rgba(99,102,241,0.05); text-align: center; padding: 20px; border-radius: 12px;">
                         <p style="color: var(--db-accent); font-weight: 600; margin-bottom: 5px;">🚀 Event is currently a Private Draft</p>
                         <p style="font-size: 0.75rem; color: var(--db-text-dim); margin-bottom: 12px;">Participants cannot see or register for this event until you launch it.</p>
-                        <button class="btn-create-event" style="width: auto; padding: 10px 25px;" 
+                        <button class="btn btn-primary" style="width: auto; padding: 10px 25px;" 
                             onclick="transitionEvent(${ev.id}, 'REGISTRATION_OPEN')">🚀 Launch Public Registration</button>
                     </div>
                 `;
             } else if (ev.state === 'REGISTRATION_OPEN') {
                 actionCenter.innerHTML = `
-                    <div class="ai-draft-section" style="border: 1px dashed var(--db-green); background: rgba(34,197,94,0.05); display: flex; justify-content: space-between; align-items: center;">
+                    <div class="ai-draft-section" style="border: 1px dashed #22c55e; background: rgba(34,197,94,0.05); display: flex; justify-content: space-between; align-items: center; padding: 20px; border-radius: 12px;">
                         <div>
-                            <p style="color: var(--db-green); font-weight: 600; margin: 0;">✅ Registration is LIVE</p>
+                            <p style="color: #22c55e; font-weight: 600; margin: 0;">✅ Registration is LIVE</p>
                             <p style="font-size: 0.75rem; color: var(--db-text-dim); margin: 4px 0 0;">The event is visible to all participants for signup.</p>
                         </div>
-                        <button class="btn-action" onclick="promoteEvent(${ev.id})" style="background: var(--db-accent); color: white; border: none; padding: 8px 15px;">📣 Force Pro-active Promotion</button>
+                        <button class="btn btn-primary" onclick="promoteEvent(${ev.id})" style="background: #6366f1; color: white; border: none; padding: 8px 15px;">📣 Run Promotion</button>
                     </div>
                 `;
             }
 
-            // Fetch AI Insights
-            fetchAIInsights(id);
             // Fetch Participants
             loadParticipants(id);
+        }
+
+        /* ===== AI STRATEGIC MODAL ===== */
+        function closeAIModal() {
+            document.getElementById('aiModal').style.display = 'none';
+        }
+
+        async function openAIInsights(id = selectedEventId) {
+            const modal = document.getElementById('aiModal');
+            const loading = document.getElementById('aiModalLoading');
+            const error = document.getElementById('aiModalError');
+            const body = document.getElementById('aiModalBody');
+
+            modal.style.display = 'flex';
+            loading.style.display = 'block';
+            error.style.display = 'none';
+            body.style.display = 'none';
+
+            try {
+                const r = await fetch(API + `/api/agent/insights/${id}`, { headers: hdrs() });
+                const d = await r.json();
+
+                loading.style.display = 'none';
+
+                if (d.success && d.strategy) {
+                    body.style.display = 'block';
+                    // Render Markdown using marked
+                    body.innerHTML = marked.parse(d.strategy);
+                } else {
+                    error.style.display = 'block';
+                }
+            } catch (e) {
+                loading.style.display = 'none';
+                error.style.display = 'block';
+                console.error('AI Insights Error', e);
+            }
         }
 
         async function transitionEvent(id, newState) {
@@ -1153,42 +1293,6 @@
                     }
                 }
             });
-        }
-
-        /* ===== AI ASSISTANT (Panel 3) ===== */
-        async function fetchAIInsights(id) {
-            const loading = document.getElementById('aiLoading');
-            const content = document.getElementById('aiContent');
-            const error = document.getElementById('aiError');
-
-            loading.style.display = 'block';
-            content.style.display = 'none';
-            error.style.display = 'none';
-
-            try {
-                const r = await fetch(API + `/api/agent/insights/${id}`, { headers: hdrs() });
-                const d = await r.json();
-
-                loading.style.display = 'none';
-
-                if (d.success && d.strategy) {
-                    content.style.display = 'block';
-                    document.getElementById('aiStrategyText').textContent = d.strategy;
-                    const list = document.getElementById('aiActionList');
-                    list.innerHTML = (d.actions || []).map(act => `
-                        <div class="ai-action-item">
-                            <span class="icon">➜</span>
-                            <span>${act}</span>
-                        </div>
-                    `).join('');
-                } else {
-                    error.style.display = 'block';
-                }
-            } catch (e) {
-                loading.style.display = 'none';
-                error.style.display = 'block';
-                console.error('AI Insights Error', e);
-            }
         }
 
         /* ===== PARTICIPANTS ===== */
@@ -1325,8 +1429,14 @@
                         <input type="text" id="p_venue" value="${p.venue || ''}" placeholder="Physical address or TBD">
                     </div>
                     <div class="parsed-field" id="p_link_group" style="display: ${p.event_type === 'OFFLINE' ? 'none' : 'block'};">
-                        <label>Meeting Link</label>
+                        <label style="display: flex; justify-content: space-between; align-items: center;">
+                            <span>Meeting Link</span>
+                            <button class="btn-action" onclick="generateRealMeetLink()" style="font-size: 0.65rem; padding: 2px 8px; background: rgba(99,102,241,0.1); border-color: rgba(99,102,241,0.3); color: var(--db-accent);">
+                                🌐 Generate Real Meet Link
+                            </button>
+                        </label>
                         <input type="text" id="p_link" value="${link}" placeholder="https://meet.google.com/...">
+                        <div id="meetStatus" style="font-size: 0.65rem; margin-top: 4px; display: none;"></div>
                     </div>
                 </div>
 
@@ -1375,6 +1485,52 @@
                     document.getElementById('p_link').value = `https://meet.google.com/${id}`;
                 }
             });
+        }
+
+        async function generateRealMeetLink() {
+            const name = document.getElementById('p_name').value;
+            const start = document.getElementById('p_start').value;
+            const status = document.getElementById('meetStatus');
+            const linkInput = document.getElementById('p_link');
+
+            if (!name || !start) {
+                showToast('Please set event name and start time first', 'error');
+                return;
+            }
+
+            status.style.display = 'block';
+            status.style.color = 'var(--db-accent)';
+            status.textContent = '⏳ Connecting to Google Calendar API...';
+
+            try {
+                const r = await fetch(API + '/api/integrations/generate-meet-link', {
+                    method: 'POST',
+                    headers: hdrs(),
+                    body: JSON.stringify({ 
+                        event_name: name,
+                        start_time: start,
+                        duration_minutes: 60
+                    })
+                });
+                const d = await r.json();
+
+                if (d.success) {
+                    linkInput.value = d.meet_link;
+                    status.style.color = '#22c55e';
+                    status.textContent = '✅ Real Meet link generated successfully!';
+                    showToast('Google Meet link generated!', 'success');
+                } else {
+                    status.style.color = '#ef4444';
+                    status.textContent = '❌ ' + (d.message || 'Generation failed');
+                    if (d.is_setup_required) {
+                        alert("Google Calendar Setup Required:\n1. Create a project in Google Cloud Console.\n2. Enable 'Google Calendar API'.\n3. Download OAuth 2.0 'credentials.json' and place it in the project root.\n4. Restart the server.");
+                    }
+                }
+            } catch (e) {
+                status.style.color = '#ef4444';
+                status.textContent = '❌ Connection error';
+                console.error(e);
+            }
         }
 
         async function createEventFromParsed() {
@@ -1461,6 +1617,52 @@
             header.classList.toggle('open');
             const body = header.nextElementSibling;
             if (body) body.classList.toggle('open');
+        }
+
+        /* ===== LINKEDIN POST GENERATOR ===== */
+        function openLinkedInModal() {
+            if (!selectedEventId) { showToast('Select an event first.', 'error'); return; }
+            document.getElementById('linkedinModal').style.display = 'flex';
+            document.getElementById('linkedinModalBody').style.display = 'none';
+            document.getElementById('linkedinModalLoading').style.display = 'flex';
+            
+            fetch(API + `/api/events/${selectedEventId}/generate-linkedin-post`, {
+                method: 'POST',
+                headers: hdrs()
+            })
+            .then(r => r.json())
+            .then(d => {
+                document.getElementById('linkedinModalLoading').style.display = 'none';
+                if (d.success) {
+                    document.getElementById('linkedinPostContent').value = d.content;
+                    document.getElementById('linkedinModalBody').style.display = 'block';
+                } else {
+                    showToast('Failed to generate post: ' + (d.detail || d.message || 'Unknown error'), 'error');
+                    closeLinkedInModal();
+                }
+            })
+            .catch(e => {
+                document.getElementById('linkedinModalLoading').style.display = 'none';
+                showToast('API Error', 'error');
+                closeLinkedInModal();
+            });
+        }
+
+        function closeLinkedInModal() {
+            document.getElementById('linkedinModal').style.display = 'none';
+        }
+
+        function copyAndOpenLinkedIn() {
+            const text = document.getElementById('linkedinPostContent').value;
+            navigator.clipboard.writeText(text).then(() => {
+                showToast('Post copied to clipboard! Opening LinkedIn...', 'success');
+                setTimeout(() => {
+                    window.open('https://www.linkedin.com/feed/', '_blank');
+                    closeLinkedInModal();
+                }, 1500);
+            }).catch(e => {
+                showToast('Failed to copy to clipboard', 'error');
+            });
         }
 
         /* INIT */

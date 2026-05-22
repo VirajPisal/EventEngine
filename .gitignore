@@ -47,6 +47,10 @@ logs/
 *.sqlite
 *.sqlite3
 
+# Google OAuth Secrets
+token.json
+credentials.json
+
 # Testing
 .pytest_cache/
 .coverage
@@ -61,3 +65,7 @@ htmlcov/
 
 # OS
 Thumbs.db
+
+# Secrets � do not commit
+token.json
+credentials.json

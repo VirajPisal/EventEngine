@@ -17,7 +17,7 @@ from contextlib import asynccontextmanager
 import time
 import os
 
-from api.routes import events, registrations, attendance, analytics, auth, agent, feedback
+from api.routes import events, registrations, attendance, analytics, auth, agent, feedback, integrations
 from db.base import init_db
 from utils.logger import logger
 
@@ -171,6 +171,12 @@ app.include_router(
     feedback.router,
     prefix="/api/feedback",
     tags=["Feedback"]
+)
+
+app.include_router(
+    integrations.router,
+    prefix="/api/integrations",
+    tags=["Integrations"]
 )
 
 

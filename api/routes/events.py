@@ -13,6 +13,7 @@ from db.base import get_db_context
 from services.event_service import EventService
 from services.registration_service import RegistrationService
 from models.participant import Participant
+from models.event import Event
 from config.constants import EventType, EventState, ParticipantStatus
 from api.deps import get_current_organizer
 from utils.logger import logger
@@ -466,3 +467,46 @@ async def download_report(event_id: int):
     except Exception as e:
         logger.error(f"[API] Failed to generate report for event {event_id}: {e}")
         raise HTTPException(status_code=500, detail="Failed to generate report")
+
+
+@router.post("/{event_id}/generate-linkedin-post")
+async def generate_linkedin_post(
+    event_id: int,
+    user: dict = Depends(get_current_organizer)
+):
+    """
+    Generate an engaging LinkedIn promotional post for the event
+    """
+    try:
+        with get_db_context() as db:
+            event = db.query(Event).filter(Event.id == event_id).first()
+            if not event:
+                raise HTTPException(status_code=404, detail="Event not found")
+                
+            openai_key = __import__("os").getenv("OPENAI_API_KEY", "")
+            if not openai_key:
+                # Provide a fallback template if AI is unavailable
+                content = f"🚀 Excited to announce our upcoming event: {event.name}!\n\n📅 Date: {event.start_time.strftime('%b %d, %Y')}\n📍 Format: {event.event_type.value}\n\nJoin us for an amazing session!\n\n#EventEngine #Networking #TechEvent #{event.name.replace(' ', '')}"
+                return {"success": True, "content": content}
+                
+            import openai
+            client = openai.OpenAI(api_key=openai_key)
+            prompt = f"Write an engaging, professional, and exciting LinkedIn promotional post for the following event:\nName: {event.name}\nDescription: {event.description}\nType: {event.event_type.value}\nStart: {event.start_time}\nVenue/Link: {event.venue or event.meeting_link}\n\nInclude 3-5 relevant hashtags and emojis. Make it compelling to drive registrations."
+            
+            resp = client.chat.completions.create(
+                model="gpt-4o-mini",
+                messages=[
+                    {"role": "system", "content": "You are an expert social media manager specializing in LinkedIn event promotion. Output only the post text. No intro/outro."},
+                    {"role": "user", "content": prompt}
+                ],
+                temperature=0.7,
+            )
+            
+            content = resp.choices[0].message.content.strip()
+            return {"success": True, "content": content}
+            
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"[API] Failed to generate LinkedIn post for event {event_id}: {e}")
+        raise HTTPException(status_code=500, detail=str(e))

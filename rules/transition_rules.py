@@ -278,6 +278,16 @@ def check_auto_transition_conditions(db: Session, event: Event) -> Dict[str, any
     start_time = ensure_timezone_aware(event.start_time)
     end_time = ensure_timezone_aware(event.end_time)
     
+    # REGISTRATION_OPEN → SCHEDULED (1 hour before start)
+    if event.state == EventState.REGISTRATION_OPEN:
+        schedule_time = start_time - timedelta(hours=1)
+        if now >= schedule_time:
+            return {
+                "should_transition": True,
+                "target_state": EventState.SCHEDULED,
+                "reason": "Event start time is approaching, automatically scheduling"
+            }
+    
     # SCHEDULED → ATTENDANCE_OPEN (30 min before start)
     if event.state == EventState.SCHEDULED:
         attendance_open_time = start_time - timedelta(minutes=30)

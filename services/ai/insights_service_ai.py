@@ -30,6 +30,10 @@ from langgraph.graph import StateGraph, END
 from config.settings import settings
 from models.event import Event
 from models.participant import Participant
+from models.attendance import Attendance
+from models.analytics import Analytics
+from models.agent_action import AgentAction
+from models.feedback import Feedback
 from config.constants import EventState
 from utils.logger import logger
 
@@ -151,6 +155,23 @@ class LangGraphInsightsService:
 
     def _node_reason_strategy(self, state: AgentState):
         """Node 2: Brainstorm strategy based on risks"""
+        system_prompt = """
+        You are a Senior Strategic Event Advisor. 
+        Your goal is to analyze event data and provide a professional, highly structured strategy.
+        
+        USE THE FOLLOWING STRUCTURE:
+        ## 📊 Problem Analysis
+        (Provide a clear breakdown of the current situation and risks)
+        
+        ## 💡 Strategic Recommendations
+        (Provide actionable steps to improve performance)
+        
+        ## 🚀 Next Steps
+        (Specific, immediate actions)
+        
+        Use Markdown formatting (bolding, lists, headers). 
+        Be concise, professional, and data-driven.
+        """
         if not self.llm:
             state['suggestions'] = ["LLM not configured. Check registration numbers."]
             return state
