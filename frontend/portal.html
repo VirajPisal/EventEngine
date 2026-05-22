@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -14,14 +15,24 @@
             --text: #e4e6ed;
             --text-dim: #8b8fa3;
             --accent: #6366f1;
-            --accent-glow: rgba(99,102,241,.25);
+            --accent-glow: rgba(99, 102, 241, .25);
             --green: #22c55e;
             --red: #ef4444;
             --amber: #f59e0b;
             --blue: #3b82f6;
         }
-        * { margin: 0; padding: 0; box-sizing: border-box; }
-        body { background: var(--bg); color: var(--text); font-family: 'Inter','Segoe UI',sans-serif; }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            background: var(--bg);
+            color: var(--text);
+            font-family: 'Inter', 'Segoe UI', sans-serif;
+        }
 
         /* ===== TOP BAR ===== */
         .topbar {
@@ -35,10 +46,31 @@
             top: 0;
             z-index: 100;
         }
-        .topbar .logo { font-size: 1.25rem; font-weight: 700; color: var(--accent); }
-        .topbar .logo span { color: var(--text); font-weight: 400; margin-left: 6px; font-size: .85rem; }
-        .topbar-right { display: flex; align-items: center; gap: 16px; }
-        .topbar-right .user-name { font-size: .85rem; color: var(--text-dim); }
+
+        .topbar .logo {
+            font-size: 1.25rem;
+            font-weight: 700;
+            color: var(--accent);
+        }
+
+        .topbar .logo span {
+            color: var(--text);
+            font-weight: 400;
+            margin-left: 6px;
+            font-size: .85rem;
+        }
+
+        .topbar-right {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+        }
+
+        .topbar-right .user-name {
+            font-size: .85rem;
+            color: var(--text-dim);
+        }
+
         .btn-sm {
             padding: 6px 14px;
             border: none;
@@ -48,8 +80,16 @@
             font-weight: 500;
             transition: .2s;
         }
-        .btn-logout { background: var(--surface2); color: var(--text-dim); }
-        .btn-logout:hover { background: var(--red); color: #fff; }
+
+        .btn-logout {
+            background: var(--surface2);
+            color: var(--text-dim);
+        }
+
+        .btn-logout:hover {
+            background: var(--red);
+            color: #fff;
+        }
 
         /* ===== TABS ===== */
         .tabs-container {
@@ -57,7 +97,12 @@
             border-bottom: 1px solid var(--border);
             padding: 0 24px;
         }
-        .tabs { display: flex; gap: 4px; }
+
+        .tabs {
+            display: flex;
+            gap: 4px;
+        }
+
         .tab-btn {
             padding: 12px 20px;
             border: none;
@@ -69,16 +114,30 @@
             border-bottom: 2px solid transparent;
             transition: .2s;
         }
+
         .tab-btn.active {
             color: var(--accent);
             border-bottom-color: var(--accent);
         }
-        .tab-btn:hover:not(.active) { color: var(--text); }
+
+        .tab-btn:hover:not(.active) {
+            color: var(--text);
+        }
 
         /* ===== CONTENT ===== */
-        .content { padding: 24px; max-width: 1400px; margin: 0 auto; }
-        .tab-content { display: none; }
-        .tab-content.active { display: block; }
+        .content {
+            padding: 24px;
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+
+        .tab-content {
+            display: none;
+        }
+
+        .tab-content.active {
+            display: block;
+        }
 
         /* ===== CARDS ===== */
         .card {
@@ -89,7 +148,10 @@
             margin-bottom: 16px;
             transition: .2s;
         }
-        .card:hover { border-color: var(--accent); }
+
+        .card:hover {
+            border-color: var(--accent);
+        }
 
         .card-header {
             display: flex;
@@ -97,11 +159,13 @@
             align-items: flex-start;
             margin-bottom: 12px;
         }
+
         .card-title {
             font-size: 1.1rem;
             font-weight: 600;
             color: var(--text);
         }
+
         .card-meta {
             font-size: .8rem;
             color: var(--text-dim);
@@ -110,6 +174,7 @@
             margin: 8px 0;
             flex-wrap: wrap;
         }
+
         .card-desc {
             font-size: .88rem;
             color: var(--text-dim);
@@ -126,13 +191,41 @@
             text-transform: uppercase;
             letter-spacing: .3px;
         }
-        .badge-online { background: rgba(34,197,94,.15); color: var(--green); }
-        .badge-offline { background: rgba(59,130,246,.15); color: var(--blue); }
-        .badge-hybrid { background: rgba(139,92,246,.15); color: #a78bfa; }
-        .badge-pending { background: rgba(245,158,11,.15); color: var(--amber); }
-        .badge-confirmed { background: rgba(34,197,94,.15); color: var(--green); }
-        .badge-attended { background: rgba(99,102,241,.15); color: var(--accent); }
-        .badge-cancelled { background: rgba(239,68,68,.15); color: var(--red); }
+
+        .badge-online {
+            background: rgba(34, 197, 94, .15);
+            color: var(--green);
+        }
+
+        .badge-offline {
+            background: rgba(59, 130, 246, .15);
+            color: var(--blue);
+        }
+
+        .badge-hybrid {
+            background: rgba(139, 92, 246, .15);
+            color: #a78bfa;
+        }
+
+        .badge-pending {
+            background: rgba(245, 158, 11, .15);
+            color: var(--amber);
+        }
+
+        .badge-confirmed {
+            background: rgba(34, 197, 94, .15);
+            color: var(--green);
+        }
+
+        .badge-attended {
+            background: rgba(99, 102, 241, .15);
+            color: var(--accent);
+        }
+
+        .badge-cancelled {
+            background: rgba(239, 68, 68, .15);
+            color: var(--red);
+        }
 
         .state-badge {
             font-size: .7rem;
@@ -140,11 +233,33 @@
             border-radius: 6px;
             font-weight: 600;
         }
-        .state-REGISTRATION_OPEN { background: rgba(34,197,94,.15); color: var(--green); }
-        .state-CREATED,.state-SCHEDULED { background: rgba(59,130,246,.15); color: var(--blue); }
-        .state-ATTENDANCE_OPEN,.state-RUNNING { background: rgba(139,92,246,.15); color: #a78bfa; }
-        .state-COMPLETED { background: rgba(107,114,128,.15); color: #9ca3af; }
-        .state-CANCELLED { background: rgba(239,68,68,.15); color: var(--red); }
+
+        .state-REGISTRATION_OPEN {
+            background: rgba(34, 197, 94, .15);
+            color: var(--green);
+        }
+
+        .state-CREATED,
+        .state-SCHEDULED {
+            background: rgba(59, 130, 246, .15);
+            color: var(--blue);
+        }
+
+        .state-ATTENDANCE_OPEN,
+        .state-RUNNING {
+            background: rgba(139, 92, 246, .15);
+            color: #a78bfa;
+        }
+
+        .state-COMPLETED {
+            background: rgba(107, 114, 128, .15);
+            color: #9ca3af;
+        }
+
+        .state-CANCELLED {
+            background: rgba(239, 68, 68, .15);
+            color: var(--red);
+        }
 
         /* ===== BUTTONS ===== */
         .btn {
@@ -156,15 +271,31 @@
             cursor: pointer;
             transition: .2s;
         }
-        .btn-primary { background: var(--accent); color: #fff; }
-        .btn-primary:hover { filter: brightness(1.1); }
-        .btn-primary:disabled { opacity: .5; cursor: not-allowed; }
+
+        .btn-primary {
+            background: var(--accent);
+            color: #fff;
+        }
+
+        .btn-primary:hover {
+            filter: brightness(1.1);
+        }
+
+        .btn-primary:disabled {
+            opacity: .5;
+            cursor: not-allowed;
+        }
+
         .btn-outline {
             background: transparent;
             border: 1px solid var(--border);
             color: var(--text-dim);
         }
-        .btn-outline:hover { border-color: var(--accent); color: var(--accent); }
+
+        .btn-outline:hover {
+            border-color: var(--accent);
+            color: var(--accent);
+        }
 
         /* ===== GRID ===== */
         .events-grid {
@@ -179,9 +310,22 @@
             padding: 60px 20px;
             color: var(--text-dim);
         }
-        .empty .icon { font-size: 3rem; margin-bottom: 12px; opacity: .5; }
-        .empty .title { font-size: 1.1rem; font-weight: 600; margin-bottom: 6px; }
-        .empty .desc { font-size: .88rem; }
+
+        .empty .icon {
+            font-size: 3rem;
+            margin-bottom: 12px;
+            opacity: .5;
+        }
+
+        .empty .title {
+            font-size: 1.1rem;
+            font-weight: 600;
+            margin-bottom: 6px;
+        }
+
+        .empty .desc {
+            font-size: .88rem;
+        }
 
         /* ===== QR CODE ===== */
         .qr-container {
@@ -191,7 +335,10 @@
             display: inline-block;
             margin: 12px 0;
         }
-        .qr-container canvas { display: block; }
+
+        .qr-container canvas {
+            display: block;
+        }
 
         /* ===== MODAL ===== */
         .modal {
@@ -201,12 +348,16 @@
             left: 0;
             width: 100%;
             height: 100%;
-            background: rgba(0,0,0,.7);
+            background: rgba(0, 0, 0, .7);
             z-index: 1000;
             align-items: center;
             justify-content: center;
         }
-        .modal.show { display: flex; }
+
+        .modal.show {
+            display: flex;
+        }
+
         .modal-content {
             background: var(--surface);
             border-radius: 16px;
@@ -216,11 +367,13 @@
             max-height: 90vh;
             overflow-y: auto;
         }
+
         .modal-header {
             font-size: 1.3rem;
             font-weight: 600;
             margin-bottom: 20px;
         }
+
         .modal-close {
             float: right;
             font-size: 1.5rem;
@@ -228,12 +381,16 @@
             color: var(--text-dim);
             line-height: 1;
         }
-        .modal-close:hover { color: var(--red); }
+
+        .modal-close:hover {
+            color: var(--red);
+        }
 
         /* ===== FORM ===== */
         .form-group {
             margin-bottom: 16px;
         }
+
         .form-group label {
             display: block;
             font-size: .85rem;
@@ -241,6 +398,7 @@
             margin-bottom: 6px;
             color: var(--text-dim);
         }
+
         .form-group input {
             width: 100%;
             padding: 10px 12px;
@@ -250,6 +408,7 @@
             color: var(--text);
             font-size: .88rem;
         }
+
         .form-group input:focus {
             outline: none;
             border-color: var(--accent);
@@ -267,14 +426,24 @@
             padding: 12px 20px;
             font-size: .85rem;
             z-index: 9999;
-            box-shadow: 0 8px 20px rgba(0,0,0,.3);
+            box-shadow: 0 8px 20px rgba(0, 0, 0, .3);
             transform: translateY(80px);
             opacity: 0;
             transition: .3s;
         }
-        .toast.show { transform: translateY(0); opacity: 1; }
-        .toast.success { border-color: var(--green); }
-        .toast.error { border-color: var(--red); }
+
+        .toast.show {
+            transform: translateY(0);
+            opacity: 1;
+        }
+
+        .toast.success {
+            border-color: var(--green);
+        }
+
+        .toast.error {
+            border-color: var(--red);
+        }
 
         /* ===== STATS ===== */
         .stats-grid {
@@ -283,6 +452,7 @@
             gap: 16px;
             margin-bottom: 24px;
         }
+
         .stat-card {
             background: var(--surface);
             border: 1px solid var(--border);
@@ -290,11 +460,13 @@
             padding: 20px;
             text-align: center;
         }
+
         .stat-value {
             font-size: 2rem;
             font-weight: 700;
             color: var(--accent);
         }
+
         .stat-label {
             font-size: .85rem;
             color: var(--text-dim);
@@ -302,6 +474,7 @@
         }
     </style>
 </head>
+
 <body>
     <!-- Top Bar -->
     <div class="topbar">
@@ -402,7 +575,8 @@
             <span class="modal-close" onclick="closeQRModal()">&times;</span>
             <div class="modal-header">Your QR Code</div>
             <div style="text-align:center">
-                <p style="margin-bottom:12px;color:var(--text-dim);font-size:.9rem">Show this QR code at the event for attendance</p>
+                <p style="margin-bottom:12px;color:var(--text-dim);font-size:.9rem">Show this QR code at the event for
+                    attendance</p>
                 <div class="qr-container">
                     <canvas id="qrCanvas"></canvas>
                 </div>
@@ -418,8 +592,8 @@
     <script src="https://cdn.jsdelivr.net/npm/qrious@4.0.2/dist/qrious.min.js"></script>
     <script>
         /* ===== AUTH CHECK ===== */
-        (function(){
-            if(!getToken() || getRole() !== 'participant'){
+        (function () {
+            if (!getToken() || getRole() !== 'participant') {
                 window.location.href = '/frontend/login.html';
                 return;
             }
@@ -429,13 +603,13 @@
             document.getElementById('registerEmail').value = getEmail() || '';
         })();
 
-        function doLogout(){ logout(); }
+        function doLogout() { logout(); }
 
         const API = '';
-        const hdrs = () => ({...authHeaders(), 'Content-Type': 'application/json'});
+        const hdrs = () => ({ ...authHeaders(), 'Content-Type': 'application/json' });
 
         /* ===== TOAST ===== */
-        function showToast(msg, type='success'){
+        function showToast(msg, type = 'success') {
             const t = document.getElementById('toast');
             t.textContent = msg;
             t.className = 'toast ' + type + ' show';
@@ -443,28 +617,28 @@
         }
 
         /* ===== TABS ===== */
-                async function switchTab(tab){
+        async function switchTab(tab) {
             document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
             // Use event.target if available, otherwise find button by tab name
             const btn = document.querySelector(`.tab-btn[onclick*="${tab}"]`);
-            if(btn) btn.classList.add('active');
+            if (btn) btn.classList.add('active');
             document.querySelectorAll('.tab-content').forEach(content => content.classList.remove('active'));
             document.getElementById('tab-' + tab).classList.add('active');
 
-            if(tab === 'events') {
+            if (tab === 'events') {
                 await loadMyRegistrations(); // fetch registrations first
                 await loadEvents();
             }
-            if(tab === 'registrations') loadMyRegistrations();
-            if(tab === 'attendance') loadMyAttendance();
+            if (tab === 'registrations') loadMyRegistrations();
+            if (tab === 'attendance') loadMyAttendance();
         }
 
         /* ===== AVAILABLE EVENTS ===== */
-        async function loadEvents(){
+        async function loadEvents() {
             try {
                 const r = await fetch(API + '/api/events/?limit=100');
                 const d = await r.json();
-                if(d.success && d.events.length){
+                if (d.success && d.events.length) {
                     renderEvents(d.events);
                 } else {
                     document.getElementById('eventsList').innerHTML = `
@@ -475,55 +649,69 @@
                         </div>
                     `;
                 }
-            } catch(e){
+            } catch (e) {
                 console.error('loadEvents', e);
                 showToast('Failed to load events', 'error');
             }
         }
 
-        function renderEvents(events){
-    const container = document.getElementById('eventsList');
-    container.innerHTML = events.map(ev => {
-        const canRegister = ev.state === 'REGISTRATION_OPEN';
-        const isRegistered = participantRegistrations.includes(ev.id);
-        const meetingLink = ev.meeting_link || '';
-        return `
-            <div class="card">
-                <div class="card-header">
-                    <div>
-                        <div class="card-title">${esc(ev.name)}</div>
-                        <span class="state-badge state-${ev.state}">${ev.state.replace(/_/g, ' ')}</span>
+        function renderEvents(events) {
+            const container = document.getElementById('eventsList');
+            const liveStates = ['CREATED', 'REGISTRATION_OPEN', 'SCHEDULED', 'ATTENDANCE_OPEN', 'RUNNING'];
+            const liveEvents = events.filter(e => liveStates.includes(e.state));
+            const prevEvents = events.filter(e => !liveStates.includes(e.state));
+
+            const renderCard = (ev) => {
+                const canRegister = ev.state === 'REGISTRATION_OPEN';
+                const isRegistered = participantRegistrations.includes(ev.id);
+                const meetingLink = ev.meeting_link || '';
+                return `
+                    <div class="card">
+                        <div class="card-header">
+                            <div>
+                                <div class="card-title">${esc(ev.name)}</div>
+                                <span class="state-badge state-${ev.state}">${ev.state.replace(/_/g, ' ')}</span>
+                            </div>
+                        </div>
+                        <div class="card-desc">${esc(ev.description || 'No description')}</div>
+                        <div class="card-meta">
+                            <span>📅 ${fmtDateTime(ev.start_time)}</span>
+                            <span>🌍 <span class="badge badge-${ev.event_type.toLowerCase()}">${ev.event_type}</span></span>
+                            ${ev.venue ? `<span>📍 ${esc(ev.venue)}</span>` : ''}
+                            ${ev.max_participants ? `<span>👥 Max: ${ev.max_participants}</span>` : ''}
+                        </div>
+                        ${isRegistered ? `
+                                <button class="btn btn-outline" disabled>Registered</button>
+                                ${meetingLink && !['COMPLETED', 'CANCELLED', 'REPORT_GENERATED'].includes(ev.state) ? `<button class="btn btn-primary" onclick="joinMeeting('${meetingLink}')">Join Meeting</button>` : ''}
+                            ` : canRegister ? `
+                                <button class="btn btn-primary" data-event-id="${ev.id}" data-event-name="${esc(ev.name)}" onclick="openRegisterModal(this.dataset.eventId, this.dataset.eventName)">Register Now</button>
+                            ` : ev.state === 'CREATED' || ev.state === 'SCHEDULED' ? `
+                                <button class="btn btn-outline" disabled>Registration Opens Soon</button>
+                            ` : `
+                                <button class="btn btn-outline" disabled>Registration Closed</button>
+                            `
+                    }
                     </div>
-                </div>
-                <div class="card-desc">${esc(ev.description || 'No description')}</div>
-                <div class="card-meta">
-                    <span>📅 ${fmtDateTime(ev.start_time)}</span>
-                    <span>🌍 <span class="badge badge-${ev.event_type.toLowerCase()}">${ev.event_type}</span></span>
-                    ${ev.venue ? `<span>📍 ${esc(ev.venue)}</span>` : ''}
-                    ${ev.max_participants ? `<span>👥 Max: ${ev.max_participants}</span>` : ''}
-                </div>
-                ${
-                    isRegistered ? `
-                        <button class="btn btn-outline" disabled>Registered</button>
-                        ${meetingLink && !['COMPLETED','CANCELLED','REPORT_GENERATED'].includes(ev.state) ? `<button class="btn btn-primary" onclick="joinMeeting('${meetingLink}')">Join Meeting</button>` : ''}
-                    ` : canRegister ? `
-                        <button class="btn btn-primary" data-event-id="${ev.id}" data-event-name="${esc(ev.name)}" onclick="openRegisterModal(this.dataset.eventId, this.dataset.eventName)">Register Now</button>
-                    ` : ev.state === 'CREATED' || ev.state === 'SCHEDULED' ? `
-                        <button class="btn btn-outline" disabled>Registration Opens Soon</button>
-                    ` : `
-                        <button class="btn btn-outline" disabled>Registration Closed</button>
-                    `
-                }
-            </div>
-        `;
-    }).join('');
-}
+                `;
+            };
+
+            let html = '';
+            if (liveEvents.length > 0) {
+                html += '<h2 style="grid-column: 1 / -1; margin-bottom: 10px; color: var(--accent); font-size: 1.3rem; border-bottom: 1px solid var(--border); padding-bottom: 10px;">🔴 Live & Upcoming Events</h2>';
+                html += liveEvents.map(renderCard).join('');
+            }
+            if (prevEvents.length > 0) {
+                html += '<h2 style="grid-column: 1 / -1; margin-top: 20px; margin-bottom: 10px; color: var(--text-dim); font-size: 1.3rem; border-bottom: 1px solid var(--border); padding-bottom: 10px;">⚪ Previous Events</h2>';
+                html += prevEvents.map(renderCard).join('');
+            }
+            container.innerHTML = html;
+        }
 
         /* ===== MY REGISTRATIONS ===== */
-        async function loadMyRegistrations(){
+        async function loadMyRegistrations() {
             try {
                 const userEmail = getEmail();
-                if(!userEmail){
+                if (!userEmail) {
                     showToast('Email not found', 'error');
                     return;
                 }
@@ -533,12 +721,13 @@
                 });
                 const d = await r.json();
 
-                if(d.success && d.registrations && d.registrations.length){
+                if (d.success && d.registrations && d.registrations.length) {
                     // Store registered event IDs for UI rendering
                     participantRegistrations = d.registrations.map(reg => reg.event_id);
                     renderRegistrations(d.registrations);
                     updateRegStats(d.registrations);
                 } else {
+                    document.getElementById('registrationsList').classList.remove('events-grid');
                     document.getElementById('registrationsList').innerHTML = `
                         <div class="empty">
                             <div class="icon">📝</div>
@@ -548,8 +737,9 @@
                     `;
                     document.getElementById('regStats').style.display = 'none';
                 }
-            } catch(e){
+            } catch (e) {
                 console.error('loadMyRegistrations', e);
+                document.getElementById('registrationsList').classList.remove('events-grid');
                 document.getElementById('registrationsList').innerHTML = `
                     <div class="empty">
                         <div class="icon">📝</div>
@@ -560,7 +750,7 @@
             }
         }
 
-        function updateRegStats(regs){
+        function updateRegStats(regs) {
             const total = regs.length;
             const confirmed = regs.filter(r => r.status === 'CONFIRMED').length;
             const attended = regs.filter(r => r.status === 'ATTENDED').length;
@@ -571,32 +761,73 @@
             document.getElementById('regStats').style.display = 'grid';
         }
 
-        function renderRegistrations(regs){
+        function renderRegistrations(regs) {
             const container = document.getElementById('registrationsList');
-            container.innerHTML = regs.map(reg => `
-                <div class="card">
-                    <div class="card-header">
-                        <div class="card-title">${esc(reg.event_name || 'Event #' + reg.event_id)}</div>
-                        <span class="badge badge-${reg.status.toLowerCase()}">${reg.status}</span>
+            container.classList.add('events-grid');
+
+            const liveStates = ['CREATED', 'REGISTRATION_OPEN', 'SCHEDULED', 'ATTENDANCE_OPEN', 'RUNNING'];
+
+            const activeRegs = regs.filter(r =>
+                (r.status === 'REGISTERED' || r.status === 'CONFIRMED') &&
+                liveStates.includes(r.event_state)
+            );
+            const pastRegs = regs.filter(r =>
+                (r.status === 'ATTENDED' || r.status === 'CANCELLED') ||
+                !liveStates.includes(r.event_state)
+            );
+
+            const renderCard = (reg) => {
+                const isPast = (reg.status === 'ATTENDED' || reg.status === 'CANCELLED') || !liveStates.includes(reg.event_state);
+                const opacity = isPast ? '0.7' : '1';
+                const filter = isPast ? 'grayscale(0.5)' : 'none';
+
+                return `
+                <div class="card" style="border-top: 4px solid var(--accent); position: relative; overflow: hidden; display: flex; flex-direction: column; opacity: ${opacity}; filter: ${filter};">
+                    <div style="position: absolute; top: -15px; right: -15px; font-size: 100px; opacity: 0.03; pointer-events: none;">🎫</div>
+                    <div class="card-header" style="margin-bottom: 16px;">
+                        <div>
+                            <div class="card-title" style="font-size: 1.25rem; color: #fff; margin-bottom: 8px;">${esc(reg.event_name || 'Event #' + reg.event_id)}</div>
+                            <span class="badge badge-${reg.status.toLowerCase()}">${reg.status}</span>
+                        </div>
                     </div>
-                    <div class="card-meta">
-                        <span>📅 Registered: ${fmtDateTime(reg.registered_at)}</span>
-                        ${reg.confirmed_at ? `<span>✅ Confirmed: ${fmtDateTime(reg.confirmed_at)}</span>` : ''}
+                    <div style="flex-grow: 1;"></div>
+                    <div class="card-meta" style="background: rgba(0,0,0,0.2); padding: 12px; border-radius: 8px; flex-direction: column; gap: 8px; margin-bottom: 16px;">
+                        <span style="display:flex; align-items:center; gap:8px; color: var(--text);">
+                            <span style="background:var(--surface2); padding:4px 6px; border-radius:4px; font-size:12px;">📅</span> 
+                            Registered: ${fmtDateTime(reg.registered_at)}
+                        </span>
+                        ${reg.confirmed_at ? `
+                        <span style="display:flex; align-items:center; gap:8px; color: var(--green);">
+                            <span style="background:rgba(34,197,94,0.1); padding:4px 6px; border-radius:4px; font-size:12px;">✅</span> 
+                            Confirmed: ${fmtDateTime(reg.confirmed_at)}
+                        </span>` : ''}
                     </div>
-                    ${reg.qr_token ? `
-                        <button class="btn btn-outline" onclick="showQR('${reg.qr_token}', '${esc(reg.event_name || 'Event')}')">
-                            Show QR Code
+                    ${reg.qr_token && !isPast ? `
+                        <button class="btn btn-primary" style="width: 100%; display: flex; align-items: center; justify-content: center; gap: 8px; padding: 12px;" onclick="showQR('${reg.qr_token}', '${esc(reg.event_name || 'Event')}')">
+                            <span style="font-size: 18px;">📱</span> Show Attendance QR Code
                         </button>
                     ` : ''}
                 </div>
-            `).join('');
+                `;
+            };
+
+            let html = '';
+            if (activeRegs.length > 0) {
+                html += '<h2 style="grid-column: 1 / -1; margin-bottom: 10px; color: var(--accent); font-size: 1.3rem; border-bottom: 1px solid var(--border); padding-bottom: 10px;">🟢 Upcoming Registrations</h2>';
+                html += activeRegs.map(renderCard).join('');
+            }
+            if (pastRegs.length > 0) {
+                html += '<h2 style="grid-column: 1 / -1; margin-top: 20px; margin-bottom: 10px; color: var(--text-dim); font-size: 1.3rem; border-bottom: 1px solid var(--border); padding-bottom: 10px;">⚪ Past Events</h2>';
+                html += pastRegs.map(renderCard).join('');
+            }
+            container.innerHTML = html;
         }
 
         /* ===== MY ATTENDANCE ===== */
-        async function loadMyAttendance(){
+        async function loadMyAttendance() {
             try {
                 const userEmail = getEmail();
-                if(!userEmail) return;
+                if (!userEmail) return;
 
                 // Get all registrations first
                 const regResp = await fetch(API + `/api/registrations/participant/${encodeURIComponent(userEmail)}`, {
@@ -604,7 +835,7 @@
                 });
                 const regData = await regResp.json();
 
-                if(!regData.success || !regData.registrations || !regData.registrations.length){
+                if (!regData.success || !regData.registrations || !regData.registrations.length) {
                     document.getElementById('attendanceList').innerHTML = `
                         <div class="empty">
                             <div class="icon">✅</div>
@@ -617,7 +848,7 @@
 
                 // Filter attended
                 const attended = regData.registrations.filter(r => r.status === 'ATTENDED');
-                if(attended.length === 0){
+                if (attended.length === 0) {
                     document.getElementById('attendanceList').innerHTML = `
                         <div class="empty">
                             <div class="icon">✅</div>
@@ -629,12 +860,12 @@
                 }
 
                 renderAttendance(attended);
-            } catch(e){
+            } catch (e) {
                 console.error('loadMyAttendance', e);
             }
         }
 
-        function renderAttendance(records){
+        function renderAttendance(records) {
             const container = document.getElementById('attendanceList');
             container.innerHTML = records.map(rec => `
                 <div class="card">
@@ -653,28 +884,28 @@
         /* ===== REGISTRATION MODAL ===== */
         let participantRegistrations = [];
 
-function openRegisterModal(eventId, eventName){
-    document.getElementById('registerEventId').value = eventId;
-    document.getElementById('registerEventName').value = eventName;
-    document.getElementById('registerModal').classList.add('show');
-}
+        function openRegisterModal(eventId, eventName) {
+            document.getElementById('registerEventId').value = eventId;
+            document.getElementById('registerEventName').value = eventName;
+            document.getElementById('registerModal').classList.add('show');
+        }
 
-function joinMeeting(link){
-    if(link){
-        window.open(link, '_blank');
-    } else {
-        showToast('Meeting link not available', 'error');
-    }
-}
-
-
+        function joinMeeting(link) {
+            if (link) {
+                window.open(link, '_blank');
+            } else {
+                showToast('Meeting link not available', 'error');
+            }
+        }
 
 
-        function closeRegisterModal(){
+
+
+        function closeRegisterModal() {
             document.getElementById('registerModal').classList.remove('show');
         }
 
-        async function handleRegister(e){
+        async function handleRegister(e) {
             e.preventDefault();
             const eventId = parseInt(document.getElementById('registerEventId').value);
             const name = document.getElementById('registerName').value.trim();
@@ -689,24 +920,24 @@ function joinMeeting(link){
                 });
                 const d = await r.json();
 
-                if(d.success){
+                if (d.success) {
                     showToast('Successfully registered!');
                     closeRegisterModal();
                     loadEvents();
                     // Optionally show QR immediately
-                    if(d.participant && d.participant.qr_token){
+                    if (d.participant && d.participant.qr_token) {
                         setTimeout(() => showQR(d.participant.qr_token, document.getElementById('registerEventName').value), 500);
                     }
                 } else {
                     showToast(d.detail || d.message || 'Registration failed', 'error');
                 }
-            } catch(err){
+            } catch (err) {
                 showToast('Error: ' + err.message, 'error');
             }
         }
 
         /* ===== QR CODE ===== */
-        function showQR(token, eventName){
+        function showQR(token, eventName) {
             const canvas = document.getElementById('qrCanvas');
             const qr = new QRious({
                 element: canvas,
@@ -720,26 +951,27 @@ function joinMeeting(link){
             document.getElementById('qrModal').classList.add('show');
         }
 
-        function closeQRModal(){
+        function closeQRModal() {
             document.getElementById('qrModal').classList.remove('show');
         }
 
         /* ===== HELPERS ===== */
-        function esc(s){
-            if(!s) return '';
+        function esc(s) {
+            if (!s) return '';
             const d = document.createElement('div');
             d.textContent = s;
             return d.innerHTML;
         }
-        function fmtDateTime(iso){
-            if(!iso) return '-';
+        function fmtDateTime(iso) {
+            if (!iso) return '-';
             const d = new Date(iso);
-            return d.toLocaleDateString('en-IN', {day:'numeric', month:'short', year:'numeric'}) +
-                   ' ' + d.toLocaleTimeString('en-IN', {hour:'2-digit', minute:'2-digit'});
+            return d.toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' }) +
+                ' ' + d.toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit' });
         }
 
         /* ===== INIT ===== */
         switchTab('events');
     </script>
 </body>
+
 </html>

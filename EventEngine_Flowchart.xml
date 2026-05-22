@@ -1,0 +1,267 @@
+<mxfile host="app.diagrams.net" modified="2024-05-22T00:00:00.000Z" agent="Mozilla/5.0" version="24.4.0" type="device">
+  <diagram id="EventEngine-Flowchart" name="EventEngine Flowchart">
+    <mxGraphModel dx="1600" dy="1200" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="1600" pageHeight="1200" background="#f8f9fa" math="0" shadow="0">
+      <root>
+        <mxCell id="0" />
+        <mxCell id="1" parent="0" />
+
+        <!-- Title -->
+        <mxCell id="title" value="EVENTENGINE - AUTONOMOUS EVENT LIFECYCLE FLOWCHART" style="text;html=1;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontSize=24;fontStyle=1;fontColor=#000000;" vertex="1" parent="1">
+          <mxGeometry x="250" y="20" width="1000" height="40" as="geometry" />
+        </mxCell>
+
+        <!-- Track 1: FSM -->
+        <mxCell id="label_t1" value="MASTER LIFECYCLE STATE FLOW (FSM)" style="text;html=1;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontSize=16;fontStyle=1;" vertex="1" parent="1">
+          <mxGeometry x="500" y="80" width="400" height="30" as="geometry" />
+        </mxCell>
+
+        <mxCell id="t1_start" value="▶&lt;br&gt;START" style="ellipse;whiteSpace=wrap;html=1;aspect=fixed;fillColor=#1e3a8a;fontColor=#ffffff;strokeColor=#1e40af;fontStyle=1;" vertex="1" parent="1">
+          <mxGeometry x="40" y="150" width="60" height="60" as="geometry" />
+        </mxCell>
+        <mxCell id="t1_submit" value="👤&lt;br&gt;ORGANIZER&lt;br&gt;SUBMITS&lt;br&gt;EVENT FORM" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#e0e7ff;strokeColor=#818cf8;fontStyle=1;fontSize=11;" vertex="1" parent="1">
+          <mxGeometry x="140" y="140" width="100" height="80" as="geometry" />
+        </mxCell>
+        <mxCell id="t1_created" value="📅&lt;br&gt;CREATED&lt;br&gt;STATE" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#e0e7ff;strokeColor=#818cf8;fontStyle=1;fontSize=11;" vertex="1" parent="1">
+          <mxGeometry x="280" y="140" width="100" height="80" as="geometry" />
+        </mxCell>
+        <mxCell id="t1_regopen" value="🚪&lt;br&gt;REGISTRATION_OPEN&lt;br&gt;STATE" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#e0e7ff;strokeColor=#818cf8;fontStyle=1;fontSize=10;" vertex="1" parent="1">
+          <mxGeometry x="420" y="140" width="130" height="80" as="geometry" />
+        </mxCell>
+        <mxCell id="t1_sched" value="🕒&lt;br&gt;SCHEDULED&lt;br&gt;STATE" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#dcfce7;strokeColor=#4ade80;fontStyle=1;fontSize=11;" vertex="1" parent="1">
+          <mxGeometry x="590" y="140" width="100" height="80" as="geometry" />
+        </mxCell>
+        <mxCell id="t1_attend" value="📱&lt;br&gt;ATTENDANCE_OPEN&lt;br&gt;STATE" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#e0f2fe;strokeColor=#38bdf8;fontStyle=1;fontSize=10;" vertex="1" parent="1">
+          <mxGeometry x="730" y="140" width="130" height="80" as="geometry" />
+        </mxCell>
+        <mxCell id="t1_run" value="▶️&lt;br&gt;RUNNING&lt;br&gt;STATE" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#e0f2fe;strokeColor=#38bdf8;fontStyle=1;fontSize=11;" vertex="1" parent="1">
+          <mxGeometry x="900" y="140" width="100" height="80" as="geometry" />
+        </mxCell>
+        <mxCell id="t1_comp" value="✅&lt;br&gt;COMPLETED&lt;br&gt;STATE" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#e0f2fe;strokeColor=#38bdf8;fontStyle=1;fontSize=11;" vertex="1" parent="1">
+          <mxGeometry x="1040" y="140" width="100" height="80" as="geometry" />
+        </mxCell>
+        <mxCell id="t1_anal" value="🔍&lt;br&gt;ANALYZING&lt;br&gt;STATE" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#fae8ff;strokeColor=#c026d3;fontStyle=1;fontSize=11;" vertex="1" parent="1">
+          <mxGeometry x="1180" y="140" width="100" height="80" as="geometry" />
+        </mxCell>
+        <mxCell id="t1_rep" value="📄&lt;br&gt;REPORT_GENERATED&lt;br&gt;(TERMINAL) STATE" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#fae8ff;strokeColor=#c026d3;fontStyle=1;fontSize=10;" vertex="1" parent="1">
+          <mxGeometry x="1320" y="140" width="130" height="80" as="geometry" />
+        </mxCell>
+        <mxCell id="t1_end" value="✖️&lt;br&gt;END" style="ellipse;whiteSpace=wrap;html=1;aspect=fixed;fillColor=#000000;fontColor=#ffffff;strokeColor=#000000;fontStyle=1;" vertex="1" parent="1">
+          <mxGeometry x="1490" y="150" width="60" height="60" as="geometry" />
+        </mxCell>
+
+        <!-- T1 Edges -->
+        <mxCell id="e1" edge="1" parent="1" source="t1_start" target="t1_submit"><mxGeometry relative="1" as="geometry"/></mxCell>
+        <mxCell id="e2" edge="1" parent="1" source="t1_submit" target="t1_created"><mxGeometry relative="1" as="geometry"/></mxCell>
+        <mxCell id="e3" edge="1" parent="1" source="t1_created" target="t1_regopen"><mxGeometry relative="1" as="geometry"/></mxCell>
+        <mxCell id="e4" edge="1" parent="1" source="t1_regopen" target="t1_sched"><mxGeometry relative="1" as="geometry"/></mxCell>
+        <mxCell id="e5" edge="1" parent="1" source="t1_sched" target="t1_attend"><mxGeometry relative="1" as="geometry"/></mxCell>
+        <mxCell id="e6" edge="1" parent="1" source="t1_attend" target="t1_run"><mxGeometry relative="1" as="geometry"/></mxCell>
+        <mxCell id="e7" edge="1" parent="1" source="t1_run" target="t1_comp"><mxGeometry relative="1" as="geometry"/></mxCell>
+        <mxCell id="e8" edge="1" parent="1" source="t1_comp" target="t1_anal"><mxGeometry relative="1" as="geometry"/></mxCell>
+        <mxCell id="e9" edge="1" parent="1" source="t1_anal" target="t1_rep"><mxGeometry relative="1" as="geometry"/></mxCell>
+        <mxCell id="e10" edge="1" parent="1" source="t1_rep" target="t1_end"><mxGeometry relative="1" as="geometry"/></mxCell>
+
+        <!-- Track 2: Agent Loop -->
+        <mxCell id="label_t2_1" value="AUTONOMOUS&lt;br&gt;AGENT&lt;br&gt;BACKGROUND LOOP&lt;br&gt;(APScheduler)" style="text;html=1;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontSize=14;fontStyle=1;" vertex="1" parent="1">
+          <mxGeometry x="10" y="450" width="160" height="80" as="geometry" />
+        </mxCell>
+
+        <mxCell id="t2_start" value="🕒&lt;br&gt;START LOOP&lt;br&gt;(30s)" style="ellipse;whiteSpace=wrap;html=1;aspect=fixed;fillColor=#dcfce7;strokeColor=#22c55e;fontStyle=1;fontSize=11;" vertex="1" parent="1">
+          <mxGeometry x="180" y="450" width="80" height="80" as="geometry" />
+        </mxCell>
+        <mxCell id="t2_obs" value="🗄️&lt;br&gt;OBSERVE:&lt;br&gt;Query DB for&lt;br&gt;Active Events" style="shape=cylinder3;whiteSpace=wrap;html=1;boundedLbl=1;backgroundOutline=1;size=15;fillColor=#dcfce7;strokeColor=#22c55e;fontStyle=1;fontSize=11;" vertex="1" parent="1">
+          <mxGeometry x="300" y="440" width="90" height="100" as="geometry" />
+        </mxCell>
+        <mxCell id="t2_dec" value="🔀&lt;br&gt;DECIDE:&lt;br&gt;Compare to&lt;br&gt;Rules &amp; Time" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#dcfce7;strokeColor=#22c55e;fontStyle=1;fontSize=11;" vertex="1" parent="1">
+          <mxGeometry x="430" y="450" width="100" height="80" as="geometry" />
+        </mxCell>
+        <mxCell id="t2_dec_dia" value="DECISION?&lt;br&gt;(State Change?)" style="rhombus;whiteSpace=wrap;html=1;fillColor=#e0f2fe;strokeColor=#38bdf8;fontStyle=1;fontSize=11;" vertex="1" parent="1">
+          <mxGeometry x="560" y="440" width="120" height="100" as="geometry" />
+        </mxCell>
+
+        <mxCell id="t2_prom" value="PROMOTION?&lt;br&gt;(Registration Open&lt;br&gt;&amp; &lt; 50%)" style="rhombus;whiteSpace=wrap;html=1;fillColor=#e0f2fe;strokeColor=#38bdf8;fontStyle=1;fontSize=10;" vertex="1" parent="1">
+          <mxGeometry x="720" y="430" width="130" height="120" as="geometry" />
+        </mxCell>
+        <mxCell id="t2_prom_do" value="✉️ Send&lt;br&gt;Promotional&lt;br&gt;Emails" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#dcfce7;strokeColor=#22c55e;fontStyle=1;fontSize=11;" vertex="1" parent="1">
+          <mxGeometry x="810" y="550" width="100" height="60" as="geometry" />
+        </mxCell>
+
+        <mxCell id="t2_rem" value="REMINDER?&lt;br&gt;(Scheduled &amp;&lt;br&gt;&lt; 24h/1h)" style="rhombus;whiteSpace=wrap;html=1;fillColor=#e0f2fe;strokeColor=#38bdf8;fontStyle=1;fontSize=11;" vertex="1" parent="1">
+          <mxGeometry x="900" y="440" width="110" height="100" as="geometry" />
+        </mxCell>
+        <mxCell id="t2_rem_do" value="🔔 Create&lt;br&gt;Pending&lt;br&gt;Reminder Tasks" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#dcfce7;strokeColor=#22c55e;fontStyle=1;fontSize=11;" vertex="1" parent="1">
+          <mxGeometry x="980" y="550" width="100" height="60" as="geometry" />
+        </mxCell>
+
+        <mxCell id="t2_cert" value="CERT/&lt;br&gt;FEEDBACK?&lt;br&gt;(Completed)" style="rhombus;whiteSpace=wrap;html=1;fillColor=#ffe4e6;strokeColor=#fb7185;fontStyle=1;fontSize=11;" vertex="1" parent="1">
+          <mxGeometry x="1070" y="440" width="110" height="100" as="geometry" />
+        </mxCell>
+        <mxCell id="t2_cert_do" value="📄 Send&lt;br&gt;Certificates&lt;br&gt;&amp; Surveys" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#dcfce7;strokeColor=#22c55e;fontStyle=1;fontSize=11;" vertex="1" parent="1">
+          <mxGeometry x="1150" y="550" width="100" height="60" as="geometry" />
+        </mxCell>
+
+        <mxCell id="t2_db" value="🗄️&lt;br&gt;Database&lt;br&gt;Layer" style="shape=cylinder3;whiteSpace=wrap;html=1;boundedLbl=1;backgroundOutline=1;size=15;fillColor=#fee2e2;strokeColor=#ef4444;fontStyle=1;fontSize=11;" vertex="1" parent="1">
+          <mxGeometry x="1290" y="440" width="90" height="100" as="geometry" />
+        </mxCell>
+
+        <!-- T2 Edges -->
+        <mxCell id="e21" edge="1" parent="1" source="t2_start" target="t2_obs"><mxGeometry relative="1" as="geometry"/></mxCell>
+        <mxCell id="e22" edge="1" parent="1" source="t2_obs" target="t2_dec"><mxGeometry relative="1" as="geometry"/></mxCell>
+        <mxCell id="e23" edge="1" parent="1" source="t2_dec" target="t2_dec_dia"><mxGeometry relative="1" as="geometry"/></mxCell>
+        
+        <!-- Yes Path T2 to T1 -->
+        <mxCell id="e24_yes" edge="1" parent="1" source="t2_dec_dia">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="620" y="320" as="targetPoint" />
+            <Array as="points">
+              <mxPoint x="620" y="320" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="lbl_yes1" value="Yes" style="edgeLabel;html=1;align=center;verticalAlign=middle;resizable=0;points=[];" vertex="1" connectable="0" parent="e24_yes"><mxGeometry x="0.2" y="1" relative="1" as="geometry"><mxPoint as="offset"/></mxGeometry></mxCell>
+        
+        <mxCell id="e_trans_line" edge="1" parent="1">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="200" y="320" as="sourcePoint" />
+            <mxPoint x="1450" y="320" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="lbl_trans" value="EventService.transition_event_state" style="text;html=1;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontStyle=1;" vertex="1" parent="1">
+          <mxGeometry x="250" y="290" width="250" height="30" as="geometry" />
+        </mxCell>
+        <mxCell id="e_up_trans" edge="1" parent="1">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="1450" y="320" as="sourcePoint" />
+            <mxPoint x="1450" y="230" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+
+        <!-- No Path -->
+        <mxCell id="e24_no" edge="1" parent="1" source="t2_dec_dia" target="t2_prom"><mxGeometry relative="1" as="geometry"/></mxCell>
+        <mxCell id="lbl_no1" value="No" style="edgeLabel;html=1;align=center;verticalAlign=middle;resizable=0;points=[];" vertex="1" connectable="0" parent="e24_no"><mxGeometry x="0.2" y="1" relative="1" as="geometry"><mxPoint as="offset"/></mxGeometry></mxCell>
+
+        <!-- Prom -> Rem -> Cert -> DB -->
+        <mxCell id="e25" edge="1" parent="1" source="t2_prom" target="t2_rem"><mxGeometry relative="1" as="geometry"/></mxCell>
+        <mxCell id="e26" edge="1" parent="1" source="t2_rem" target="t2_cert"><mxGeometry relative="1" as="geometry"/></mxCell>
+        <mxCell id="e27" edge="1" parent="1" source="t2_cert" target="t2_db"><mxGeometry relative="1" as="geometry"/></mxCell>
+
+        <!-- Down to actions then up to DB -->
+        <mxCell id="e25_do" edge="1" parent="1" source="t2_prom" target="t2_prom_do"><mxGeometry relative="1" as="geometry"><Array as="points"><mxPoint x="785" y="580" /></Array></mxGeometry></mxCell>
+        <mxCell id="e25_up" edge="1" parent="1" source="t2_prom_do" target="t2_db"><mxGeometry relative="1" as="geometry"><Array as="points"><mxPoint x="1335" y="580" /></Array></mxGeometry></mxCell>
+
+        <mxCell id="e26_do" edge="1" parent="1" source="t2_rem" target="t2_rem_do"><mxGeometry relative="1" as="geometry"><Array as="points"><mxPoint x="955" y="580" /></Array></mxGeometry></mxCell>
+        <mxCell id="e26_up" edge="1" parent="1" source="t2_rem_do" target="t2_db"><mxGeometry relative="1" as="geometry"><Array as="points"><mxPoint x="1335" y="580" /></Array></mxGeometry></mxCell>
+
+        <mxCell id="e27_do" edge="1" parent="1" source="t2_cert" target="t2_cert_do"><mxGeometry relative="1" as="geometry"><Array as="points"><mxPoint x="1125" y="580" /></Array></mxGeometry></mxCell>
+        <mxCell id="e27_up" edge="1" parent="1" source="t2_cert_do" target="t2_db"><mxGeometry relative="1" as="geometry"><Array as="points"><mxPoint x="1335" y="580" /></Array></mxGeometry></mxCell>
+
+        <!-- Loop Back -->
+        <mxCell id="e_loop" edge="1" parent="1" source="t2_db" target="t2_start">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="1335" y="650" />
+              <mxPoint x="220" y="650" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="lbl_loop" value="Continual Cycle - 30s intervals" style="edgeLabel;html=1;align=center;verticalAlign=middle;resizable=0;points=[];fontStyle=1;" vertex="1" connectable="0" parent="e_loop"><mxGeometry x="0.2" y="1" relative="1" as="geometry"><mxPoint x="200" y="-10" as="offset"/></mxGeometry></mxCell>
+
+        <!-- Track 3: Participant Flow -->
+        <mxCell id="label_t3_1" value="PARTICIPANT INTERACTION &amp; ATTENDANCE FLOW" style="text;html=1;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontSize=14;fontStyle=1;" vertex="1" parent="1">
+          <mxGeometry x="40" y="720" width="400" height="30" as="geometry" />
+        </mxCell>
+        <mxCell id="label_t3_2" value="PARTICIPANT USER FLOW" style="text;html=1;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontSize=12;" vertex="1" parent="1">
+          <mxGeometry x="40" y="740" width="200" height="20" as="geometry" />
+        </mxCell>
+
+        <mxCell id="t3_start" value="▶&lt;br&gt;START" style="ellipse;whiteSpace=wrap;html=1;aspect=fixed;fillColor=#1e3a8a;fontColor=#ffffff;strokeColor=#1e40af;fontStyle=1;" vertex="1" parent="1">
+          <mxGeometry x="40" y="800" width="60" height="60" as="geometry" />
+        </mxCell>
+        <mxCell id="t3_login" value="👤&lt;br&gt;PARTICIPANT&lt;br&gt;LOGIN" style="text;html=1;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontStyle=1;fontSize=11;" vertex="1" parent="1">
+          <mxGeometry x="140" y="800" width="90" height="60" as="geometry" />
+        </mxCell>
+        <mxCell id="t3_browse" value="🖥️&lt;br&gt;BROWSE EVENTS&lt;br&gt;(Only Registration&lt;br&gt;Open)" style="text;html=1;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontStyle=1;fontSize=11;" vertex="1" parent="1">
+          <mxGeometry x="250" y="790" width="110" height="80" as="geometry" />
+        </mxCell>
+        <mxCell id="t3_click" value="🖱️&lt;br&gt;CLICK&lt;br&gt;&quot;REGISTER&quot;" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#1e3a8a;fontColor=#ffffff;strokeColor=#1e40af;fontStyle=1;fontSize=11;" vertex="1" parent="1">
+          <mxGeometry x="380" y="800" width="90" height="60" as="geometry" />
+        </mxCell>
+        <mxCell id="t3_sys" value="🛡️&lt;br&gt;SYSTEM: Add to&lt;br&gt;Participant Table &amp;&lt;br&gt;Send Confirmation&lt;br&gt;Email (w/ QR)" style="text;html=1;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontStyle=1;fontSize=11;" vertex="1" parent="1">
+          <mxGeometry x="500" y="790" width="130" height="80" as="geometry" />
+        </mxCell>
+        <mxCell id="t3_ui" value="🖱️&lt;br&gt;UI UPDATE:&lt;br&gt;Button 'Registered'&lt;br&gt;Disabled" style="text;html=1;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontStyle=1;fontSize=11;" vertex="1" parent="1">
+          <mxGeometry x="660" y="790" width="120" height="80" as="geometry" />
+        </mxCell>
+
+        <mxCell id="t3_join" value="JOIN EVENT?&lt;br&gt;(Check conditions)" style="rhombus;whiteSpace=wrap;html=1;fillColor=#e0f2fe;strokeColor=#38bdf8;fontStyle=1;fontSize=11;" vertex="1" parent="1">
+          <mxGeometry x="800" y="780" width="140" height="100" as="geometry" />
+        </mxCell>
+        <mxCell id="t3_ok" value="IF OK: Mark&lt;br&gt;status ATTENDED&lt;br&gt;&amp; Open Google&lt;br&gt;Meet link" style="text;html=1;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontStyle=1;fontSize=11;" vertex="1" parent="1">
+          <mxGeometry x="970" y="790" width="120" height="80" as="geometry" />
+        </mxCell>
+        <mxCell id="t3_comp" value="COMPLETED" style="text;html=1;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontStyle=1;fontSize=12;" vertex="1" parent="1">
+          <mxGeometry x="1120" y="810" width="90" height="40" as="geometry" />
+        </mxCell>
+        <mxCell id="t3_post" value="📄&lt;br&gt;Post-Event:&lt;br&gt;Receive Certificate &amp;&lt;br&gt;Feedback Survey link" style="text;html=1;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontStyle=1;fontSize=11;" vertex="1" parent="1">
+          <mxGeometry x="1240" y="790" width="130" height="80" as="geometry" />
+        </mxCell>
+        <mxCell id="t3_end" value="✖️&lt;br&gt;END" style="ellipse;whiteSpace=wrap;html=1;aspect=fixed;fillColor=#000000;fontColor=#ffffff;strokeColor=#000000;fontStyle=1;" vertex="1" parent="1">
+          <mxGeometry x="1420" y="800" width="60" height="60" as="geometry" />
+        </mxCell>
+
+        <!-- T3 Edges -->
+        <mxCell id="e31" edge="1" parent="1" source="t3_start" target="t3_login"><mxGeometry relative="1" as="geometry"/></mxCell>
+        <mxCell id="e32" edge="1" parent="1" source="t3_login" target="t3_browse"><mxGeometry relative="1" as="geometry"/></mxCell>
+        <mxCell id="e33" edge="1" parent="1" source="t3_browse" target="t3_click"><mxGeometry relative="1" as="geometry"/></mxCell>
+        <mxCell id="e34" edge="1" parent="1" source="t3_click" target="t3_sys"><mxGeometry relative="1" as="geometry"/></mxCell>
+        <mxCell id="e35" edge="1" parent="1" source="t3_sys" target="t3_ui"><mxGeometry relative="1" as="geometry"/></mxCell>
+        <mxCell id="e36" edge="1" parent="1" source="t3_ui" target="t3_join"><mxGeometry relative="1" as="geometry"/></mxCell>
+        <mxCell id="e37" edge="1" parent="1" source="t3_join" target="t3_ok"><mxGeometry relative="1" as="geometry"/></mxCell>
+        <mxCell id="lbl_join" value="Join" style="edgeLabel;html=1;align=center;verticalAlign=middle;resizable=0;points=[];" vertex="1" connectable="0" parent="e37"><mxGeometry x="0.2" y="1" relative="1" as="geometry"><mxPoint y="-10" as="offset"/></mxGeometry></mxCell>
+        <mxCell id="e38" edge="1" parent="1" source="t3_ok" target="t3_comp"><mxGeometry relative="1" as="geometry"/></mxCell>
+        <mxCell id="e39" edge="1" parent="1" source="t3_comp" target="t3_post"><mxGeometry relative="1" as="geometry"/></mxCell>
+        <mxCell id="e40" edge="1" parent="1" source="t3_post" target="t3_end"><mxGeometry relative="1" as="geometry"/></mxCell>
+
+        <!-- T3 loops & external conn -->
+        <mxCell id="e_wait" edge="1" parent="1" source="t3_ui" target="t3_join">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="720" y="700" />
+              <mxPoint x="870" y="700" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="lbl_wait" value="Wait for Event" style="edgeLabel;html=1;align=center;verticalAlign=middle;resizable=0;points=[];fontStyle=1;" vertex="1" connectable="0" parent="e_wait"><mxGeometry x="0" y="1" relative="1" as="geometry"><mxPoint y="-10" as="offset"/></mxGeometry></mxCell>
+        
+        <!-- Cross-track arrows -->
+        <mxCell id="e_sys_db" edge="1" parent="1" source="t3_sys" target="t2_db">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="565" y="750" />
+              <mxPoint x="1335" y="750" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="e_ok_db" edge="1" parent="1" source="t3_ok" target="t2_db">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="1030" y="730" />
+              <mxPoint x="1335" y="730" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="lbl_late" value="Late Attendance Indicate" style="edgeLabel;html=1;align=center;verticalAlign=middle;resizable=0;points=[];" vertex="1" connectable="0" parent="e_ok_db"><mxGeometry x="0" y="1" relative="1" as="geometry"><mxPoint x="-100" y="-10" as="offset"/></mxGeometry></mxCell>
+
+        <mxCell id="e_rem_down" edge="1" parent="1" source="t2_rem_do">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="1030" y="700" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="lbl_rem_dn" value="Reminders from Agent Loop" style="text;html=1;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontSize=10;" vertex="1" parent="1">
+          <mxGeometry x="1040" y="660" width="140" height="20" as="geometry" />
+        </mxCell>
+
+      </root>
+    </mxGraphModel>
+  </diagram>
+</mxfile>

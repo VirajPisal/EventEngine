@@ -1,559 +1,127 @@
-# EventEngine — Autonomous Event Lifecycle Management System
+# EventEngine: Autonomous Event Lifecycle Management System
 
-EventEngine is an **AI-powered autonomous event management system** that handles the full lifecycle of an event — from creation to post-event analytics — with minimal human intervention. The system uses an autonomous agent loop, a finite state machine, adaptive reminder intelligence, and real email/QR/OTP-based attendance verification.
+EventEngine is a comprehensive, autonomous platform designed to manage the entire lifecycle of an event with minimal human intervention. Powered by a robust Finite State Machine (FSM), an autonomous background agent loop, and LangGraph-powered AI insights, EventEngine automates everything from registration and intelligent reminders to post-event analytics, certificate generation, and promotional campaigns.
 
----
+## 🌟 Key Features
 
-## Table of Contents
-- [What This Project Does](#what-this-project-does)
-- [Architecture Overview](#architecture-overview)
-- [Event Lifecycle (State Machine)](#event-lifecycle-state-machine)
-- [Manual vs Autonomous Actions](#manual-vs-autonomous-actions)
-- [Project Structure](#project-structure)
-- [Tech Stack](#tech-stack)
-- [What Is Implemented](#what-is-implemented)
-- [What Is Remaining / Planned](#what-is-remaining--planned)
-- [How to Run](#how-to-run)
-- [API Documentation](#api-documentation)
-- [Environment Variables](#environment-variables)
+### 1. Autonomous Lifecycle Management (Agent Loop)
+A background scheduling agent constantly monitors all events and acts based on their current state in the Finite State Machine (FSM). The agent observes the database, decides on actions, and executes them, allowing events to effectively manage themselves.
 
----
+*   **Auto-Transitions:** Moves events seamlessly between states (`CREATED` ➔ `REGISTRATION_OPEN` ➔ `SCHEDULED` ➔ `ATTENDANCE_OPEN` ➔ `RUNNING` ➔ `COMPLETED` ➔ `ANALYZING` ➔ `REPORT_GENERATED`).
+*   **Smart Reminders:** Evaluates whether it's the right time to send 24-hour, 1-hour, or "starting now" reminders based on the event's start time. Actions are queued for organizer approval or executed directly based on configurations.
+*   **Autonomous Promotion:** Identifies potential participants for events with low registration (e.g., under 50% capacity) and autonomously sends promotional emails with event details.
+*   **Automated Certificate Generation:** For completed online events, the system automatically overlays the participant's name on a certificate template and emails it to them.
+*   **Feedback Collection:** Triggers feedback surveys immediately upon event completion to attendees.
 
-## What This Project Does
+### 2. Intelligent FSM (Finite State Machine)
+Strict rules dictate how an event progresses, preventing illegal state changes and ensuring data integrity.
+*   **Strict State Enforcement:** Prevents manual overrides that break the logical flow (e.g., cannot move from `COMPLETED` back to `REGISTRATION_OPEN`).
+*   **Terminal States:** `CANCELLED` and `REPORT_GENERATED` signify the end of the event's active lifecycle.
 
-EventEngine automates the management of events so that the organizer only needs to:
-1. Create the event
-2. Open registration
-3. Close registration when ready
+### 3. Comprehensive Dual-Portal Frontend
+*   **Organizer Dashboard:** Provides deep insights into active events, pending agent actions (Approve/Reject UI), real-time attendance statistics, and AI-generated post-event reports.
+*   **Participant Portal:** A dedicated view for users to browse events, manage their registrations, and directly join meetings via a conditionally rendered "Join Meeting" button (hidden when an event is completed or cancelled). Includes a dynamic attendance page using QR code technology.
 
-Everything else — opening attendance, starting the event, ending it, sending smart reminders, generating analytics and AI insights — is handled **automatically by the agent** based on real-time clock checks and participant behavior.
+### 4. AI-Powered Strategic Insights (LangGraph)
+Post-event, EventEngine aggregates attendance data, feedback ratings, and registration numbers.
+*   Uses **LangChain & LangGraph** to evaluate performance.
+*   Provides actionable, strategic insights for future events (e.g., "Increase marketing budget," "Change time slot").
+*   Supports Multi-Key Failover (Groq, Gemini, OpenAI) to ensure high availability for AI inferences.
 
----
+### 5. Multi-Channel Notifications & Integrations
+*   **Email Engine:** Robust SMTP configuration for sending HTML/Text emails for OTPs, confirmations, promotional blasts, and certificates.
+*   **Google Calendar & Meet:** Direct integration via OAuth to generate real Google Meet links for online events dynamically.
+*   **SMS (Twilio):** Configured for critical SMS delivery to mobile numbers (Requires Twilio credentials).
 
-## Architecture Overview
+## 🏗️ System Architecture
 
-```
-┌─────────────────────────────────────────────────────┐
-│                    FRONTEND (HTML/JS)                │
-│   Dashboard | Events | Registrations | Attendance   │
-│                   | Analytics                        │
-└──────────────────────┬──────────────────────────────┘
-                       │ HTTP REST API
-┌──────────────────────▼──────────────────────────────┐
-│                  FastAPI (api/)                      │
-│  /events  /registrations  /attendance  /analytics   │
-└──────────────────────┬──────────────────────────────┘
-                       │
-┌──────────────────────▼──────────────────────────────┐
-│               SERVICES LAYER (services/)             │
-│  EventService | RegistrationService | Attendance    │
-│  ReminderService | AnalyticsService | InsightsService│
-└────────┬─────────────┬──────────────┬───────────────┘
-         │             │              │
-┌────────▼──────┐ ┌────▼─────┐ ┌─────▼──────────────┐
-│  CORE AGENT   │ │ DATABASE │ │   NOTIFICATIONS     │
-│  (core/)      │ │ SQLite/  │ │   Email (SMTP)      │
-│  agent.py     │ │ Postgres │ │   SMS (Twilio)      │
-│  scheduler.py │ │ SQLAlch. │ │   (notifications/)  │
-│  state_machine│ └──────────┘ └────────────────────┘
-└───────────────┘
-```
+EventEngine is built on a modern, decoupled architecture:
 
-**Core design pattern — The Agent runs an Observe → Decide → Act loop every 60 seconds:**
-- **Observe**: Query all active events from the database
-- **Decide**: Check transition rules and reminder rules for each event
-- **Act**: Auto-transition states or send reminders if conditions are met
+*   **Backend:** FastAPI (Python) - Provides high-performance async REST API endpoints.
+*   **Database:** SQLAlchemy ORM with SQLite (default) / PostgreSQL support.
+*   **Agent Scheduler:** APScheduler runs the Observe-Decide-Act loop at 30-second and 5-minute intervals.
+*   **Frontend:** Vanilla HTML, CSS (Dark Theme, Glassmorphism), and Javascript. Communicates entirely via REST.
+*   **AI Engine:** LangGraph, LangChain, Groq/OpenAI/Gemini.
+*   **Authentication:** JWT-based Role-Based Access Control (RBAC) separating `organizer` and `participant`.
 
----
-
-## Event Lifecycle (State Machine)
-
-All state changes are enforced through a strict **Finite State Machine (FSM)**. Invalid transitions are rejected.
-
-```
-                    ┌─────────┐
-                    │ CREATED │  ← Organizer creates event
-                    └────┬────┘
-                         │ Organizer opens registration
-               ┌─────────▼──────────┐
-               │  REGISTRATION_OPEN │  ← Participants register here
-               └─────────┬──────────┘     Agent sends smart reminders
-                         │ Organizer closes registration
-                ┌────────▼────────┐
-                │   SCHEDULED     │  ← Event is confirmed
-                └────────┬────────┘
-                         │ AUTO: 30 min before start time
-             ┌───────────▼───────────┐
-             │   ATTENDANCE_OPEN     │  ← QR / OTP check-in enabled
-             └───────────┬───────────┘
-                         │ AUTO: at exact start time
-                  ┌──────▼──────┐
-                  │   RUNNING   │  ← Event is live
-                  └──────┬──────┘
-                         │ AUTO: 15 min after end time
-                 ┌────────▼────────┐
-                 │   COMPLETED     │
-                 └────────┬────────┘
-                          │ AUTO: immediately
-                  ┌────────▼────────┐
-                  │   ANALYZING     │  ← Agent calculates metrics
-                  └────────┬────────┘
-                           │ AUTO: after analytics saved
-              ┌─────────────▼─────────────┐
-              │     REPORT_GENERATED      │  ← Final state ✓
-              └───────────────────────────┘
-
-              CANCELLED ← possible from any state (manual only)
-```
-
----
-
-## How This Project is Agentic
-
-### What does "Agentic" mean here?
-A traditional event management system is **reactive** — it only does something when a human clicks a button. EventEngine is **agentic** — it has an autonomous agent that continuously observes the world, reasons about what needs to happen, and acts on its own without waiting for human instruction.
-
-The agent follows the classic **Observe → Decide → Act** loop, running every 60 seconds in the background:
-
-```
-┌──────────────────────────────────────────────────────────┐
-│                   AGENT LOOP (every 60s)                 │
-│                                                          │
-│  OBSERVE ──► Query all active events from database       │
-│     │                                                    │
-│  DECIDE ──► For each event:                              │
-│     │        - Check time-based transition rules         │
-│     │        - Check confirmation rates                  │
-│     │        - Check reminder windows                    │
-│     │                                                    │
-│  ACT    ──► If condition met:                            │
-│              - Auto-transition event state               │
-│              - Send reminder emails                      │
-│              - Generate analytics                        │
-└──────────────────────────────────────────────────────────┘
-```
-
-**Key agentic properties of EventEngine:**
-
-| Property | How EventEngine achieves it |
-|----------|-----------------------------|
-| **Autonomy** | Agent runs without human input — transitions states, sends emails, generates reports on its own |
-| **Perception** | Reads real-time data — current timestamp, event states, confirmation rates, last-reminder timestamps |
-| **Reasoning** | Applies business rules (transition_rules.py, reminder_rules.py) to decide what action is appropriate |
-| **Action** | Executes state transitions, triggers emails, calculates analytics |
-| **Adaptivity** | Changes reminder strategy dynamically based on live confirmation rate data |
-| **Goal-directed** | Every event has a goal: reach REPORT_GENERATED — the agent steers it there automatically |
-
----
-
-## Agentic Decision Rules (Exact Thresholds)
-
-These are the precise rules the agent uses to make decisions. These are **not hardcoded if-else** — they are declarative rules in `rules/transition_rules.py` and `rules/reminder_rules.py`.
-
-### 1. Auto State Transition Rules
-
-| Current State | Condition | Agent Action |
-|--------------|-----------|--------------|
-| `SCHEDULED` | Current time ≥ (event start − **30 minutes**) | Auto-transition → `ATTENDANCE_OPEN` |
-| `ATTENDANCE_OPEN` | Current time ≥ event start time | Auto-transition → `RUNNING` |
-| `RUNNING` | Current time ≥ (event end + **15 min grace**) | Auto-transition → `COMPLETED` |
-| `COMPLETED` | Immediately after completion | Auto-transition → `ANALYZING` |
-| `ANALYZING` | After analytics are calculated and saved | Auto-transition → `REPORT_GENERATED` |
-
-### 2. Smart Reminder Rules
-
-The agent evaluates reminders **every 5 minutes** for all events in `REGISTRATION_OPEN` or `SCHEDULED` state.
-
-**When does the agent start sending reminders?**
-- Only when the event is **≤ 7 days (168 hours)** away — no spam if event is far in future
-
-**Reminder Windows (triggers):**
-
-| Window | Hours Before Event | Agent Behaviour |
-|--------|--------------------|-----------------|
-| First Reminder | **168 hours (7 days)** | Sends a heads-up reminder |
-| Second Reminder | **48 hours (2 days)** | Stronger reminder |
-| Final Reminder | **24 hours (1 day)** | Urgent reminder regardless of confirmation rate |
-| Last Call | **2 hours** | Final call, sent to ALL registrants no matter what |
-
-**Anti-spam guard:** Agent enforces a **minimum 12-hour gap** between any two reminders — will not send again even if rules match.
-
-### 3. Adaptive Reminder Intensity (Based on Confirmation Rate)
-
-The agent checks what % of registered participants have clicked the confirmation link and adapts:
-
-| Confirmation Rate | Reminder Type | Tone | Subject Line |
-|------------------|---------------|------|--------------|
-| **≥ 70%** | `LIGHT` | Friendly | *"Reminder: EventName is coming up!"* |
-| **30% – 69%** | `MODERATE` | Encouraging | *"Don't forget: EventName starts in Xh – confirm now!"* |
-| **< 30%** | `AGGRESSIVE` | Urgent 🚨 | *"⚠️ URGENT: Confirm for EventName – Starts in Xh"* |
-
-**Special case — AGGRESSIVE mode behaviour:**
-- Triggered when confirmation rate falls **below 30%**
-- The email tells participants their **spot may be released** if they don't confirm
-- Includes the exact current confirmation percentage in the message
-- Bypasses the normal "is it a reminder window?" check — sends immediately if rate is critical
-
-**Special case — Final reminder (< 2 hours):**
-- Sent to ALL registrants regardless of confirmation rate
-- Even confirmed participants get this as a final reminder to actually show up
-
-### 4. Attendance Check-In Window
-
-| Rule | Value |
-|------|-------|
-| QR / OTP check-in opens | **30 minutes before** event start |
-| QR / OTP check-in closes | At event end time |
-| OTP validity duration | **15 minutes** from generation |
-
-### 5. Analytics Evaluation Rules (Post-Event)
-
-After the event completes, the agent auto-calculates and grades event performance:
-
-| Metric | Threshold | Label |
-|--------|-----------|-------|
-| Attendance rate | **> 75%** | Good ✅ |
-| Attendance rate | **50% – 75%** | Average ⚠️ |
-| Attendance rate | **< 50%** | Poor ❌ |
-| Engagement score | **> 80** | High engagement |
-
-If OpenAI API key is configured, the agent feeds these metrics to **GPT-4o-mini** and generates natural language insights and recommendations for the next event.
-
----
-
-## Manual vs Autonomous Actions
-
-### What the organizer does manually (5 steps only):
-| Step | Action |
-|------|--------|
-| 1 | Create an event (name, date, venue, capacity) |
-| 2 | Open registration |
-| 3 | Close registration / schedule the event |
-| 4 | Cancel if needed |
-| 5 | Participants register themselves via the registration form |
-
-### What the agent does automatically:
-| Trigger | Action |
-|---------|--------|
-| Participant registers | Generates QR code + sends confirmation email |
-| 7 days before event | Starts sending reminder emails |
-| Confirmation rate < 30% | Escalates to AGGRESSIVE reminders (urgent tone) |
-| Confirmation rate 30–70% | MODERATE reminders (encouraging tone) |
-| Confirmation rate > 70% | LIGHT reminders (friendly tone) |
-| 30 min before start | Opens attendance (ATTENDANCE_OPEN) |
-| At start time | Marks event as RUNNING |
-| 15 min after end time | Marks event as COMPLETED |
-| After COMPLETED | Calculates analytics (attendance rate, no-show rate, etc.) |
-| After analytics | Generates AI insights and recommendations |
-
----
-
-## Project Structure
-
-```
+### 📂 Directory Structure
+```text
 EventEngine/
-│
-├── run.py                    # ← START HERE: launches the server
-│
-├── api/                      # REST API layer (FastAPI routes)
-│   ├── main.py               # App config, middleware, route registration
-│   └── routes/
-│       ├── events.py         # CRUD for events + state transitions
-│       ├── registrations.py  # Register participants, confirm attendance
-│       ├── attendance.py     # QR check-in, OTP check-in
-│       └── analytics.py      # Event analytics and insights
-│
-├── core/                     # The brain of the system
-│   ├── agent.py              # Observe → Decide → Act loop
-│   ├── scheduler.py          # APScheduler — runs agent every 60 seconds
-│   └── state_machine.py      # FSM — enforces valid state transitions
-│
-├── services/                 # Business logic layer
-│   ├── event_service.py      # Create/update/transition events
-│   ├── registration_service.py # Register participants, send emails
-│   ├── reminder_service.py   # Evaluate and send reminders
-│   ├── attendance_service.py # QR/OTP check-in logic
-│   ├── analytics_service.py  # Calculate post-event metrics
-│   └── insights_service.py   # GPT-4 powered insights (optional)
-│
-├── models/                   # Database models (SQLAlchemy ORM)
-│   ├── event.py              # Event table
-│   ├── participant.py        # Participant table (stores QR token + OTP)
-│   ├── attendance.py         # Attendance check-in records
-│   └── analytics.py          # Post-event analytics data
-│
-├── rules/                    # Declarative business rules
-│   ├── transition_rules.py   # Guard conditions for each state transition
-│   └── reminder_rules.py     # When/how to send reminders based on data
-│
-├── notifications/            # Notification channels
-│   ├── email.py              # Gmail SMTP email service
-│   └── sms.py                # Twilio SMS (configured but inactive)
-│
-├── utils/                    # Utilities
-│   ├── qr_generator.py       # JWT-secured QR code generation
-│   ├── otp_generator.py      # 6-digit OTP generation and validation
-│   └── logger.py             # Structured application logging
-│
-├── config/
-│   ├── settings.py           # Loads all config from .env
-│   └── constants.py          # Enums: EventState, ParticipantStatus, etc.
-│
-├── db/
-│   ├── base.py               # DB engine, session, init
-│   └── seed.py               # Sample data for development
-│
-├── frontend/                 # Static HTML/CSS/JS frontend
-│   ├── index.html            # Dashboard
-│   ├── events.html           # Events management
-│   ├── registrations.html    # Registrations list
-│   ├── attendance.html       # Attendance check-in
-│   └── analytics.html        # Analytics dashboard
-│
-├── .env                      # Environment variables (NOT committed)
-└── requirements.txt          # Python dependencies
+├── api/                  # FastAPI routers (events, auth, agent, analytics)
+├── config/               # Settings, constants, and environment configs
+├── core/                 # Core engine logic (Agent, StateMachine, Scheduler)
+├── db/                   # Database session management
+├── frontend/             # HTML/CSS/JS Portals (Dashboard, Portal, Analytics)
+├── models/               # SQLAlchemy ORM Models (Event, User, Participant)
+├── notifications/        # Email (SMTP) and SMS (Twilio) services
+├── rules/                # Transition rules for the FSM
+├── services/             # Business logic layer (Analytics, Promotion, Certs)
+│   └── ai/               # LangGraph AI Insights engine
+├── utils/                # Logging, QR generation, helpers
+├── run.py                # Main entry point to launch the uvicorn server
+└── requirements.txt      # Python dependencies
 ```
 
----
+## 🚀 Getting Started
 
-## Tech Stack
+### 1. Prerequisites
+*   Python 3.10+
+*   A Gmail account (with App Passwords enabled) or another SMTP provider.
 
-| Layer | Technology |
-|-------|-----------|
-| Backend API | FastAPI (Python) |
-| Database | SQLite (dev) / PostgreSQL (prod) |
-| ORM | SQLAlchemy |
-| Agent Scheduler | APScheduler |
-| Email | Gmail SMTP (smtplib) |
-| SMS | Twilio (configured, inactive) |
-| QR Codes | `qrcode` library + JWT tokens |
-| AI Insights | OpenAI GPT-4o-mini (optional) |
-| Frontend | Vanilla HTML + CSS + JavaScript |
-| Auth/Security | JWT (PyJWT) |
-
----
-
-## What Is Implemented
-
-### ✅ Core System
-- [x] Finite State Machine with 9 states and enforced valid transitions
-- [x] Autonomous Agent loop (Observe → Decide → Act, every 60 seconds)
-- [x] APScheduler background scheduler
-- [x] SQLite database with SQLAlchemy ORM
-- [x] Full REST API (FastAPI) with Swagger docs at `/docs`
-- [x] Static HTML frontend (Dashboard, Events, Registrations, Attendance, Analytics)
-
-### ✅ Event Management
-- [x] Create, list, update events (ONLINE / OFFLINE / HYBRID)
-- [x] Manual state transitions via API
-- [x] Auto state transitions by agent (ATTENDANCE_OPEN → RUNNING → COMPLETED → ANALYZING → REPORT_GENERATED)
-
-### ✅ Registration & Notifications
-- [x] Participant registration with capacity checks and duplicate detection
-- [x] Auto confirmation email with QR code attached (Gmail SMTP)
-- [x] Confirmation link in email — participant confirms attendance via one click
-- [x] JWT-secured QR code generation (time-limited, tamper-proof)
-- [x] 6-digit OTP generation and validation (backup check-in method)
-
-### ✅ Smart Reminders
-- [x] Agent evaluates reminder need every 5 minutes
-- [x] Adaptive strategy: LIGHT / MODERATE / AGGRESSIVE based on confirmation rate
-- [x] Reminder windows: 7 days, 2 days, 1 day, 2 hours before event
-- [x] 12-hour spam guard (no repeated reminders too soon)
-
-### ✅ Attendance
-- [x] QR code check-in (scan JWT token)
-- [x] OTP check-in (6-digit backup, 15-min expiry)
-- [x] Attendance records with timestamp, method, IP address
-- [x] Post-check-in confirmation email to participant
-
-### ✅ Analytics
-- [x] Auto-calculates: total_registered, confirmed, attended, no_show_rate, attendance_rate
-- [x] Rule-based insights when OpenAI is not configured
-- [x] GPT-4o-mini AI insights when OpenAI API key is provided
-- [x] Analytics dashboard in frontend
-
----
-
-## What Is Remaining / Planned
-
-### ❌ From Original Plan
-| Feature | Status | Notes |
-|---------|--------|-------|
-| Auto Google Meet link creation | ❌ Not done | API creates event but `meeting_link` is manually pasted; Google Calendar API integration needed |
-| Calendar invite (.ics) in email | ❌ Not done | No `.ics` file attached to confirmation emails |
-| OTP delivery via email/SMS | ❌ Partial | OTP is generated and stored but not automatically sent to participant; Twilio SMS slot exists but inactive |
-
-### 🔲 Planned Enhancements
-| Feature | Description |
-|---------|-------------|
-| Google Meet auto-creation | Use Google Calendar API to auto-generate Meet link on event creation |
-| .ics calendar invite | Attach calendar file to confirmation email (works with Google/Outlook/Apple) |
-| OTP via email | Auto-email the OTP to participant when generated |
-| Waitlist management | Auto-register next person when someone cancels from a full event |
-| Feedback form post-event | Agent emails participants a feedback form after COMPLETED |
-| PDF certificate generation | Auto-generate attendance certificate and email to participants |
-| SMS reminders via Twilio | Twilio is already in requirements and `.env`, just needs credentials |
-| Role-based access | Admin / Organizer / Viewer roles with JWT auth |
-
-### 🚀 New Features (In Progress)
-
-#### 1. LinkedIn One-Click Event Post
-After an event is created, the organizer sees a **"Post to LinkedIn"** button. The agent auto-drafts the post using the event name, date, description, and registration link. The organizer previews it and hits **Allow** — the post goes live instantly via the LinkedIn Share API.
-
-**Flow:**
-```
-Organizer creates event
-        ↓
-EventEngine shows: [Preview Post] [Post to LinkedIn] [Skip]
-        ↓  (one click)
-Agent posts to LinkedIn:
-─────────────────────────────────────────
-🎯 Exciting Event Alert!
-
-We're hosting [EventName] on [Date] at [Venue/Online]
-
-[Description]
-
-🔗 Register here: http://yourapp/register/[event_id]
-#EventName #EventEngine
-─────────────────────────────────────────
-```
-
-**What's needed:**
-- LinkedIn Developer App (`client_id` + `client_secret`) — free
-- Manager completes OAuth once → token stored
-- All future posts: one click, no tab switching
-
-#### 2. Low Registration Alert to Organizer (Agent Intelligence)
-The agent now monitors registration pace and alerts the organizer proactively — not just participants.
-
-| Trigger | Agent Action |
-|---------|-------------|
-| 3 days before event and < 20% capacity filled | Emails organizer: *"Only 5/50 spots filled. Consider promoting."* |
-| 1 day before event and < 40% capacity filled | Emails organizer with urgent alert and a ready-to-use LinkedIn/WhatsApp share link |
-| 5+ cancellations within 1 hour | Emails organizer: *"Cancellation spike detected — 5 participants cancelled in the last hour"* |
-| Event hits 100% capacity 5+ days early | Notifies organizer to consider increasing capacity or opening a waitlist |
-
-This turns the agent from a **mailer** into a genuine **event intelligence system** that watches the event health and flags issues before they become problems.
-
-#### 3. Attendance Certificate Emailer
-After the event reaches `REPORT_GENERATED`, the agent automatically emails a **personalized PDF certificate of participation** to every participant who checked in.
-
-**Certificate includes:**
-- Participant's full name
-- Event name, date, and venue
-- Organizer name / organization
-- Unique certificate ID (verifiable)
-- Auto-signed with event details
-
-**No action required from the organizer** — the agent handles generation and delivery entirely. Uses the `reportlab` Python library for PDF generation.
-
----
-
-## How to Run
-
-### Requirements
-- Python 3.10+
-- pip
-
-### Steps
-
+### 2. Installation
+Clone the repository and set up a virtual environment:
 ```bash
-# 1. Clone the repo
-git clone <your-repo-url>
+git clone https://github.com/yourusername/EventEngine.git
 cd EventEngine
-
-# 2. Create and activate virtual environment
 python -m venv .venv
-.venv\Scripts\Activate.ps1       # Windows PowerShell
-# source .venv/bin/activate       # Mac/Linux
+# On Windows:
+.venv\Scripts\activate
+# On Mac/Linux:
+source .venv/bin/activate
 
-# 3. Install dependencies
 pip install -r requirements.txt
+```
 
-# 4. Configure environment variables
-# Edit .env file — set your Gmail credentials for email to work:
-#   SMTP_USER=youremail@gmail.com
-#   SMTP_PASSWORD=your-16-char-app-password
+### 3. Environment Configuration
+Copy the sample environment file and configure your credentials:
+```bash
+cp .env.example .env
+```
+Edit `.env` and fill in your details. CRITICAL fields include:
+*   `SECRET_KEY`: Set a secure string for JWT generation.
+*   `SMTP_USER` & `SMTP_PASSWORD`: Required for email functionality (e.g., Gmail App Password).
+*   `GROQ_API_KEYS` or `OPENAI_API_KEY`: Required for the AI Analytics engine.
 
-# 5. Start the server
+*(Optional)* For Google Calendar/Meet integration, place your `credentials.json` from the Google Cloud Console into the project root.
+
+### 4. Running the Application
+Start the FastAPI server:
+```bash
 python run.py
 ```
+This will initialize the database schema automatically, start the backend on `http://localhost:8000`, and begin the background Autonomous Agent.
 
-### Access the App
+### 5. Accessing the Platform
+*   **Participant Login / Registration:** [http://localhost:8000/frontend/login.html](http://localhost:8000/frontend/login.html)
+*   **API Documentation (Swagger):** [http://localhost:8000/docs](http://localhost:8000/docs)
 
-| Page | URL |
-|------|-----|
-| Dashboard | http://localhost:8000/frontend/index.html |
-| Events | http://localhost:8000/frontend/events.html |
-| Registrations | http://localhost:8000/frontend/registrations.html |
-| Attendance | http://localhost:8000/frontend/attendance.html |
-| Analytics | http://localhost:8000/frontend/analytics.html |
-| Swagger API Docs | http://localhost:8000/docs |
+*(Note: Create an Organizer account via the registration form to access the main Dashboard, or a Participant account to access the Portal.)*
 
-> No external database setup needed — SQLite is used by default and the `.db` file is created automatically on first run.
+## 🔄 The Lifecycle in Action
 
----
+1.  **Creation:** An organizer creates an event. It enters the `CREATED` state.
+2.  **Registration:** The agent or organizer transitions the event to `REGISTRATION_OPEN`. The system autonomously promotes the event to potential participants.
+3.  **Scheduling:** As the event nears, it transitions to `SCHEDULED`. The agent queues reminders (24h, 1h) to be sent via email.
+4.  **Running:** During the event (`RUNNING` / `ATTENDANCE_OPEN`), participants join via the portal link or scan QR codes for attendance.
+5.  **Completion:** The agent moves the event to `COMPLETED` when the end time is reached. It emails feedback surveys and participation certificates.
+6.  **Analysis:** The event moves to `ANALYZING`. LangGraph reviews attendance rates and feedback, generating a comprehensive report.
+7.  **Finalization:** The event enters `REPORT_GENERATED`, and insights are available on the Organizer Dashboard.
 
-## API Documentation
-
-Interactive API documentation is available at **http://localhost:8000/docs** when the server is running.
-
-Key endpoints:
-
-| Method | Endpoint | Description |
-|--------|----------|-------------|
-| `GET` | `/api/events/` | List all events |
-| `POST` | `/api/events/` | Create a new event |
-| `POST` | `/api/events/{id}/transition` | Change event state |
-| `POST` | `/api/registrations/register` | Register a participant |
-| `GET` | `/api/registrations/confirm/{id}` | Participant confirms attendance |
-| `POST` | `/api/attendance/qr/validate` | Check in via QR code |
-| `POST` | `/api/attendance/otp/generate` | Generate OTP for participant |
-| `POST` | `/api/attendance/otp/validate` | Check in via OTP |
-| `GET` | `/api/analytics/{event_id}` | Get event analytics |
+## 🔮 Future Enhancements
+*   **Full SMS Activation:** Completing the Twilio integration for global SMS updates.
+*   **ICS Calendar Attachments:** Sending standard calendar invite files alongside confirmation emails.
+*   **LinkedIn Integration:** One-click automated promotion of upcoming events to LinkedIn via API.
+*   **Advanced Analytics Dashboards:** Implementing charting libraries (e.g., Chart.js) in the frontend for visual AI insights.
 
 ---
-
-## Environment Variables
-
-Copy `.env.example` to `.env` and fill in:
-
-```env
-# Email (required for real emails)
-SMTP_USER=youremail@gmail.com
-SMTP_PASSWORD=your-app-password      # Gmail App Password (16 chars)
-
-# AI Insights (optional)
-OPENAI_API_KEY=sk-...                # GPT-4o-mini insights
-
-# SMS (optional)
-TWILIO_ACCOUNT_SID=...
-TWILIO_AUTH_TOKEN=...
-TWILIO_PHONE_NUMBER=...
-
-# Agent timing
-AGENT_LOOP_INTERVAL_SECONDS=60       # How often agent checks events
-```
-
-> **Gmail App Password**: Go to Google Account → Security → 2-Step Verification → App Passwords → Create one for "EventEngine"
-
----
-
-## Testing
-
-```bash
-# Run all tests
-pytest
-
-# Run specific test file
-pytest tests/test_state_machine.py
-
-# Run with coverage
-pytest --cov=.
-```
-
-## License
-
-MIT
+*Built with ❤️ for fully autonomous event management.*

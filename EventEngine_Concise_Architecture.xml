@@ -1,0 +1,239 @@
+<mxfile host="app.diagrams.net" modified="2024-05-22T00:00:00.000Z" agent="Mozilla/5.0" version="24.4.0" type="device">
+  <diagram id="EventEngine-Concise" name="EventEngine Architecture (Concise View)">
+    <mxGraphModel dx="1400" dy="1000" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="1200" pageHeight="900" background="#f8f9fa" math="0" shadow="0">
+      <root>
+        <mxCell id="0" />
+        <mxCell id="1" parent="0" />
+
+        <!-- Title -->
+        <mxCell id="title" value="EVENTENGINE SYSTEM ARCHITECTURE (CONCISE VIEW)" style="text;html=1;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontSize=24;fontStyle=1;fontColor=#000000;" vertex="1" parent="1">
+          <mxGeometry x="250" y="30" width="800" height="40" as="geometry" />
+        </mxCell>
+
+        <!-- Sidebar Labels -->
+        <mxCell id="label_client" value="Client Layer" style="text;html=1;strokeColor=none;fillColor=none;align=right;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontSize=14;fontStyle=1;" vertex="1" parent="1">
+          <mxGeometry x="80" y="130" width="150" height="40" as="geometry" />
+        </mxCell>
+        <mxCell id="label_frontend" value="Frontend Layer" style="text;html=1;strokeColor=none;fillColor=none;align=right;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontSize=14;fontStyle=1;" vertex="1" parent="1">
+          <mxGeometry x="80" y="280" width="150" height="40" as="geometry" />
+        </mxCell>
+        <mxCell id="label_api" value="API Gateway &amp;&#xa;Backend Layer&#xa;(FastAPI)" style="text;html=1;strokeColor=none;fillColor=none;align=right;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontSize=14;fontStyle=1;" vertex="1" parent="1">
+          <mxGeometry x="80" y="420" width="150" height="60" as="geometry" />
+        </mxCell>
+        <mxCell id="label_db" value="Database Layer&#xa;(SQLAlchemy ORM)" style="text;html=1;strokeColor=none;fillColor=none;align=right;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontSize=14;fontStyle=1;" vertex="1" parent="1">
+          <mxGeometry x="180" y="580" width="150" height="40" as="geometry" />
+        </mxCell>
+        <mxCell id="label_ext" value="External&#xa;Services Layer" style="text;html=1;strokeColor=none;fillColor=none;align=right;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontSize=14;fontStyle=1;" vertex="1" parent="1">
+          <mxGeometry x="80" y="740" width="150" height="40" as="geometry" />
+        </mxCell>
+
+        <!-- Container Boxes -->
+        <mxCell id="box_client" value="" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#f0f4ff;strokeColor=#a5b4fc;strokeWidth=2;" vertex="1" parent="1">
+          <mxGeometry x="250" y="100" width="400" height="100" as="geometry" />
+        </mxCell>
+        
+        <mxCell id="box_frontend" value="" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#f0fdf4;strokeColor=#86efac;strokeWidth=2;" vertex="1" parent="1">
+          <mxGeometry x="250" y="250" width="400" height="100" as="geometry" />
+        </mxCell>
+
+        <mxCell id="box_api" value="" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#fffbeb;strokeColor=#fcd34d;strokeWidth=2;" vertex="1" parent="1">
+          <mxGeometry x="250" y="400" width="400" height="100" as="geometry" />
+        </mxCell>
+
+        <mxCell id="box_db" value="" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#fef2f2;strokeColor=#fca5a5;strokeWidth=2;" vertex="1" parent="1">
+          <mxGeometry x="350" y="550" width="300" height="120" as="geometry" />
+        </mxCell>
+
+        <mxCell id="box_core" value="Core Autonomous Engine Layer" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#eff6ff;strokeColor=#93c5fd;strokeWidth=2;verticalAlign=top;spacingTop=10;fontStyle=1;fontSize=14;" vertex="1" parent="1">
+          <mxGeometry x="700" y="250" width="450" height="150" as="geometry" />
+        </mxCell>
+
+        <mxCell id="box_ai" value="AI &amp; Analytics Layer" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#faf5ff;strokeColor=#d8b4fe;strokeWidth=2;verticalAlign=top;spacingTop=10;fontStyle=1;fontSize=14;" vertex="1" parent="1">
+          <mxGeometry x="750" y="450" width="400" height="120" as="geometry" />
+        </mxCell>
+
+        <mxCell id="box_ext" value="" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#f0fdfa;strokeColor=#5eead4;strokeWidth=2;" vertex="1" parent="1">
+          <mxGeometry x="250" y="720" width="900" height="100" as="geometry" />
+        </mxCell>
+
+        <!-- Client Inner Elements -->
+        <mxCell id="client_org" value="&lt;span style=&quot;font-size: 24px;&quot;&gt;👔&lt;/span&gt;&lt;br&gt;Organizer&lt;br&gt;Dashboard" style="text;html=1;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=0;" vertex="1" parent="1">
+          <mxGeometry x="270" y="110" width="100" height="80" as="geometry" />
+        </mxCell>
+        <mxCell id="client_part" value="&lt;span style=&quot;font-size: 24px;&quot;&gt;👩‍💻&lt;/span&gt;&lt;br&gt;Participant&lt;br&gt;Portal" style="text;html=1;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=0;" vertex="1" parent="1">
+          <mxGeometry x="400" y="110" width="100" height="80" as="geometry" />
+        </mxCell>
+        <mxCell id="client_mob" value="&lt;span style=&quot;font-size: 24px;&quot;&gt;📱&lt;/span&gt;&lt;br&gt;Mobile Users&lt;br&gt;(QR)" style="text;html=1;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=0;" vertex="1" parent="1">
+          <mxGeometry x="530" y="110" width="100" height="80" as="geometry" />
+        </mxCell>
+
+        <!-- Frontend Inner Elements -->
+        <mxCell id="fe_ui" value="&lt;span style=&quot;font-size: 24px;&quot;&gt;🖥️&lt;/span&gt;&lt;br&gt;UI Renderer" style="text;html=1;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=0;" vertex="1" parent="1">
+          <mxGeometry x="270" y="260" width="100" height="80" as="geometry" />
+        </mxCell>
+        <mxCell id="fe_api" value="&lt;span style=&quot;font-size: 24px;&quot;&gt;&lt;/&gt;&lt;/span&gt;&lt;br&gt;API Client" style="text;html=1;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=0;" vertex="1" parent="1">
+          <mxGeometry x="400" y="260" width="100" height="80" as="geometry" />
+        </mxCell>
+        <mxCell id="fe_sess" value="&lt;span style=&quot;font-size: 24px;&quot;&gt;✅&lt;/span&gt;&lt;br&gt;Session Manager" style="text;html=1;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=0;" vertex="1" parent="1">
+          <mxGeometry x="530" y="260" width="100" height="80" as="geometry" />
+        </mxCell>
+
+        <!-- API Inner Elements -->
+        <mxCell id="api_auth" value="&lt;span style=&quot;font-size: 24px;&quot;&gt;🔒&lt;/span&gt;&lt;br&gt;Auth" style="text;html=1;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=0;" vertex="1" parent="1">
+          <mxGeometry x="260" y="410" width="60" height="80" as="geometry" />
+        </mxCell>
+        <mxCell id="api_analytics" value="&lt;span style=&quot;font-size: 24px;&quot;&gt;📅&lt;/span&gt;&lt;br&gt;Analytics" style="text;html=1;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=0;" vertex="1" parent="1">
+          <mxGeometry x="330" y="410" width="60" height="80" as="geometry" />
+        </mxCell>
+        <mxCell id="api_tasks" value="&lt;span style=&quot;font-size: 24px;&quot;&gt;📈&lt;/span&gt;&lt;br&gt;Agent Tasks" style="text;html=1;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=0;" vertex="1" parent="1">
+          <mxGeometry x="400" y="410" width="70" height="80" as="geometry" />
+        </mxCell>
+        <mxCell id="api_notifs" value="&lt;span style=&quot;font-size: 24px;&quot;&gt;🔔&lt;/span&gt;&lt;br&gt;Notifs" style="text;html=1;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=0;" vertex="1" parent="1">
+          <mxGeometry x="480" y="410" width="60" height="80" as="geometry" />
+        </mxCell>
+        <mxCell id="api_feedback" value="&lt;span style=&quot;font-size: 24px;&quot;&gt;💬&lt;/span&gt;&lt;br&gt;Feedback" style="text;html=1;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=0;" vertex="1" parent="1">
+          <mxGeometry x="550" y="410" width="60" height="80" as="geometry" />
+        </mxCell>
+
+        <!-- Database Inner Elements -->
+        <mxCell id="db_cyl" value="PostgreSQL/SQLite" style="shape=cylinder3;whiteSpace=wrap;html=1;boundedLbl=1;backgroundOutline=1;size=15;fillColor=#b91c1c;strokeColor=#7f1d1d;fontColor=#ffffff;" vertex="1" parent="1">
+          <mxGeometry x="370" y="570" width="60" height="80" as="geometry" />
+        </mxCell>
+        <mxCell id="db_u" value="&lt;span style=&quot;font-size: 16px;&quot;&gt;📇&lt;/span&gt; Users" style="text;html=1;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=0;" vertex="1" parent="1">
+          <mxGeometry x="450" y="570" width="60" height="30" as="geometry" />
+        </mxCell>
+        <mxCell id="db_e" value="&lt;span style=&quot;font-size: 16px;&quot;&gt;📇&lt;/span&gt; Events" style="text;html=1;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=0;" vertex="1" parent="1">
+          <mxGeometry x="520" y="570" width="60" height="30" as="geometry" />
+        </mxCell>
+        <mxCell id="db_a" value="&lt;span style=&quot;font-size: 16px;&quot;&gt;📇&lt;/span&gt; Actions" style="text;html=1;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=0;" vertex="1" parent="1">
+          <mxGeometry x="580" y="570" width="60" height="30" as="geometry" />
+        </mxCell>
+        <mxCell id="db_p" value="&lt;span style=&quot;font-size: 16px;&quot;&gt;📇&lt;/span&gt; Participants" style="text;html=1;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=0;" vertex="1" parent="1">
+          <mxGeometry x="460" y="620" width="90" height="30" as="geometry" />
+        </mxCell>
+        <mxCell id="db_f" value="&lt;span style=&quot;font-size: 16px;&quot;&gt;📇&lt;/span&gt; Feedback" style="text;html=1;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=0;" vertex="1" parent="1">
+          <mxGeometry x="550" y="620" width="80" height="30" as="geometry" />
+        </mxCell>
+
+        <!-- Core Autonomous Inner Elements -->
+        <mxCell id="core_agent" value="&lt;span style=&quot;font-size: 32px;&quot;&gt;⚙️&lt;/span&gt;&lt;br&gt;EventAgent&lt;br&gt;(Observe-Decide-Act)" style="text;html=1;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=0;" vertex="1" parent="1">
+          <mxGeometry x="720" y="290" width="130" height="80" as="geometry" />
+        </mxCell>
+        <mxCell id="core_sched" value="&lt;span style=&quot;font-size: 32px;&quot;&gt;🔄&lt;/span&gt;&lt;br&gt;Scheduler" style="text;html=1;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=0;" vertex="1" parent="1">
+          <mxGeometry x="870" y="290" width="100" height="80" as="geometry" />
+        </mxCell>
+        <mxCell id="core_fsm" value="&lt;span style=&quot;font-size: 32px;&quot;&gt;🔀&lt;/span&gt;&lt;br&gt;FSM Rules&lt;br&gt;Engine" style="text;html=1;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=0;" vertex="1" parent="1">
+          <mxGeometry x="1000" y="290" width="100" height="80" as="geometry" />
+        </mxCell>
+
+        <!-- AI Inner Elements -->
+        <mxCell id="ai_reasoning" value="&lt;span style=&quot;font-size: 32px;&quot;&gt;🧠&lt;/span&gt;&lt;br&gt;Reasoning&lt;br&gt;Engine" style="text;html=1;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=0;" vertex="1" parent="1">
+          <mxGeometry x="770" y="480" width="100" height="80" as="geometry" />
+        </mxCell>
+        <mxCell id="ai_failover" value="&lt;span style=&quot;font-size: 32px;&quot;&gt;🌸&lt;/span&gt;&lt;br&gt;Multi-LLM&lt;br&gt;Failover" style="text;html=1;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=0;" vertex="1" parent="1">
+          <mxGeometry x="890" y="480" width="100" height="80" as="geometry" />
+        </mxCell>
+        <mxCell id="ai_insights" value="&lt;span style=&quot;font-size: 32px;&quot;&gt;📈&lt;/span&gt;&lt;br&gt;Strategic&lt;br&gt;Insights" style="text;html=1;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=0;" vertex="1" parent="1">
+          <mxGeometry x="1010" y="480" width="100" height="80" as="geometry" />
+        </mxCell>
+
+        <!-- External Inner Elements -->
+        <mxCell id="ext_smtp" value="&lt;span style=&quot;font-size: 32px;&quot;&gt;✉️&lt;/span&gt;&lt;br&gt;SMTP Email&lt;br&gt;Provider" style="text;html=1;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=0;" vertex="1" parent="1">
+          <mxGeometry x="270" y="730" width="120" height="80" as="geometry" />
+        </mxCell>
+        <mxCell id="ext_twilio" value="&lt;span style=&quot;font-size: 32px;&quot;&gt;💬&lt;/span&gt;&lt;br&gt;Twilio&lt;br&gt;SMS API" style="text;html=1;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=0;" vertex="1" parent="1">
+          <mxGeometry x="450" y="730" width="120" height="80" as="geometry" />
+        </mxCell>
+        <mxCell id="ext_gcal" value="&lt;span style=&quot;font-size: 32px;&quot;&gt;🎥&lt;/span&gt;&lt;br&gt;Google&lt;br&gt;Calendar/Meet" style="text;html=1;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=0;" vertex="1" parent="1">
+          <mxGeometry x="630" y="730" width="120" height="80" as="geometry" />
+        </mxCell>
+        <mxCell id="ext_llm" value="&lt;span style=&quot;font-size: 32px;&quot;&gt;☁️&lt;/span&gt;&lt;br&gt;LLM Providers&lt;br&gt;(Cloud)" style="text;html=1;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=0;" vertex="1" parent="1">
+          <mxGeometry x="930" y="730" width="150" height="80" as="geometry" />
+        </mxCell>
+
+        <!-- Edges -->
+        <mxCell id="edge_c_f" edge="1" parent="1" source="box_client" target="box_frontend">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="label_cf" value="HTTPS (Web/App)" style="edgeLabel;html=1;align=center;verticalAlign=middle;resizable=0;points=[];" vertex="1" connectable="0" parent="edge_c_f">
+          <mxGeometry x="0.2" y="1" relative="1" as="geometry">
+            <mxPoint x="60" y="-10" as="offset" />
+          </mxGeometry>
+        </mxCell>
+
+        <mxCell id="edge_f_a" edge="1" parent="1" source="box_frontend" target="box_api">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+
+        <mxCell id="edge_a_d" edge="1" parent="1" source="box_api" target="box_db">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+
+        <mxCell id="edge_a_c" edge="1" parent="1" source="box_api" target="box_core">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="680" y="450" />
+              <mxPoint x="680" y="325" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="edge_c_a" edge="1" parent="1" source="box_core" target="box_api">
+          <mxGeometry relative="1" as="geometry">
+             <Array as="points">
+              <mxPoint x="680" y="325" />
+              <mxPoint x="680" y="450" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+
+        <mxCell id="edge_c_ai" edge="1" parent="1" source="box_core" target="box_ai">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="950" y="400" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="edge_ai_c" edge="1" parent="1" source="box_ai" target="box_core">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="950" y="400" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+
+        <mxCell id="edge_c_db" edge="1" parent="1" source="box_core" target="box_db">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="750" y="610" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="edge_db_c" edge="1" parent="1" source="box_db" target="box_core">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="750" y="610" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+
+        <mxCell id="edge_c_ext" edge="1" parent="1" source="box_core" target="box_ext">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="730" y="700" />
+              <mxPoint x="350" y="700" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+
+        <mxCell id="edge_ai_ext" edge="1" parent="1" source="box_ai" target="ext_llm">
+          <mxGeometry relative="1" as="geometry">
+             <Array as="points">
+              <mxPoint x="980" y="650" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+
+      </root>
+    </mxGraphModel>
+  </diagram>
+</mxfile>

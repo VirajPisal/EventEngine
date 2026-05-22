@@ -350,8 +350,8 @@ COMMUNICATION:
     <style>
         body {{ font-family: 'Inter', -apple-system, sans-serif; line-height: 1.6; color: #1f2937; max-width: 800px; margin: 40px auto; padding: 20px; background: #f9fafb; }}
         .card {{ background: white; border-radius: 12px; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1); padding: 30px; margin-bottom: 20px; }}
-        .header {{ border-bottom: 2px solid #e5e7eb; padding-bottom: 20px; margin-bottom: 30px; }}
-        .title {{ font-size: 24px; font-weight: 800; color: #111827; margin: 0; }}
+        .header {{ border-bottom: 2px solid #e5e7eb; padding-bottom: 20px; margin-bottom: 30px; position: relative; }}
+        .title {{ font-size: 24px; font-weight: 800; color: #111827; margin: 0; padding-right: 150px; }}
         .subtitle {{ color: #6b7280; font-size: 14px; margin-top: 5px; }}
         .grid {{ display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-top: 20px; }}
         .stat-box {{ background: #f3f4f6; padding: 15px; border-radius: 8px; text-align: center; }}
@@ -361,7 +361,9 @@ COMMUNICATION:
         .score-circle {{ width: 100px; height: 100px; border-radius: 50%; border: 8px solid {perf_color}; display: flex; align-items: center; justify-content: center; margin: 0 auto; }}
         .score-val {{ font-size: 28px; font-weight: 800; }}
         .footer {{ text-align: center; margin-top: 40px; font-size: 12px; color: #9ca3af; }}
-        @media print {{ body {{ background: white; margin: 0; }} .card {{ box-shadow: none; border: 1px solid #e5e7eb; }} }}
+        .download-btn {{ position: absolute; top: 30px; right: 30px; background: #4f46e5; color: white; border: none; padding: 10px 20px; border-radius: 6px; cursor: pointer; font-weight: bold; font-family: inherit; font-size: 14px; transition: background 0.2s; }}
+        .download-btn:hover {{ background: #4338ca; }}
+        @media print {{ body {{ background: white; margin: 0; }} .card {{ box-shadow: none; border: 1px solid #e5e7eb; }} .no-print {{ display: none !important; }} }}
     </style>
 </head>
 <body>
@@ -369,6 +371,7 @@ COMMUNICATION:
         <h1 class="title">{data['event_name']}</h1>
         <p class="subtitle">Event ID: {data['event_id']} | Generated on {datetime.now().strftime('%B %d, %Y')}</p>
         <div class="perf-badge">{data['performance_category']} PERFORMANCE</div>
+        <button class="download-btn no-print" onclick="window.print()">📥 Download PDF</button>
     </div>
 
     <div class="grid">
